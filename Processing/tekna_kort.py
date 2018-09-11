@@ -1,0 +1,4 @@
+
+
+def teknakort():
+    print('farts')
