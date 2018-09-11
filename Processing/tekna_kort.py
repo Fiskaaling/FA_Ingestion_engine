@@ -5,6 +5,7 @@ matplotlib.use('TkAgg')
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
 from matplotlib.backend_bases import key_press_handler
 from matplotlib.figure import Figure
+from matplotlib import pyplot as plt
 import numpy as np
 from mpl_toolkits.basemap import Basemap
 import os
@@ -57,6 +58,7 @@ def teknakort():
 
 def les_og_tekna(text, fig, canvas):
     text = text.split('\n')
+    dpi = 400
     landlitur = 'lightgray'
     for command in text:
         if "=" in command:
@@ -73,28 +75,32 @@ def les_og_tekna(text, fig, canvas):
                 lonmax = float(command[toindex::])
             elif variable == 'landlitur':
                 landlitur = command[toindex::]
+            elif variable == 'title':
+                ax.set_title(command[toindex::])
+            elif variable == 'dpi':
+                dpi = command[toindex::]
         else:
             if command == 'clf':
                 fig.clf()
-    lon_0, lat_0 = -7, 62
-    m = Basemap(projection='tmerc', resolution=None,
+                ax = fig.add_subplot(111)
+    m = Basemap(projection='merc', resolution=None,
                 llcrnrlat=latmin, urcrnrlat=latmax,
-                llcrnrlon=lonmin, urcrnrlon=lonmax,
-                lon_0=lon_0, lat_0=lat_0)
-    ax = fig.add_subplot(111)
+                llcrnrlon=lonmin, urcrnrlon=lonmax, ax=ax)
     for island in os.listdir('Coasts'):
         lo, aa, la = np.genfromtxt('Coasts/'+island, delimiter = ' ').T
         xpt, ypt = m(lo, la)
         m.plot(xpt, ypt, 'k', linewidth=1)
         ax.fill(xpt, ypt, landlitur)
-    fig.savefig('test.png')
+    fig.savefig('test.png', dpi=dpi, bbox_inches='tight')
 
     canvas.draw()
     canvas.get_tk_widget().pack(fill=BOTH, expand=1)
 
 
 def nyttkort(text):
-    nyttkort_text = "clf\nlatmax=62.28\nlonmax=-6.71\nlatmin=62.245\nlonmin=-6.75"
+    F = open('Processing/kort_uppsetan.upp', 'r')
+    nyttkort_text = F.read()
+    F.close()
     if len(text.get("1.0", END)) > 1:
         if messagebox.askyesno("Ávaring", "Vilt tú yvurskriva núverani kort?"):
             text.delete(1.0, END)
