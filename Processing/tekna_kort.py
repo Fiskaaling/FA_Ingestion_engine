@@ -1,4 +1,103 @@
+from tkinter import *
+from tkinter import messagebox
+import matplotlib
+matplotlib.use('TkAgg')
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
+from matplotlib.backend_bases import key_press_handler
+from matplotlib.figure import Figure
+import numpy as np
+from mpl_toolkits.basemap import Basemap
+import os
+
+
+class Window(Frame):
+    def __init__(self, master=None):
+        Frame.__init__(self, master)
+        self.master = master
+        Frame.pack(self, side=BOTTOM)
+        self.init_window()
+
+    def init_window(self):
+        self.master.title("Fiskaaling - Tekna Kort")
+        self.pack(fill=BOTH, expand=1)
+
+        # tools_frame = Frame(self, relief=RAISED, borderwidth=1)
+        main_frame = Frame(self, borderwidth=1)
+        main_frame.pack(fill=BOTH, expand=False, side=TOP)
+
+    def client_exit(self):
+        exit()
 
 
 def teknakort():
-    print('farts')
+    fig = Figure(figsize=(5, 4), dpi=100)
+
+    root = Tk()
+    root.geometry("1200x800")
+    app = Window(root)
+    menu_frame = Frame(app, borderwidth=1, highlightbackground="green", highlightcolor="green", highlightthickness=1)
+    menu_frame.pack(fill=X, expand=False, anchor=N)
+    content_frame = Frame(app, borderwidth=1, highlightbackground="green", highlightcolor="green", highlightthickness=1)
+    content_frame.pack(fill=BOTH, expand=True, anchor=N)
+
+    map_frame = Frame(content_frame, borderwidth=1, highlightbackground="green", highlightcolor="green", highlightthickness=1)
+    map_frame.pack(fill=BOTH, expand=True, side=LEFT, anchor=N)
+    canvas = FigureCanvasTkAgg(fig, master=map_frame)
+
+
+    list_frame = Frame(content_frame, borderwidth=1, highlightbackground="green", highlightcolor="green", highlightthickness=1)
+    list_frame.pack(fill=BOTH, expand=True, side=LEFT, anchor=N)
+    text_list = Text(list_frame)
+    text_list.pack(fill=BOTH, expand=True)
+
+    load_btn = Button(menu_frame, text='Les inn').pack(side=LEFT)
+    save_btn = Button(menu_frame, text='Goym').pack(side=LEFT)
+    nytt_kort = Button(menu_frame, text='Nýtt Kort', command=lambda: nyttkort(text_list)).pack(side=LEFT)
+    tekna_btn = Button(menu_frame, text='Tekna Kort', command=lambda: les_og_tekna(text_list.get("1.0", END), fig, canvas)).pack(side=LEFT)
+
+def les_og_tekna(text, fig, canvas):
+    text = text.split('\n')
+    landlitur = 'lightgray'
+    for command in text:
+        if "=" in command:
+            toindex = command.find('=')
+            variable = command[0:toindex]
+            toindex += 1
+            if variable == 'latmax':
+                latmax = float(command[toindex::])
+            elif variable == 'latmin':
+                latmin = float(command[toindex::])
+            elif variable == 'lonmin':
+                lonmin = float(command[toindex::])
+            elif variable == 'lonmax':
+                lonmax = float(command[toindex::])
+            elif variable == 'landlitur':
+                landlitur = command[toindex::]
+        else:
+            if command == 'clf':
+                fig.clf()
+    lon_0, lat_0 = -7, 62
+    m = Basemap(projection='tmerc', resolution=None,
+                llcrnrlat=latmin, urcrnrlat=latmax,
+                llcrnrlon=lonmin, urcrnrlon=lonmax,
+                lon_0=lon_0, lat_0=lat_0)
+    ax = fig.add_subplot(111)
+    for island in os.listdir('Coasts'):
+        lo, aa, la = np.genfromtxt('Coasts/'+island, delimiter = ' ').T
+        xpt, ypt = m(lo, la)
+        m.plot(xpt, ypt, 'k', linewidth=1)
+        ax.fill(xpt, ypt, landlitur)
+    fig.savefig('test.png')
+
+    canvas.draw()
+    canvas.get_tk_widget().pack(fill=BOTH, expand=1)
+
+
+def nyttkort(text):
+    nyttkort_text = "clf\nlatmax=62.28\nlonmax=-6.71\nlatmin=62.245\nlonmin=-6.75"
+    if len(text.get("1.0", END)) > 1:
+        if messagebox.askyesno("Ávaring", "Vilt tú yvurskriva núverani kort?"):
+            text.delete(1.0, END)
+            text.insert(INSERT, nyttkort_text)
+    else:
+        text.insert(INSERT, nyttkort_text)
