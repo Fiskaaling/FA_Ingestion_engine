@@ -1,5 +1,5 @@
 from tkinter import *
-
+import Processing.tekna_kort
 
 class Window(Frame):
     def __init__(self, master=None):
@@ -24,5 +24,16 @@ class Window(Frame):
 root = Tk()
 root.geometry("1200x800")
 app = Window(root)
+
+Ingestion_frame = Frame(app)
+Ingestion_frame.pack(fill=BOTH, expand=True, side=LEFT, anchor=N)
+Label(Ingestion_frame, text='Ingestion').pack(side=TOP)
+
+Processing_frame = Frame(app)
+Processing_frame.pack(fill=BOTH, expand=True, side=LEFT, anchor=N)
+Label(Processing_frame, text='Processing').pack(side=TOP)
+TeknaKort_Btn = Button(Processing_frame, text='Tekna Kort', command=lambda: Processing.tekna_kort.teknakort())
+TeknaKort_Btn.pack(side=TOP)
+
 root.mainloop()
 
