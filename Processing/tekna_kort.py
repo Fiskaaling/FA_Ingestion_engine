@@ -59,6 +59,7 @@ def teknakort():
 def les_og_tekna(text, fig, canvas):
     text = text.split('\n')
     dpi = 400
+    dybdarlinjur = False
     landlitur = 'lightgray'
     for command in text:
         if "=" in command:
@@ -79,6 +80,8 @@ def les_og_tekna(text, fig, canvas):
                 ax.set_title(command[toindex::])
             elif variable == 'dpi':
                 dpi = command[toindex::]
+            elif variable == 'dybdarlinjur':
+                dybdarlinjur = command[toindex::]
         else:
             if command == 'clf':
                 fig.clf()
@@ -86,11 +89,29 @@ def les_og_tekna(text, fig, canvas):
     m = Basemap(projection='merc', resolution=None,
                 llcrnrlat=latmin, urcrnrlat=latmax,
                 llcrnrlon=lonmin, urcrnrlon=lonmax, ax=ax)
-    for island in os.listdir('Coasts'):
-        lo, aa, la = np.genfromtxt('Coasts/'+island, delimiter = ' ').T
+    for island in os.listdir('Kort_Data/Coasts'):
+        lo, aa, la = np.genfromtxt('Kort_Data/Coasts/'+island, delimiter = ' ').T
         xpt, ypt = m(lo, la)
         m.plot(xpt, ypt, 'k', linewidth=1)
         ax.fill(xpt, ypt, landlitur)
+
+    if dybdarlinjur:
+        with open(dybdarlinjur) as f:
+            # skip one line and read i and j dimentions form next line
+            f.readline()
+            l = f.readline().split()
+            # i, j = int(l[2]), int(l[4])
+            i, j = int(l[3]), int(l[5])
+
+            # iterate througt file and append values to list
+            lis = [float(y) for x in f for y in x.split()]
+        D_lon = np.array(lis[0: i * j]).reshape((j, i))  # first  i*j instances
+        D_lat = np.array(lis[i * j: i * j * 2]).reshape((j, i))  # second i*j instances
+        D_dep = np.array(lis[i * j * 2: i * j * 3]).reshape((j, i))  # third  i*j instances
+        MD_lon, MD_lat = m(D_lon, D_lat)
+        c = m.contour(MD_lon, MD_lat, D_dep, ax=ax)
+        ax.clabel(c, inline=1, fontsize=15, fmt='%2.0f')
+
     fig.savefig('test.png', dpi=dpi, bbox_inches='tight')
 
     canvas.draw()
