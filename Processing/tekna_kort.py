@@ -29,7 +29,6 @@ class Window(Frame):
     def client_exit(self):
         exit()
 
-
 def teknakort():
     fig = Figure(figsize=(5, 4), dpi=100)
 
@@ -55,8 +54,31 @@ def teknakort():
     save_btn = Button(menu_frame, text='Goym').pack(side=LEFT)
     nytt_kort = Button(menu_frame, text='Nýtt Kort', command=lambda: nyttkort(text_list)).pack(side=LEFT)
     tekna_btn = Button(menu_frame, text='Tekna Kort', command=lambda: les_og_tekna(text_list.get("1.0", END), fig, canvas)).pack(side=LEFT)
-    zoomin_btn = Button(menu_frame, text='+').pack(side=LEFT)
-    zoomout_btn = Button(menu_frame, text='-').pack(side=LEFT)
+    zoomin_btn = Button(menu_frame, text='+', command=lambda: zoom(0.01, text_list)).pack(side=LEFT)
+    zoomout_btn = Button(menu_frame, text='-', command=lambda: zoom(-0.01, text_list)).pack(side=LEFT)
+
+def zoom(mongd, textbox):
+    print('zoom ' + str(mongd))
+    raw_text = str(textbox.get("1.0", END))
+    text = raw_text.split('\n')
+    for command in text:
+        if '=' in command:
+            toindex = command.find('=')+1
+            variable = command[0:toindex-1]
+            if variable == 'latmax':
+                latmax = float(command[toindex::])
+                raw_text = raw_text.replace(command, "latmax="+str(-mongd + latmax))
+            elif variable == 'latmin':
+                latmin = float(command[toindex::])
+                raw_text = raw_text.replace(command, "latmin="+str(mongd + latmin))
+            elif variable == 'lonmin':
+                lonmin = float(command[toindex::])
+                raw_text = raw_text.replace(command, "lonmin=" + str(mongd + lonmin))
+            elif variable == 'lonmax':
+                lonmax = float(command[toindex::])
+                raw_text = raw_text.replace(command, "lonmax=" + str(-mongd + lonmax))
+    textbox.delete(1.0, END)
+    textbox.insert(INSERT, raw_text)
 
 def les_og_tekna(text, fig, canvas):
     text = text.split('\n')
@@ -65,9 +87,8 @@ def les_og_tekna(text, fig, canvas):
     landlitur = 'lightgray'
     for command in text:
         if "=" in command:
-            toindex = command.find('=')
-            variable = command[0:toindex]
-            toindex += 1
+            toindex = command.find('=')+1
+            variable = command[0:toindex-1]
             if variable == 'latmax':
                 latmax = float(command[toindex::])
             elif variable == 'latmin':
