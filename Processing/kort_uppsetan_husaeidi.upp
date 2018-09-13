@@ -1,0 +1,12 @@
+# Standard Kort - Húsaeiði
+clf
+latmax=62.29
+lonmax=-6.72
+latmin=62.265
+lonmin=-6.755
+landlitur=lightgray
+title=Húsaeiði botnkort
+Tekna kort
+#dybdarlinjur=Kort_Data/depth_new_LG_smooth.tec
+csv_dybdarkort=../data/Botn/Husareidi_samla_og_rudda.csv
+dpi=100

@@ -9,7 +9,8 @@ from matplotlib import pyplot as plt
 import numpy as np
 from mpl_toolkits.basemap import Basemap
 import os
-
+import pandas as pd
+from scipy.interpolate import griddata
 
 class Window(Frame):
     def __init__(self, master=None):
@@ -30,7 +31,7 @@ class Window(Frame):
         exit()
 
 def teknakort():
-    fig = Figure(figsize=(5, 4), dpi=100)
+    fig = Figure(figsize=(8, 12), dpi=100)
 
     root = Tk()
     root.geometry("1200x800")
@@ -84,6 +85,7 @@ def les_og_tekna(text, fig, canvas):
     text = text.split('\n')
     dpi = 400
     dybdarlinjur = False
+    filnavn = 'test'
     landlitur = 'lightgray'
     for command in text:
         if "=" in command:
@@ -101,19 +103,16 @@ def les_og_tekna(text, fig, canvas):
                 landlitur = command[toindex::]
             elif variable == 'title':
                 ax.set_title(command[toindex::])
+                filnavn = command[toindex::]
             elif variable == 'dpi':
                 dpi = command[toindex::]
             elif variable == 'dybdarlinjur':
                 if command[toindex::] != 'False':
                     dybdarlinjur = command[toindex::]
                     with open(dybdarlinjur) as f:
-                        # skip one line and read i and j dimentions form next line
                         f.readline()
                         l = f.readline().split()
-                        # i, j = int(l[2]), int(l[4])
                         i, j = int(l[3]), int(l[5])
-
-                        # iterate througt file and append values to list
                         lis = [float(y) for x in f for y in x.split()]
                     D_lon = np.array(lis[0: i * j]).reshape((j, i))  # first  i*j instances
                     D_lat = np.array(lis[i * j: i * j * 2]).reshape((j, i))  # second i*j instances
@@ -122,6 +121,32 @@ def les_og_tekna(text, fig, canvas):
                     c = m.contour(MD_lon, MD_lat, D_dep,
                                   ax=ax)  # Um kodan kiksar her broyt basemap fílin til // har feilurin peikar
                     ax.clabel(c, inline=1, fontsize=15, fmt='%2.0f')
+            elif variable == 'csv_dybdarkort':
+                csvData = pd.read_csv(command[toindex::])
+                btn_lon = csvData['lon']
+                btn_lat = csvData['lat']
+                dypid = csvData['d']
+                btn_x, btn_y = m(btn_lon.values, btn_lat.values)
+                btn_x1, btn_y1 = np.meshgrid(btn_x, btn_y)
+
+                meshgridy = np.linspace(latmin, latmax, len(dypid)/1)
+                meshgridx = np.linspace(lonmin, lonmax, len(dypid)/1)
+                meshgridx, meshgridy = m(meshgridx, meshgridy)
+                meshgridx, meshgridy = np.meshgrid(meshgridx, meshgridy)
+                print(meshgridy)
+                print(btn_y)
+
+                #ax.scatter(meshgridx, meshgridy, s=1)
+                #ax.scatter(btn_x, btn_y, s=1, zorder=100, color='red')
+                #grid_x, grid_y = np.mgrid[np.linspace(latmin, latmax, num=7312), np.linspace(lonmin, lonmax, num=7312)]
+                #grid_x, grid_y = np.meshgrid(np.linspace(latmin, latmax, num=7312), np.linspace(lonmin, lonmax, num=7312))
+                grid_z0 = griddata((btn_x, btn_y), dypid.values, (meshgridx, meshgridy), method='linear')
+                print(grid_z0)
+                #grid_z0 = griddata((btn_x, btn_y), dypid.values, (btn_x1, btn_y1), method='nearest')
+                #plt.contour(meshgridx, meshgridy, grid_z0)
+                c = m.contourf(meshgridx, meshgridy, grid_z0, 100, ax=ax)  # Um kodan kiksar her broyt basemap fílin til // har feilurin peikar
+                fig.colorbar(c)
+                #ax.clabel(c, inline=1, fontsize=15, fmt='%2.0f')
 
         else:
             if command == 'clf':
@@ -137,14 +162,15 @@ def les_og_tekna(text, fig, canvas):
                     m.plot(xpt, ypt, 'k', linewidth=1)
                     ax.fill(xpt, ypt, landlitur)
 
-    fig.savefig('test.png', dpi=dpi, bbox_inches='tight')
+    fig.savefig(filnavn + '.png', dpi=int(dpi), bbox_inches='tight')
 
     canvas.draw()
     canvas.get_tk_widget().pack(fill=BOTH, expand=1)
 
 
 def nyttkort(text):
-    F = open('Processing/kort_uppsetan.upp', 'r')
+    #F = open('Processing/kort_uppsetan.upp', 'r')
+    F = open('Processing/kort_uppsetan_husaeidi.upp', 'r')
     nyttkort_text = F.read()
     F.close()
     if len(text.get("1.0", END)) > 1:
