@@ -9,7 +9,8 @@ from matplotlib import pyplot as plt
 import numpy as np
 from mpl_toolkits.basemap import Basemap
 import os
-
+import pandas as pd
+from scipy.interpolate import griddata
 
 class Window(Frame):
     def __init__(self, master=None):
@@ -30,7 +31,7 @@ class Window(Frame):
         exit()
 
 def teknakort():
-    fig = Figure(figsize=(5, 4), dpi=100)
+    fig = Figure(figsize=(8, 12), dpi=100)
 
     root = Tk()
     root.geometry("1200x800")
@@ -84,7 +85,11 @@ def les_og_tekna(text, fig, canvas):
     text = text.split('\n')
     dpi = 400
     dybdarlinjur = False
+    filnavn = 'test'
     landlitur = 'lightgray'
+    btn_interpolation = 'nearest'
+    btn_track = False
+    btn_gridsize = 1000
     for command in text:
         if "=" in command:
             toindex = command.find('=')+1
@@ -101,19 +106,16 @@ def les_og_tekna(text, fig, canvas):
                 landlitur = command[toindex::]
             elif variable == 'title':
                 ax.set_title(command[toindex::])
+                filnavn = command[toindex::]
             elif variable == 'dpi':
                 dpi = command[toindex::]
             elif variable == 'dybdarlinjur':
                 if command[toindex::] != 'False':
                     dybdarlinjur = command[toindex::]
                     with open(dybdarlinjur) as f:
-                        # skip one line and read i and j dimentions form next line
                         f.readline()
                         l = f.readline().split()
-                        # i, j = int(l[2]), int(l[4])
                         i, j = int(l[3]), int(l[5])
-
-                        # iterate througt file and append values to list
                         lis = [float(y) for x in f for y in x.split()]
                     D_lon = np.array(lis[0: i * j]).reshape((j, i))  # first  i*j instances
                     D_lat = np.array(lis[i * j: i * j * 2]).reshape((j, i))  # second i*j instances
@@ -122,12 +124,44 @@ def les_og_tekna(text, fig, canvas):
                     c = m.contour(MD_lon, MD_lat, D_dep,
                                   ax=ax)  # Um kodan kiksar her broyt basemap fílin til // har feilurin peikar
                     ax.clabel(c, inline=1, fontsize=15, fmt='%2.0f')
+            elif variable == 'csv_dybdarkort':
+                csvData = pd.read_csv(command[toindex::])
+                print(csvData.columns.values)
+                btn_lon = csvData['lon']
+                btn_lat = csvData['lat']
+                dypid = csvData['d']
+                btn_x, btn_y = m(btn_lon.values, btn_lat.values)
+                #btn_x1, btn_y1 = np.meshgrid(btn_x, btn_y)
+
+                meshgridy = np.linspace(latmin, latmax, btn_gridsize)
+                meshgridx = np.linspace(lonmin, lonmax, btn_gridsize)
+                print('Gridsize =' + str(btn_gridsize))
+                meshgridx, meshgridy = m(meshgridx, meshgridy)
+                meshgridx, meshgridy = np.meshgrid(meshgridx, meshgridy)
+
+                #ax.scatter(meshgridx, meshgridy, s=1)
+                if btn_track:
+                    ax.scatter(btn_x, btn_y, s=0.1, zorder=100, color='black')
+                #grid_x, grid_y = np.mgrid[np.linspace(latmin, latmax, num=7312), np.linspace(lonmin, lonmax, num=7312)]
+                #grid_x, grid_y = np.meshgrid(np.linspace(latmin, latmax, num=7312), np.linspace(lonmin, lonmax, num=7312))
+                #grid_z0 = griddata((btn_x, btn_y), dypid.values, (meshgridx, meshgridy), method='linear')
+                #print(grid_z0)
+                grid_z0 = griddata((btn_x, btn_y), dypid.values, (meshgridx, meshgridy), method=btn_interpolation)
+                #plt.contour(meshgridx, meshgridy, grid_z0)
+                #ax.clabel(c, inline=1, fontsize=15, fmt='%2.0f')
+            elif variable == 'btn_interpolation':
+                btn_interpolation = command[toindex::]
+            elif variable ==  'btn_track':
+                if command[toindex::] == 'True':
+                    btn_track = True
+            elif variable == 'btn_gridsize':
+                btn_gridsize = command[toindex::]
 
         else:
             if command == 'clf':
                 fig.clf()
                 ax = fig.add_subplot(111)
-            if command == 'Tekna kort':
+            elif command == 'Tekna kort':
                 m = Basemap(projection='merc', resolution=None,
                             llcrnrlat=latmin, urcrnrlat=latmax,
                             llcrnrlon=lonmin, urcrnrlon=lonmax, ax=ax)
@@ -135,16 +169,31 @@ def les_og_tekna(text, fig, canvas):
                     lo, aa, la = np.genfromtxt('Kort_Data/Coasts/' + island, delimiter=' ').T
                     xpt, ypt = m(lo, la)
                     m.plot(xpt, ypt, 'k', linewidth=1)
-                    ax.fill(xpt, ypt, landlitur)
+                    ax.fill(xpt, ypt, landlitur, zorder=100)
+            elif command == 'btn_contourf':
+                c = m.contourf(meshgridx, meshgridy, grid_z0, 30, ax=ax)  # Um kodan kiksar her broyt basemap fílin til // har feilurin peikar
+                #ax.clabel(c, inline=1, fontsize=15, fmt='%2.0f')
+                fig.colorbar(c)
+            elif command == 'btn_contour':
+                lv = np.arange(0, 150, 5)
+                print(lv)
+                c = m.contour(meshgridx, meshgridy, grid_z0, lv, ax=ax)  # Um kodan kiksar her broyt basemap fílin til // har feilurin peik
+                ax.clabel(c, inline=1, fontsize=15, fmt='%2.0f')
+    alioki_lat = [62.273790155, 62.272388430, 62.264901060, 62.266422648]
+    alioki_lon = [-6.727558225, -6.732274219, -6.722096577, -6.717137173]
+    alioki_x, alioki_y = m(alioki_lon, alioki_lat)
+    m.plot(alioki_x, alioki_y, 'b', linewidth=1)
+    ax.plot((alioki_x[0], alioki_x[3]), (alioki_y[0], alioki_y[3]), label='Uppskot til aliøki')
 
-    fig.savefig('test.png', dpi=dpi, bbox_inches='tight')
+    fig.savefig(filnavn + '.png', dpi=int(dpi), bbox_inches='tight')
 
     canvas.draw()
     canvas.get_tk_widget().pack(fill=BOTH, expand=1)
 
 
 def nyttkort(text):
-    F = open('Processing/kort_uppsetan.upp', 'r')
+    #F = open('Processing/kort_uppsetan.upp', 'r')
+    F = open('Processing/kort_uppsetan_husaeidi.upp', 'r')
     nyttkort_text = F.read()
     F.close()
     if len(text.get("1.0", END)) > 1:
