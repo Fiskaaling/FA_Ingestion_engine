@@ -87,6 +87,9 @@ def les_og_tekna(text, fig, canvas):
     dybdarlinjur = False
     filnavn = 'test'
     landlitur = 'lightgray'
+    btn_interpolation = 'nearest'
+    btn_track = False
+    btn_gridsize = 1000
     for command in text:
         if "=" in command:
             toindex = command.find('=')+1
@@ -127,32 +130,37 @@ def les_og_tekna(text, fig, canvas):
                 btn_lat = csvData['lat']
                 dypid = csvData['d']
                 btn_x, btn_y = m(btn_lon.values, btn_lat.values)
-                btn_x1, btn_y1 = np.meshgrid(btn_x, btn_y)
+                #btn_x1, btn_y1 = np.meshgrid(btn_x, btn_y)
 
-                meshgridy = np.linspace(latmin, latmax, len(dypid)/1)
-                meshgridx = np.linspace(lonmin, lonmax, len(dypid)/1)
+                meshgridy = np.linspace(latmin, latmax, btn_gridsize)
+                meshgridx = np.linspace(lonmin, lonmax, btn_gridsize)
+                print('Gridsize =' + str(btn_gridsize))
                 meshgridx, meshgridy = m(meshgridx, meshgridy)
                 meshgridx, meshgridy = np.meshgrid(meshgridx, meshgridy)
-                print(meshgridy)
-                print(btn_y)
 
                 #ax.scatter(meshgridx, meshgridy, s=1)
-                #ax.scatter(btn_x, btn_y, s=1, zorder=100, color='red')
+                if btn_track:
+                    ax.scatter(btn_x, btn_y, s=0.1, zorder=100, color='black')
                 #grid_x, grid_y = np.mgrid[np.linspace(latmin, latmax, num=7312), np.linspace(lonmin, lonmax, num=7312)]
                 #grid_x, grid_y = np.meshgrid(np.linspace(latmin, latmax, num=7312), np.linspace(lonmin, lonmax, num=7312))
-                grid_z0 = griddata((btn_x, btn_y), dypid.values, (meshgridx, meshgridy), method='linear')
-                print(grid_z0)
-                #grid_z0 = griddata((btn_x, btn_y), dypid.values, (btn_x1, btn_y1), method='nearest')
+                #grid_z0 = griddata((btn_x, btn_y), dypid.values, (meshgridx, meshgridy), method='linear')
+                #print(grid_z0)
+                grid_z0 = griddata((btn_x, btn_y), dypid.values, (meshgridx, meshgridy), method=btn_interpolation)
                 #plt.contour(meshgridx, meshgridy, grid_z0)
-                c = m.contourf(meshgridx, meshgridy, grid_z0, 100, ax=ax)  # Um kodan kiksar her broyt basemap fílin til // har feilurin peikar
-                fig.colorbar(c)
                 #ax.clabel(c, inline=1, fontsize=15, fmt='%2.0f')
+            elif variable == 'btn_interpolation':
+                btn_interpolation = command[toindex::]
+            elif variable ==  'btn_track':
+                if command[toindex::] == 'True':
+                    btn_track = True
+            elif variable == 'btn_gridsize':
+                btn_gridsize = command[toindex::]
 
         else:
             if command == 'clf':
                 fig.clf()
                 ax = fig.add_subplot(111)
-            if command == 'Tekna kort':
+            elif command == 'Tekna kort':
                 m = Basemap(projection='merc', resolution=None,
                             llcrnrlat=latmin, urcrnrlat=latmax,
                             llcrnrlon=lonmin, urcrnrlon=lonmax, ax=ax)
@@ -160,7 +168,13 @@ def les_og_tekna(text, fig, canvas):
                     lo, aa, la = np.genfromtxt('Kort_Data/Coasts/' + island, delimiter=' ').T
                     xpt, ypt = m(lo, la)
                     m.plot(xpt, ypt, 'k', linewidth=1)
-                    ax.fill(xpt, ypt, landlitur)
+                    ax.fill(xpt, ypt, landlitur, zorder=100)
+            elif command == 'btn_contourf':
+                c = m.contourf(meshgridx, meshgridy, grid_z0, 30, ax=ax)  # Um kodan kiksar her broyt basemap fílin til // har feilurin peikar
+                fig.colorbar(c)
+            elif command == 'btn_contour':
+                c = m.contour(meshgridx, meshgridy, grid_z0, 30, ax=ax)  # Um kodan kiksar her broyt basemap fílin til // har feilurin peikar
+                fig.colorbar(c)
 
     fig.savefig(filnavn + '.png', dpi=int(dpi), bbox_inches='tight')
 

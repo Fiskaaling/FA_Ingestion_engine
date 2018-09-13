@@ -8,5 +8,14 @@ landlitur=lightgray
 title=Húsaeiði botnkort
 Tekna kort
 #dybdarlinjur=Kort_Data/depth_new_LG_smooth.tec
-csv_dybdarkort=../data/Botn/Husareidi_samla_og_rudda.csv
+
+# Botnkort
+#btn_interpolation=cubic
+btn_interpolation=linear
+btn_track=True
+btn_gridsize=100
+csv_dybdarkort=../data/Botn/Husareidi_samla_og_rudda_og_concat.csv
+btn_contourf
+
+
 dpi=100
