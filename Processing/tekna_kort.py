@@ -126,6 +126,7 @@ def les_og_tekna(text, fig, canvas):
                     ax.clabel(c, inline=1, fontsize=15, fmt='%2.0f')
             elif variable == 'csv_dybdarkort':
                 csvData = pd.read_csv(command[toindex::])
+                print(csvData.columns.values)
                 btn_lon = csvData['lon']
                 btn_lat = csvData['lat']
                 dypid = csvData['d']
@@ -171,10 +172,18 @@ def les_og_tekna(text, fig, canvas):
                     ax.fill(xpt, ypt, landlitur, zorder=100)
             elif command == 'btn_contourf':
                 c = m.contourf(meshgridx, meshgridy, grid_z0, 30, ax=ax)  # Um kodan kiksar her broyt basemap fílin til // har feilurin peikar
+                #ax.clabel(c, inline=1, fontsize=15, fmt='%2.0f')
                 fig.colorbar(c)
             elif command == 'btn_contour':
-                c = m.contour(meshgridx, meshgridy, grid_z0, 30, ax=ax)  # Um kodan kiksar her broyt basemap fílin til // har feilurin peikar
-                fig.colorbar(c)
+                lv = np.arange(0, 150, 5)
+                print(lv)
+                c = m.contour(meshgridx, meshgridy, grid_z0, lv, ax=ax)  # Um kodan kiksar her broyt basemap fílin til // har feilurin peik
+                ax.clabel(c, inline=1, fontsize=15, fmt='%2.0f')
+    alioki_lat = [62.273790155, 62.272388430, 62.264901060, 62.266422648]
+    alioki_lon = [-6.727558225, -6.732274219, -6.722096577, -6.717137173]
+    alioki_x, alioki_y = m(alioki_lon, alioki_lat)
+    m.plot(alioki_x, alioki_y, 'b', linewidth=1)
+    ax.plot((alioki_x[0], alioki_x[3]), (alioki_y[0], alioki_y[3]), label='Uppskot til aliøki')
 
     fig.savefig(filnavn + '.png', dpi=int(dpi), bbox_inches='tight')
 
