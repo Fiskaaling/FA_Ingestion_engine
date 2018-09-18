@@ -1,5 +1,6 @@
 from tkinter import *
 from tkinter import messagebox
+from tkinter import filedialog
 import matplotlib
 matplotlib.use('TkAgg')
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
@@ -36,6 +37,12 @@ def teknakort():
     root = Tk()
     root.geometry("1200x800")
     app = Window(root)
+
+    top = Toplevel()
+    top.wm_attributes('-topmost', 1)
+    top.withdraw()
+    top.protocol('WM_DELETE_WINDOW', top.withdraw)
+
     menu_frame = Frame(app, borderwidth=1, highlightbackground="green", highlightcolor="green", highlightthickness=1)
     menu_frame.pack(fill=X, expand=False, anchor=N)
     content_frame = Frame(app, borderwidth=1, highlightbackground="green", highlightcolor="green", highlightthickness=1)
@@ -53,10 +60,22 @@ def teknakort():
 
     load_btn = Button(menu_frame, text='Les inn').pack(side=LEFT)
     save_btn = Button(menu_frame, text='Goym').pack(side=LEFT)
-    nytt_kort = Button(menu_frame, text='Nýtt Kort', command=lambda: nyttkort(text_list)).pack(side=LEFT)
+    nytt_kort = Button(menu_frame, text='Nýtt Kort', command=lambda: nyttkort(text_list, root)).pack(side=LEFT)
     tekna_btn = Button(menu_frame, text='Tekna Kort', command=lambda: les_og_tekna(text_list.get("1.0", END), fig, canvas)).pack(side=LEFT)
     zoomin_btn = Button(menu_frame, text='+', command=lambda: zoom(0.01, text_list)).pack(side=LEFT)
     zoomout_btn = Button(menu_frame, text='-', command=lambda: zoom(-0.01, text_list)).pack(side=LEFT)
+    teknaLinjur_btn = Button(menu_frame, text='Tekna Linjur', command=lambda: teknaLinjur(text_list, root)).pack(side=LEFT)
+    teknaPrikkar_btn = Button(menu_frame, text='Tekna Prikkar', command=lambda: teknaPrikkar(text_list, root)).pack(side=LEFT)
+
+def teknaLinjur(text_list, root):
+    filnavn = filedialog.askopenfilename(parent=root,title = "Vel Fíl",filetypes = (("csv Fílir","*.csv"),("all files","*.*")))
+    if len(filnavn) > 0:
+        text_list.insert(INSERT, '\nlin_fil=' + filnavn)
+
+def teknaPrikkar(text_list, root):
+    filnavn = filedialog.askopenfilename(parent=root,title = "Vel Fíl",filetypes = (("csv Fílir","*.csv"),("all files","*.*")))
+    if len(filnavn) > 0:
+        text_list.insert(INSERT, '\nscatter_fil=' + filnavn)
 
 def zoom(mongd, textbox):
     print('zoom ' + str(mongd))
@@ -156,7 +175,14 @@ def les_og_tekna(text, fig, canvas):
                     btn_track = True
             elif variable == 'btn_gridsize':
                 btn_gridsize = command[toindex::]
-
+            elif variable == 'lin_fil':
+                lineData = pd.read_csv(command[toindex::])
+                line_x, line_y = m(lineData['lon'].values, lineData['lat'].values)
+                ax.plot(line_x, line_y, 'b', linewidth=1)
+            elif variable == 'scatter_fil':
+                scatterData = pd.read_csv(command[toindex::])
+                line_x, line_y = m(scatterData['lon'].values, scatterData['lat'].values)
+                ax.scatter(line_x, line_y, zorder=100, color='black')
         else:
             if command == 'clf':
                 fig.clf()
@@ -176,14 +202,13 @@ def les_og_tekna(text, fig, canvas):
                 fig.colorbar(c)
             elif command == 'btn_contour':
                 lv = np.arange(0, 150, 5)
-                print(lv)
                 c = m.contour(meshgridx, meshgridy, grid_z0, lv, ax=ax)  # Um kodan kiksar her broyt basemap fílin til // har feilurin peik
                 ax.clabel(c, inline=1, fontsize=15, fmt='%2.0f')
-    alioki_lat = [62.273790155, 62.272388430, 62.264901060, 62.266422648]
-    alioki_lon = [-6.727558225, -6.732274219, -6.722096577, -6.717137173]
-    alioki_x, alioki_y = m(alioki_lon, alioki_lat)
-    m.plot(alioki_x, alioki_y, 'b', linewidth=1)
-    ax.plot((alioki_x[0], alioki_x[3]), (alioki_y[0], alioki_y[3]), label='Uppskot til aliøki')
+    #alioki_lat = [62.273790155, 62.272388430, 62.264901060, 62.266422648]
+    #alioki_lon = [-6.727558225, -6.732274219, -6.722096577, -6.717137173]
+    #alioki_x, alioki_y = m(alioki_lon, alioki_lat)
+    #m.plot(alioki_x, alioki_y, 'b', linewidth=1)
+    #ax.plot((alioki_x[0], alioki_x[3]), (alioki_y[0], alioki_y[3]), label='Uppskot til aliøki')
 
     fig.savefig(filnavn + '.png', dpi=int(dpi), bbox_inches='tight')
 
@@ -191,13 +216,13 @@ def les_og_tekna(text, fig, canvas):
     canvas.get_tk_widget().pack(fill=BOTH, expand=1)
 
 
-def nyttkort(text):
+def nyttkort(text, root):
     #F = open('Processing/kort_uppsetan.upp', 'r')
     F = open('Processing/kort_uppsetan_husaeidi.upp', 'r')
     nyttkort_text = F.read()
     F.close()
     if len(text.get("1.0", END)) > 1:
-        if messagebox.askyesno("Ávaring", "Vilt tú yvurskriva núverani kort?"):
+        if messagebox.askyesno("Ávaring", "Vilt tú yvurskriva núverani kort?", parent=root):
             text.delete(1.0, END)
             text.insert(INSERT, nyttkort_text)
     else:
