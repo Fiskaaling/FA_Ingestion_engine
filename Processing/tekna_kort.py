@@ -60,17 +60,22 @@ def teknakort():
 
     load_btn = Button(menu_frame, text='Les inn').pack(side=LEFT)
     save_btn = Button(menu_frame, text='Goym').pack(side=LEFT)
-    nytt_kort = Button(menu_frame, text='Nýtt Kort', command=lambda: nyttkort(text_list)).pack(side=LEFT)
+    nytt_kort = Button(menu_frame, text='Nýtt Kort', command=lambda: nyttkort(text_list, root)).pack(side=LEFT)
     tekna_btn = Button(menu_frame, text='Tekna Kort', command=lambda: les_og_tekna(text_list.get("1.0", END), fig, canvas)).pack(side=LEFT)
     zoomin_btn = Button(menu_frame, text='+', command=lambda: zoom(0.01, text_list)).pack(side=LEFT)
     zoomout_btn = Button(menu_frame, text='-', command=lambda: zoom(-0.01, text_list)).pack(side=LEFT)
     teknaLinjur_btn = Button(menu_frame, text='Tekna Linjur', command=lambda: teknaLinjur(text_list, root)).pack(side=LEFT)
-
+    teknaPrikkar_btn = Button(menu_frame, text='Tekna Prikkar', command=lambda: teknaPrikkar(text_list, root)).pack(side=LEFT)
 
 def teknaLinjur(text_list, root):
     filnavn = filedialog.askopenfilename(parent=root,title = "Vel Fíl",filetypes = (("csv Fílir","*.csv"),("all files","*.*")))
-    text_list.insert(INSERT, '\nlin_fil=' + filnavn)
-    print('test')
+    if len(filnavn) > 0:
+        text_list.insert(INSERT, '\nlin_fil=' + filnavn)
+
+def teknaPrikkar(text_list, root):
+    filnavn = filedialog.askopenfilename(parent=root,title = "Vel Fíl",filetypes = (("csv Fílir","*.csv"),("all files","*.*")))
+    if len(filnavn) > 0:
+        text_list.insert(INSERT, '\nscatter_fil=' + filnavn)
 
 def zoom(mongd, textbox):
     print('zoom ' + str(mongd))
@@ -177,7 +182,7 @@ def les_og_tekna(text, fig, canvas):
             elif variable == 'scatter_fil':
                 scatterData = pd.read_csv(command[toindex::])
                 line_x, line_y = m(scatterData['lon'].values, scatterData['lat'].values)
-                ax.scatter(line_x, line_y, 'b', linewidth=1)
+                ax.scatter(line_x, line_y, zorder=100, color='black')
         else:
             if command == 'clf':
                 fig.clf()
@@ -211,13 +216,13 @@ def les_og_tekna(text, fig, canvas):
     canvas.get_tk_widget().pack(fill=BOTH, expand=1)
 
 
-def nyttkort(text):
+def nyttkort(text, root):
     #F = open('Processing/kort_uppsetan.upp', 'r')
     F = open('Processing/kort_uppsetan_husaeidi.upp', 'r')
     nyttkort_text = F.read()
     F.close()
     if len(text.get("1.0", END)) > 1:
-        if messagebox.askyesno("Ávaring", "Vilt tú yvurskriva núverani kort?"):
+        if messagebox.askyesno("Ávaring", "Vilt tú yvurskriva núverani kort?", parent=root):
             text.delete(1.0, END)
             text.insert(INSERT, nyttkort_text)
     else:
