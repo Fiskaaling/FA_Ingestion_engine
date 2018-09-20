@@ -4,7 +4,7 @@ latmax=62.29
 lonmax=-6.7
 latmin=62.25
 lonmin=-6.755
-landlitur=lightgray
+landlitur=darkolivegreen
 title=Húsaeiði botnkort
 Tekna kort
 #dybdarlinjur=Kort_Data/depth_new_LG_smooth.tec
@@ -18,11 +18,10 @@ csv_dybdarkort=../data/Botn/samla.csv
 btn_contour
 
 
+breiddarlinjur=10
+longdarlinjur=6
+suppress_ticks=True
+
 dpi=600
 
-
-
-
-
-
-
+lin_fil=/home/johannus/Documents/FA_Ingestion_engine/Kort_Data/husareidi.csv

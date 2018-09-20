@@ -109,6 +109,7 @@ def les_og_tekna(text, fig, canvas):
     btn_interpolation = 'nearest'
     btn_track = False
     btn_gridsize = 1000
+    suppress_ticks = True
     for command in text:
         if "=" in command:
             toindex = command.find('=')+1
@@ -146,6 +147,20 @@ def les_og_tekna(text, fig, canvas):
             elif variable == 'csv_dybdarkort':
                 csvData = pd.read_csv(command[toindex::])
                 print(csvData.columns.values)
+
+                print(len(csvData))
+                rows_to_drop = []
+                for row in range(len(csvData)-1, 0, -1):
+                    if csvData.iloc[row, 0] > (lonmax+0.05):
+                        rows_to_drop.append(row)
+                    elif csvData.iloc[row, 0] < (lonmin-0.05):
+                        rows_to_drop.append(row)
+                    elif csvData.iloc[row, 1] > (latmax+0.05):
+                        rows_to_drop.append(row)
+                    elif csvData.iloc[row, 1] < (latmin-0.05):
+                        rows_to_drop.append(row)
+                csvData = csvData.drop(rows_to_drop)
+                print(len(csvData))
                 btn_lon = csvData['lon']
                 btn_lat = csvData['lat']
                 dypid = csvData['d']
@@ -160,12 +175,11 @@ def les_og_tekna(text, fig, canvas):
 
                 #ax.scatter(meshgridx, meshgridy, s=1)
                 if btn_track:
-                    ax.scatter(btn_x, btn_y, s=0.1, zorder=100, color='black')
+                    ax.scatter(btn_x, btn_y, s=0.1, zorder=100, c=dypid)
                 #grid_x, grid_y = np.mgrid[np.linspace(latmin, latmax, num=7312), np.linspace(lonmin, lonmax, num=7312)]
                 #grid_x, grid_y = np.meshgrid(np.linspace(latmin, latmax, num=7312), np.linspace(lonmin, lonmax, num=7312))
                 #grid_z0 = griddata((btn_x, btn_y), dypid.values, (meshgridx, meshgridy), method='linear')
                 #print(grid_z0)
-                grid_z0 = griddata((btn_x, btn_y), dypid.values, (meshgridx, meshgridy), method=btn_interpolation)
                 #plt.contour(meshgridx, meshgridy, grid_z0)
                 #ax.clabel(c, inline=1, fontsize=15, fmt='%2.0f')
             elif variable == 'btn_interpolation':
@@ -183,6 +197,18 @@ def les_og_tekna(text, fig, canvas):
                 scatterData = pd.read_csv(command[toindex::])
                 line_x, line_y = m(scatterData['lon'].values, scatterData['lat'].values)
                 ax.scatter(line_x, line_y, zorder=100, color='black')
+            elif variable == 'breiddarlinjur':
+                breiddarlinjur = np.linspace(latmin, latmax, int(command[toindex::]))
+                m.drawparallels(breiddarlinjur, labels=[True, False, False, False], zorder=1000, color='lightgrey')
+            elif variable == 'longdarlinjur':
+                longdarlinjur = np.linspace(lonmin, lonmax, int(command[toindex::]))
+                m.drawmeridians(longdarlinjur, labels=[False, False, False, True], zorder=1000, color='lightgrey')
+            elif variable == 'suppress_ticks':
+                if command[toindex::] == 'True':
+                    suppress_ticks = True
+                else:
+                    suppress_ticks = False
+
         else:
             if command == 'clf':
                 fig.clf()
@@ -190,18 +216,20 @@ def les_og_tekna(text, fig, canvas):
             elif command == 'Tekna kort':
                 m = Basemap(projection='merc', resolution=None,
                             llcrnrlat=latmin, urcrnrlat=latmax,
-                            llcrnrlon=lonmin, urcrnrlon=lonmax, ax=ax)
+                            llcrnrlon=lonmin, urcrnrlon=lonmax, ax=ax, suppress_ticks=suppress_ticks)
                 for island in os.listdir('Kort_Data/Coasts'):
                     lo, aa, la = np.genfromtxt('Kort_Data/Coasts/' + island, delimiter=' ').T
                     xpt, ypt = m(lo, la)
                     m.plot(xpt, ypt, 'k', linewidth=1)
                     ax.fill(xpt, ypt, landlitur, zorder=100)
             elif command == 'btn_contourf':
+                grid_z0 = griddata((btn_x, btn_y), dypid.values, (meshgridx, meshgridy), method=btn_interpolation)
                 c = m.contourf(meshgridx, meshgridy, grid_z0, 30, ax=ax)  # Um kodan kiksar her broyt basemap fílin til // har feilurin peikar
                 #ax.clabel(c, inline=1, fontsize=15, fmt='%2.0f')
                 fig.colorbar(c)
             elif command == 'btn_contour':
                 lv = np.arange(0, 150, 5)
+                grid_z0 = griddata((btn_x, btn_y), dypid.values, (meshgridx, meshgridy), method=btn_interpolation)
                 c = m.contour(meshgridx, meshgridy, grid_z0, lv, ax=ax)  # Um kodan kiksar her broyt basemap fílin til // har feilurin peik
                 ax.clabel(c, inline=1, fontsize=15, fmt='%2.0f')
     #alioki_lat = [62.273790155, 62.272388430, 62.264901060, 62.266422648]
@@ -214,6 +242,17 @@ def les_og_tekna(text, fig, canvas):
 
     canvas.draw()
     canvas.get_tk_widget().pack(fill=BOTH, expand=1)
+
+    def onclick(event):
+        nonlocal m
+        lat, lon = m(event.xdata, event.ydata, inverse=True)
+        print('%s click: button=%d, x=%d, y=%d, xdata=%f, ydata=%f' %
+              ('double' if event.dblclick else 'single', event.button,
+               event.x, event.y, lat, lon))
+
+    cid = fig.canvas.mpl_connect('button_press_event', onclick)
+
+
 
 
 def nyttkort(text, root):
