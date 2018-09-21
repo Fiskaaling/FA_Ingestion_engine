@@ -34,7 +34,7 @@ class Window(Frame):
 
 def teknakort():
     fig = Figure(figsize=(8, 12), dpi=100)
-
+    global root
     root = Tk()
     root.geometry("1200x800")
     app = Window(root)
@@ -51,22 +51,42 @@ def teknakort():
 
     map_frame = Frame(content_frame, borderwidth=1, highlightbackground="green", highlightcolor="green", highlightthickness=1)
     map_frame.pack(fill=BOTH, expand=True, side=LEFT, anchor=N)
+
+
     canvas = FigureCanvasTkAgg(fig, master=map_frame)
 
 
+
     list_frame = Frame(content_frame, borderwidth=1, highlightbackground="green", highlightcolor="green", highlightthickness=1)
-    list_frame.pack(fill=BOTH, expand=True, side=LEFT, anchor=N)
+    list_frame.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
     text_list = Text(list_frame)
     text_list.pack(fill=BOTH, expand=True)
 
+    log_frame = Frame(content_frame, height=300, borderwidth=1, highlightbackground="green", highlightcolor="green", highlightthickness=1)
+    log_frame.pack(fill=X, expand=False, side=TOP, anchor=W)
+
+    global log
+    log = Text(log_frame, bg='#888888')
+    log.pack(fill=X, expand=True)
+    log.insert(1.0, 'Klárt\n')
+    log.tag_add('fystalinja', '1.0', '2.0')
+    log.tag_config('fystalinja', foreground='white', background='green')
+    log.config(state=DISABLED)
     load_btn = Button(menu_frame, text='Les inn').pack(side=LEFT)
     save_btn = Button(menu_frame, text='Goym').pack(side=LEFT)
     nytt_kort = Button(menu_frame, text='Nýtt Kort', command=lambda: nyttkort(text_list, root)).pack(side=LEFT)
-    tekna_btn = Button(menu_frame, text='Tekna Kort', command=lambda: les_og_tekna(text_list.get("1.0", END), fig, canvas)).pack(side=LEFT)
+    tekna_btn = Button(menu_frame, text='Tekna Kort', command=lambda: les_og_tekna(text_list.get("1.0", END), fig, canvas, log)).pack(side=LEFT)
     zoomin_btn = Button(menu_frame, text='+', command=lambda: zoom(0.01, text_list)).pack(side=LEFT)
     zoomout_btn = Button(menu_frame, text='-', command=lambda: zoom(-0.01, text_list)).pack(side=LEFT)
     teknaLinjur_btn = Button(menu_frame, text='Tekna Linjur', command=lambda: teknaLinjur(text_list, root)).pack(side=LEFT)
     teknaPrikkar_btn = Button(menu_frame, text='Tekna Prikkar', command=lambda: teknaPrikkar(text_list, root)).pack(side=LEFT)
+
+
+def print(text):
+    log.config(state=NORMAL)
+    log.insert(3.0, str(text) + '\n')
+    root.update()
+    log.config(state=DISABLED)
 
 def teknaLinjur(text_list, root):
     filnavn = filedialog.askopenfilename(parent=root,title = "Vel Fíl",filetypes = (("csv Fílir","*.csv"),("all files","*.*")))
@@ -101,7 +121,13 @@ def zoom(mongd, textbox):
     textbox.delete(1.0, END)
     textbox.insert(INSERT, raw_text)
 
-def les_og_tekna(text, fig, canvas):
+def les_og_tekna(text, fig, canvas, log):
+    log.config(state=NORMAL)
+    log.delete(1.0, 2.0)
+    log.insert(1.0, 'Arbeðir\n')
+    log.tag_add('fystalinja', '1.0', '2.0')
+    log.tag_config('fystalinja', foreground='white', background='red')
+    root.update()
     text = text.split('\n')
     dpi = 400
     dybdarlinjur = False
@@ -221,7 +247,7 @@ def les_og_tekna(text, fig, canvas):
                 else:
                     suppress_ticks = False
             elif variable == 'kortSkala':
-                m.drawmapscale(lonmax - 0.013, latmax - 0.002, lonmax + 0.025, latmax - 0.025,
+                m.drawmapscale(lonmax - 0.006, latmax - 0.001, lonmax + 0.018, latmax - 0.015,
                                # 500, units = 'm',
                                int(command[toindex::]), units='km', format='%2.1f',
                                barstyle='fancy', fontsize=14, yoffset=50,
@@ -242,23 +268,29 @@ def les_og_tekna(text, fig, canvas):
             elif command == 'btn_contourf':
                 grid_z0 = griddata((btn_x, btn_y), dypid.values, (meshgridx, meshgridy), method=btn_interpolation)
                 #grid_z0 = interpolate.interp2d(btn_x, btn_y, dypid.values, kind='cubic')
-                lv = range(-200, 0, btn_striku_hvor)
+                lv = range(-150, 0, btn_striku_hvor)
                 c = m.contourf(meshgridx, meshgridy, -grid_z0, lv, ax=ax)  # Um kodan kiksar her broyt basemap fílin til // har feilurin peikar
                 #ax.clabel(c, inline=1, fontsize=15, fmt='%2.0f')
                 fig.colorbar(c)
             elif command == 'btn_contour':
-                lv = range(-200, 0, btn_striku_hvor)
+                lv = range(-150, 0, btn_striku_hvor)
                 grid_z0 = griddata((btn_x, btn_y), dypid.values, (meshgridx, meshgridy), method=btn_interpolation)
                 #grid_z0 = interpolate.interp2d(btn_x, btn_y, dypid.values, kind='cubic')
                 #c = m.contour(meshgridx, meshgridy, -1*grid_z0, lv, ax=ax)  # Um kodan kiksar her broyt basemap fílin til // har feilurin peik
                 c = m.contour(meshgridx, meshgridy, -1 * grid_z0, lv, ax=ax, colors='black', linestyles='solid', linewidths=0.2)
-                ax.clabel(c, inline=1, fontsize=15, fmt='%2.0f')
+                #ax.clabel(c, inline=1, fontsize=15, fmt='%2.0f')
 
     fig.savefig(filnavn + '.png', dpi=int(dpi), bbox_inches='tight')
 
     canvas.draw()
     canvas.get_tk_widget().pack(fill=BOTH, expand=1)
-
+    log.config(state=NORMAL)
+    log.delete(1.0, 2.0)
+    log.insert(1.0, 'Klárt\n')
+    log.tag_add('fystalinja', '1.0', '2.0')
+    log.tag_config('fystalinja', foreground='white', background='green')
+    log.config(state=DISABLED)
+    root.update()
     def onclick(event):
         nonlocal m
         lat, lon = m(event.xdata, event.ydata, inverse=True)
