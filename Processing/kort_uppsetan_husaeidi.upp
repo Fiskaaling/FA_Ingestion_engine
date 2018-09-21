@@ -1,11 +1,11 @@
  Standard Kort - Húsaeiði
 clf
-latmax=62.29
-lonmax=-6.7
-latmin=62.25
-lonmin=-6.755
-landlitur=lightgray
-title=Húsaeiði botnkort
+latmax=62.2756
+lonmax=-6.715
+latmin=62.2644
+lonmin=-6.738
+landlitur=darkolivegreen
+title=Húsaeiði botnkort - Nær, við litum
 Tekna kort
 #dybdarlinjur=Kort_Data/depth_new_LG_smooth.tec
 
@@ -14,15 +14,18 @@ Tekna kort
 btn_interpolation=linear
 btn_track=False
 btn_gridsize=100
+btn_striku_hvor=2
 csv_dybdarkort=../data/Botn/samla.csv
 btn_contour
-
+btn_contourf
+# Møgulig linjusløg: eingin, prikkut, heil
+linjuSlag=eingin
+breiddarlinjur=10
+longdarlinjur=6
+suppress_ticks=True
 
 dpi=600
 
+lin_fil=/home/johannus/Documents/FA_Ingestion_engine/Kort_Data/husareidi.csv
 
-
-
-
-
-
+kortSkala=1
