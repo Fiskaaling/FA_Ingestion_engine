@@ -12,6 +12,7 @@ from mpl_toolkits.basemap import Basemap
 import os
 import pandas as pd
 from scipy.interpolate import griddata
+from scipy import interpolate
 
 class Window(Frame):
     def __init__(self, master=None):
@@ -110,7 +111,10 @@ def les_og_tekna(text, fig, canvas):
     btn_track = False
     btn_gridsize = 1000
     suppress_ticks = True
+    linjuSlag = [1, 0]
+    btn_striku_hvor = 5
     for command in text:
+        print(command)
         if "=" in command:
             toindex = command.find('=')+1
             variable = command[0:toindex-1]
@@ -145,10 +149,9 @@ def les_og_tekna(text, fig, canvas):
                                   ax=ax)  # Um kodan kiksar her broyt basemap fílin til // har feilurin peikar
                     ax.clabel(c, inline=1, fontsize=15, fmt='%2.0f')
             elif variable == 'csv_dybdarkort':
-                csvData = pd.read_csv(command[toindex::])
-                print(csvData.columns.values)
-
-                print(len(csvData))
+                if 'csvData_heilt' not in locals():
+                    csvData_heilt = pd.read_csv(command[toindex::])
+                csvData = csvData_heilt
                 rows_to_drop = []
                 for row in range(len(csvData)-1, 0, -1):
                     if csvData.iloc[row, 0] > (lonmax+0.05):
@@ -189,6 +192,8 @@ def les_og_tekna(text, fig, canvas):
                     btn_track = True
             elif variable == 'btn_gridsize':
                 btn_gridsize = command[toindex::]
+            elif variable == 'btn_striku_hvor':
+                btn_striku_hvor= int(command[toindex::])
             elif variable == 'lin_fil':
                 lineData = pd.read_csv(command[toindex::])
                 line_x, line_y = m(lineData['lon'].values, lineData['lat'].values)
@@ -197,18 +202,30 @@ def les_og_tekna(text, fig, canvas):
                 scatterData = pd.read_csv(command[toindex::])
                 line_x, line_y = m(scatterData['lon'].values, scatterData['lat'].values)
                 ax.scatter(line_x, line_y, zorder=100, color='black')
+            elif variable == 'linjuSlag':
+                if command[toindex::] == 'eingin':
+                    linjuSlag = [0, 1]
+                elif command[toindex::] == 'prikkut':
+                    linjuSlag = [1, 1]
+                elif command[toindex::] == 'heil':
+                    linjuSlag = [1, 0]
             elif variable == 'breiddarlinjur':
                 breiddarlinjur = np.linspace(latmin, latmax, int(command[toindex::]))
-                m.drawparallels(breiddarlinjur, labels=[True, False, False, False], zorder=1000, color='lightgrey')
+                m.drawparallels(breiddarlinjur, labels=[1, 0, 0, 0], zorder=1000, color='lightgrey', dashes=linjuSlag)
             elif variable == 'longdarlinjur':
                 longdarlinjur = np.linspace(lonmin, lonmax, int(command[toindex::]))
-                m.drawmeridians(longdarlinjur, labels=[False, False, False, True], zorder=1000, color='lightgrey')
+                m.drawmeridians(longdarlinjur, labels=[0, 0, 0, 1], zorder=1000, color='lightgrey', dashes=linjuSlag)
             elif variable == 'suppress_ticks':
                 if command[toindex::] == 'True':
                     suppress_ticks = True
                 else:
                     suppress_ticks = False
-
+            elif variable == 'kortSkala':
+                m.drawmapscale(lonmax - 0.013, latmax - 0.002, lonmax + 0.025, latmax - 0.025,
+                               # 500, units = 'm',
+                               int(command[toindex::]), units='km', format='%2.1f',
+                               barstyle='fancy', fontsize=14, yoffset=50,
+                               fillcolor1='whitesmoke', fillcolor2='gray', zorder=10000)
         else:
             if command == 'clf':
                 fig.clf()
@@ -224,19 +241,18 @@ def les_og_tekna(text, fig, canvas):
                     ax.fill(xpt, ypt, landlitur, zorder=100)
             elif command == 'btn_contourf':
                 grid_z0 = griddata((btn_x, btn_y), dypid.values, (meshgridx, meshgridy), method=btn_interpolation)
-                c = m.contourf(meshgridx, meshgridy, grid_z0, 30, ax=ax)  # Um kodan kiksar her broyt basemap fílin til // har feilurin peikar
+                #grid_z0 = interpolate.interp2d(btn_x, btn_y, dypid.values, kind='cubic')
+                lv = range(-200, 0, btn_striku_hvor)
+                c = m.contourf(meshgridx, meshgridy, -grid_z0, lv, ax=ax)  # Um kodan kiksar her broyt basemap fílin til // har feilurin peikar
                 #ax.clabel(c, inline=1, fontsize=15, fmt='%2.0f')
                 fig.colorbar(c)
             elif command == 'btn_contour':
-                lv = np.arange(0, 150, 5)
+                lv = range(-200, 0, btn_striku_hvor)
                 grid_z0 = griddata((btn_x, btn_y), dypid.values, (meshgridx, meshgridy), method=btn_interpolation)
-                c = m.contour(meshgridx, meshgridy, grid_z0, lv, ax=ax)  # Um kodan kiksar her broyt basemap fílin til // har feilurin peik
+                #grid_z0 = interpolate.interp2d(btn_x, btn_y, dypid.values, kind='cubic')
+                #c = m.contour(meshgridx, meshgridy, -1*grid_z0, lv, ax=ax)  # Um kodan kiksar her broyt basemap fílin til // har feilurin peik
+                c = m.contour(meshgridx, meshgridy, -1 * grid_z0, lv, ax=ax, colors='black', linestyles='solid', linewidths=0.2)
                 ax.clabel(c, inline=1, fontsize=15, fmt='%2.0f')
-    #alioki_lat = [62.273790155, 62.272388430, 62.264901060, 62.266422648]
-    #alioki_lon = [-6.727558225, -6.732274219, -6.722096577, -6.717137173]
-    #alioki_x, alioki_y = m(alioki_lon, alioki_lat)
-    #m.plot(alioki_x, alioki_y, 'b', linewidth=1)
-    #ax.plot((alioki_x[0], alioki_x[3]), (alioki_y[0], alioki_y[3]), label='Uppskot til aliøki')
 
     fig.savefig(filnavn + '.png', dpi=int(dpi), bbox_inches='tight')
 
