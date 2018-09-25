@@ -80,7 +80,13 @@ def teknakort():
     zoomout_btn = Button(menu_frame, text='-', command=lambda: zoom(-0.01, text_list)).pack(side=LEFT)
     teknaLinjur_btn = Button(menu_frame, text='Tekna Linjur', command=lambda: teknaLinjur(text_list, root)).pack(side=LEFT)
     teknaPrikkar_btn = Button(menu_frame, text='Tekna Prikkar', command=lambda: teknaPrikkar(text_list, root)).pack(side=LEFT)
+    goymmynd_btn = Button(menu_frame, text='Goym Mynd', command=lambda: goymmynd(fig, canvas)).pack(side=LEFT)
 
+def goymmynd(fig, canvas):
+    filnavn = filedialog.asksaveasfilename(parent=root, title="Goym mynd",  filetypes=(("png Fílur", "*.png"), ("jpg Fílur", "*.jpg")))
+    print('Goymir mynd')
+    fig.savefig(filnavn + '.png', dpi=1200, bbox_inches='tight')
+    print('Liðugt')
 
 def print(text):
     log.config(state=NORMAL)
@@ -252,6 +258,8 @@ def les_og_tekna(text, fig, canvas, log):
                                int(command[toindex::]), units='km', format='%2.1f',
                                barstyle='fancy', fontsize=14, yoffset=50,
                                fillcolor1='whitesmoke', fillcolor2='gray', zorder=10000)
+            elif variable == 'savefig':
+                fig.savefig(command[toindex::], dpi=int(dpi), bbox_inches='tight')
         else:
             if command == 'clf':
                 fig.clf()
@@ -280,8 +288,6 @@ def les_og_tekna(text, fig, canvas, log):
                 c = m.contour(meshgridx, meshgridy, -1 * grid_z0, lv, ax=ax, colors='black', linestyles='solid', linewidths=0.2)
                 #ax.clabel(c, inline=1, fontsize=15, fmt='%2.0f')
 
-    fig.savefig(filnavn + '.png', dpi=int(dpi), bbox_inches='tight')
-
     canvas.draw()
     canvas.get_tk_widget().pack(fill=BOTH, expand=1)
     log.config(state=NORMAL)
@@ -294,9 +300,8 @@ def les_og_tekna(text, fig, canvas, log):
     def onclick(event):
         nonlocal m
         lat, lon = m(event.xdata, event.ydata, inverse=True)
-        print('%s click: button=%d, x=%d, y=%d, xdata=%f, ydata=%f' %
-              ('double' if event.dblclick else 'single', event.button,
-               event.x, event.y, lat, lon))
+        print('%s click: lat=%f, lon=%f' %
+              ('double' if event.dblclick else 'single', lat, lon))
 
     cid = fig.canvas.mpl_connect('button_press_event', onclick)
 
