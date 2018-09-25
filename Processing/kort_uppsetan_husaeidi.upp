@@ -1,8 +1,8 @@
- Standard Kort - Húsaeiði
+#Standard Kort - Húsaeiði
 clf
 latmax=62.2756
 lonmax=-6.715
-latmin=62.2644
+latmin=62.2635
 lonmin=-6.738
 landlitur=darkolivegreen
 title=Húsaeiði botnkort - Nær, við litum
@@ -29,3 +29,4 @@ dpi=600
 lin_fil=/home/johannus/Documents/FA_Ingestion_engine/Kort_Data/husareidi.csv
 
 kortSkala=1
+
