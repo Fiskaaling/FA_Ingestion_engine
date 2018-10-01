@@ -72,8 +72,8 @@ def teknakort():
     log.tag_add('fystalinja', '1.0', '2.0')
     log.tag_config('fystalinja', foreground='white', background='green')
     log.config(state=DISABLED)
-    load_btn = Button(menu_frame, text='Les inn').pack(side=LEFT)
-    save_btn = Button(menu_frame, text='Goym').pack(side=LEFT)
+    load_btn = Button(menu_frame, text='Les inn uppsetan', command=lambda: innlesFil(text_list)).pack(side=LEFT)
+    save_btn = Button(menu_frame, text='Goym uppsetan', command=lambda: goymuppsetan(text_list)).pack(side=LEFT)
     nytt_kort = Button(menu_frame, text='Nýtt Kort', command=lambda: nyttkort(text_list, root)).pack(side=LEFT)
     tekna_btn = Button(menu_frame, text='Tekna Kort', command=lambda: les_og_tekna(text_list.get("1.0", END), fig, canvas, log)).pack(side=LEFT)
     zoomin_btn = Button(menu_frame, text='+', command=lambda: zoom(0.01, text_list)).pack(side=LEFT)
@@ -85,6 +85,36 @@ def teknakort():
     pan_høgra = Button(menu_frame, text='→').pack(side=LEFT)
     pan_upp = Button(menu_frame, text='↑').pack(side=LEFT)
     pan_niður = Button(menu_frame, text='↓').pack(side=LEFT)
+
+def goymuppsetan(text):
+    filnavn = filedialog.asksaveasfilename(parent=root, title='Goym uppsetan',
+                                             filetypes=(('uppsetan Fílur', '*.upp'), ('Allir fílir', '*.*')))
+    tekstur = text.get("1.0", END)
+    print(filnavn)
+    F = open(filnavn, 'w')
+    F.write(tekstur)
+    F.close()
+
+def innlesFil(text):
+    if len(text.get("1.0", END)) > 1:
+        if messagebox.askyesno("Ávaring", "Vilt tú yvurskriva núverani kort?", parent=root):
+            filnavn = filedialog.askopenfile(parent=root, title='Les inn uppsetan',
+                                             filetypes=(('uppsetan Fílur', '*.upp'), ('Allir fílir', '*.*')))
+            print(filnavn.name)
+            F = open(filnavn.name, 'r')
+            nyttkort_text = F.read()
+            F.close()
+            text.delete(1.0, END)
+            text.insert(INSERT, nyttkort_text)
+    else:
+        filnavn = filedialog.askopenfile(parent=root, title='Les inn',
+                                         filetypes=(('uppsetan Fílur', '*.upp'), ('Allir fílir', '*.*')))
+        print(filnavn.name)
+        F = open(filnavn.name, 'r')
+        nyttkort_text = F.read()
+        F.close()
+        text.insert(INSERT, nyttkort_text)
+
 
 def goymmynd(fig, canvas):
     filnavn = filedialog.asksaveasfilename(parent=root, title="Goym mynd",  filetypes=(("png Fílur", "*.png"), ("jpg Fílur", "*.jpg")))
