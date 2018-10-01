@@ -22,6 +22,11 @@ class Window(Frame):
         exit()
 
 
+def OnDoubleClick(event, tree):
+    item = tree.identify('item', event.x, event.y)
+    print("you clicked on", tree.item(item, "text"))
+
+
 root = Tk()
 root.geometry("1200x800")
 app = Window(root)
@@ -41,14 +46,15 @@ scrollbar = Scrollbar(ingestion_subframe, orient=VERTICAL)
 scrollbar.config(command=ingestion_listbox.yview)
 scrollbar.pack(side=RIGHT, fill=Y)
 
+ctd = ingestion_listbox.insert("", 0, text='CTD')
+ingestion_listbox.insert(ctd, "end", text='Les data frá CTD')
 
-
-ingestion_listbox["columns"]=("one","two")
-ingestion_listbox.column("one", width=100 )
-ingestion_listbox.column("two", width=100)
-ingestion_listbox.heading("one", text="coulmn A")
-ingestion_listbox.heading("two", text="column B")
-
+streymmatingar = ingestion_listbox.insert("", 0, text="Streymmátingar")
+ingestion_listbox.insert(streymmatingar, "end", text='Kopiera data frá feltteldu')
+ingestion_listbox.insert(streymmatingar, "end", text='Evt. Reprocessera')
+ingestion_listbox.insert(streymmatingar, "end", text='Exportera csv fílar')
+ingestion_listbox.insert(streymmatingar, "end", text='Ger Quiver plot')
+ingestion_listbox.bind("<Double-1>", lambda event, arg=ingestion_listbox: OnDoubleClick(event, arg))
 
 #ingestion_listbox.insert(END, 'Test')
 ingestion_listbox.pack(fill=BOTH, expand=True, side=TOP, anchor=W)

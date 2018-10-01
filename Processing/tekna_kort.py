@@ -81,6 +81,10 @@ def teknakort():
     teknaLinjur_btn = Button(menu_frame, text='Tekna Linjur', command=lambda: teknaLinjur(text_list, root)).pack(side=LEFT)
     teknaPrikkar_btn = Button(menu_frame, text='Tekna Prikkar', command=lambda: teknaPrikkar(text_list, root)).pack(side=LEFT)
     goymmynd_btn = Button(menu_frame, text='Goym Mynd', command=lambda: goymmynd(fig, canvas)).pack(side=LEFT)
+    pan_vinstra = Button(menu_frame, text='←').pack(side=LEFT)
+    pan_høgra = Button(menu_frame, text='→').pack(side=LEFT)
+    pan_upp = Button(menu_frame, text='↑').pack(side=LEFT)
+    pan_niður = Button(menu_frame, text='↓').pack(side=LEFT)
 
 def goymmynd(fig, canvas):
     filnavn = filedialog.asksaveasfilename(parent=root, title="Goym mynd",  filetypes=(("png Fílur", "*.png"), ("jpg Fílur", "*.jpg")))
