@@ -340,11 +340,8 @@ def les_og_tekna(text, fig, canvas, log):
     cid = fig.canvas.mpl_connect('button_press_event', onclick)
 
 
-
-
 def nyttkort(text, root):
-    #F = open('Processing/kort_uppsetan.upp', 'r')
-    F = open('Processing/kort_uppsetan_husaeidi.upp', 'r')
+    F = open('Kort_Data/kort_uppsetan.upp', 'r')
     nyttkort_text = F.read()
     F.close()
     if len(text.get("1.0", END)) > 1:

@@ -1,6 +1,7 @@
 from tkinter import *
 import Processing.tekna_kort
 import tkinter.ttk as ttk
+import Ingestion.streymmatari
 
 class Window(Frame):
     def __init__(self, master=None):
@@ -15,7 +16,7 @@ class Window(Frame):
 
         #tools_frame = Frame(self, relief=RAISED, borderwidth=1)
         main_frame = Frame(self, borderwidth=1)
-        main_frame.pack(fill=BOTH, expand=False, side = TOP)
+        main_frame.pack(fill=BOTH, expand=False, side=TOP)
 
 
     def client_exit(self):
@@ -24,9 +25,10 @@ class Window(Frame):
 
 def OnDoubleClick(event, tree):
     item = tree.identify('item', event.x, event.y)
-    print("you clicked on", tree.item(item, "text"))
     if tree.item(item, "text") == 'Tekna Kort':
         Processing.tekna_kort.teknakort()
+    elif tree.item(item, "text") == 'Rokna quiver data':
+        Ingestion.streymmatari.roknaQuiver(RightFrame)
 
 
 
@@ -38,8 +40,8 @@ Ingestion_frame = Frame(app)
 Ingestion_frame.pack(fill=BOTH, expand=True, side=LEFT, anchor=N)
 Label(Ingestion_frame, text='Ingestion').pack(side=TOP)
 
-Processing_frame = Frame(app)
-Processing_frame.pack(fill=BOTH, expand=True, side=LEFT, anchor=N)
+RightFrame = Frame(app)
+RightFrame.pack(fill=BOTH, expand=True, side=LEFT, anchor=N)
 
 ingestion_subframe = Frame(Ingestion_frame)
 ingestion_subframe.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
@@ -63,11 +65,6 @@ ingestion_listbox.bind("<Double-1>", lambda event, arg=ingestion_listbox: OnDoub
 
 #ingestion_listbox.insert(END, 'Test')
 ingestion_listbox.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
-
-
-Label(Processing_frame, text='Processing').pack(side=TOP)
-TeknaKort_Btn = Button(Processing_frame, text='Tekna Kort', command=lambda: Processing.tekna_kort.teknakort())
-TeknaKort_Btn.pack(side=TOP)
 
 
 root.mainloop()
