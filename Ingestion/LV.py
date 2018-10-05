@@ -37,8 +37,8 @@ def velFil():
 
 def tekna(fig, canvas):
     fig.clf()
-    #ax = fig.add_subplot(111)
-    ax = plt.gca()
+    ax = fig.add_subplot(111)
+    #ax = plt.gca()
     data = pd.read_csv(filnavn, sep='\t')
     print(data)
     print(data.columns.values)
@@ -56,13 +56,15 @@ def tekna(fig, canvas):
     #plt.figure(figsize=(9, 6))
     #ax.figsize((9, 6))
     xax = data['Date and time   ']
-    plt.plot(xax, data['wind_mean1'], label='Miðal vindur')
-    plt.plot(xax, data['gust2'], label='Hvirla')
-
-    plt.xticks(np.linspace(0, len(data), 10), rotation='vertical')
+    ax.plot(xax, data['wind_mean1'], label='Miðal vindur')
+    ax.plot(xax, data['gust2'], label='Hvirla')
+    ax.set_xticks(np.linspace(0, len(data), 10))
+    ax.set_xticklabels(xax, rotation=40)
+    #plt.xticks(np.linspace(0, len(data), 10), rotation='vertical', ax=ax)
     #ax.fill_between(xax, -100, 100, where=farts, facecolor='green', alpha=0.5)
     plt.ylim(0, 15)
-    plt.legend()
+    ax.legend()
+    #plt.legend()
     #plt.savefig('Figures/test.png', bbox_inches='tight')
     #plt.show()
 
