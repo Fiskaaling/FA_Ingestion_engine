@@ -81,10 +81,10 @@ def teknakort():
     teknaLinjur_btn = Button(menu_frame, text='Tekna Linjur', command=lambda: teknaLinjur(text_list, root)).pack(side=LEFT)
     teknaPrikkar_btn = Button(menu_frame, text='Tekna Prikkar', command=lambda: teknaPrikkar(text_list, root)).pack(side=LEFT)
     goymmynd_btn = Button(menu_frame, text='Goym Mynd', command=lambda: goymmynd(fig, canvas)).pack(side=LEFT)
-    pan_vinstra = Button(menu_frame, text='←').pack(side=LEFT)
-    pan_høgra = Button(menu_frame, text='→').pack(side=LEFT)
-    pan_upp = Button(menu_frame, text='↑').pack(side=LEFT)
-    pan_niður = Button(menu_frame, text='↓').pack(side=LEFT)
+    pan_vinstra = Button(menu_frame, text='←', font='Helvetica').pack(side=LEFT)
+    pan_høgra = Button(menu_frame, text='→', font='Helvetica').pack(side=LEFT)
+    pan_upp = Button(menu_frame, text='↑', font='Helvetica').pack(side=LEFT)
+    pan_niður = Button(menu_frame, text='↓', font='Helvetica').pack(side=LEFT)
 
 def goymuppsetan(text):
     filnavn = filedialog.asksaveasfilename(parent=root, title='Goym uppsetan',
@@ -179,6 +179,7 @@ def les_og_tekna(text, fig, canvas, log):
     suppress_ticks = True
     linjuSlag = [1, 0]
     btn_striku_hvor = 5
+    qskala = 0.001
     for command in text:
         print(command)
         if "=" in command:
@@ -294,6 +295,54 @@ def les_og_tekna(text, fig, canvas, log):
                                fillcolor1='whitesmoke', fillcolor2='gray', zorder=10000)
             elif variable == 'savefig':
                 fig.savefig(command[toindex::], dpi=int(dpi), bbox_inches='tight')
+            elif variable == 'quiver':
+                Qdata = pd.read_csv(command[toindex::])
+                lon = Qdata['lon']
+                lat = Qdata['lat']
+                Qx, Qy = m(lon.values, lat.values)
+                q = m.quiver(Qx, Qy, Qdata['u']*qskala, Qdata['v']*qskala, scale=10, width=0.003, headwidth=5, zorder=100)
+            elif variable == 'quiverf':
+                Qdata = pd.read_csv(command[toindex::])
+                pos_lon = Qdata['lon']
+                pos_lat = Qdata['lat']
+                v = Qdata['v']
+                u = Qdata['u']
+                v = v*qskala
+                u = u*qskala
+                lon_undir = []
+                lat_undir = []
+                lon_yvir = []
+                lat_yvir = []
+                u_undir = []
+                v_undir = []
+                u_yvir = []
+                v_yvir = []
+                for arrow_index in range(len(u)):
+                    print(np.sqrt(v[arrow_index] ** 2 + u[arrow_index] ** 2))
+                    if np.sqrt(v[arrow_index] ** 2 + u[arrow_index] ** 2) > 1:
+                        lon_yvir.append(pos_lon[arrow_index])
+                        lat_yvir.append(pos_lat[arrow_index])
+                        u_yvir.append(u[arrow_index])
+                        v_yvir.append(v[arrow_index])
+                    else:
+                        lon_undir.append(pos_lon[arrow_index])
+                        lat_undir.append(pos_lat[arrow_index])
+                        u_undir.append(u[arrow_index])
+                        v_undir.append(v[arrow_index])
+                x_undir, y_undir = m(lon_undir, lat_undir)
+                x_yvir, y_yvir = m(lon_yvir, lat_yvir)
+
+                q = m.quiver(x_undir, y_undir, u_undir, v_undir, color='g', scale=10, width=0.003, headwidth=5,
+                             zorder=100)
+                ax.quiverkey(q, 0.7, 0.95 - 0 * 0.03, 2.57222, label="Undir 1 m/s", labelpos='W')
+
+                q = m.quiver(x_yvir, y_yvir, u_yvir, v_yvir, color='r', scale=10, width=0.003, headwidth=5, zorder=100)
+                ax.quiverkey(q, 0.7, 0.95 - 1 * 0.03, 2.57222, label='Yvir 1 m/s', labelpos='W')
+
+            elif variable == 'quiverskala':
+                qskala = float(command[toindex::])
+            elif variable == 'qkey':
+                ax.quiverkey(q, 0.8, 0.95, float(command[toindex::]), label=command[toindex::] + ' m/s', labelpos='W')
         else:
             if command == 'clf':
                 fig.clf()
@@ -321,7 +370,6 @@ def les_og_tekna(text, fig, canvas, log):
                 #c = m.contour(meshgridx, meshgridy, -1*grid_z0, lv, ax=ax)  # Um kodan kiksar her broyt basemap fílin til // har feilurin peik
                 c = m.contour(meshgridx, meshgridy, -1 * grid_z0, lv, ax=ax, colors='black', linestyles='solid', linewidths=0.2)
                 #ax.clabel(c, inline=1, fontsize=15, fmt='%2.0f')
-
     canvas.draw()
     canvas.get_tk_widget().pack(fill=BOTH, expand=1)
     log.config(state=NORMAL)

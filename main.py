@@ -2,6 +2,7 @@ from tkinter import *
 import Processing.tekna_kort
 import tkinter.ttk as ttk
 import Ingestion.streymmatari
+import Ingestion.LV
 
 class Window(Frame):
     def __init__(self, master=None):
@@ -25,13 +26,15 @@ class Window(Frame):
 
 def OnDoubleClick(event, tree):
     item = tree.identify('item', event.x, event.y)
-    if tree.item(item, "text") == 'Tekna Kort':
+    item = tree.item(item, "text")
+    if item == 'Tekna Kort':
         Processing.tekna_kort.teknakort()
-    elif tree.item(item, "text") == 'Rokna quiver data':
-        Ingestion.streymmatari.roknaQuiver(RightFrame)
+    elif item == 'Rokna quiver data':
+        Ingestion.streymmatari.roknaQuiver(RightFrame, root)
+    elif item == 'Veðurstøðir':
+        Ingestion.LV.vedurstodirPlt(RightFrame, root)
 
-
-
+global root
 root = Tk()
 root.geometry("1200x800")
 app = Window(root)
@@ -52,16 +55,22 @@ scrollbar.config(command=ingestion_listbox.yview)
 scrollbar.pack(side=RIGHT, fill=Y)
 
 ingestion_listbox.insert("", 0, text='Tekna Kort')
-ctd = ingestion_listbox.insert("", 0, text='CTD')
-ingestion_listbox.insert(ctd, "end", text='Les data frá CTD')
-
+LV = ingestion_listbox.insert("", 0, text='Landsverk')
 streymmatingar = ingestion_listbox.insert("", 0, text="Streymmátingar")
+ctd = ingestion_listbox.insert("", 0, text='CTD')
+alduboya = ingestion_listbox.insert("", 0, text='Alduboya')
+
+ingestion_listbox.insert(ctd, "end", text='Les data frá CTD')
 ingestion_listbox.insert(streymmatingar, "end", text='Kopiera data frá feltteldu')
 ingestion_listbox.insert(streymmatingar, "end", text='Evt. Reprocessera')
 ingestion_listbox.insert(streymmatingar, "end", text='Exportera csv fílar')
 ingestion_listbox.insert(streymmatingar, "end", text='Rokna quiver data')
 ingestion_listbox.insert(streymmatingar, "end", text='Tekna Kort')
 ingestion_listbox.bind("<Double-1>", lambda event, arg=ingestion_listbox: OnDoubleClick(event, arg))
+
+ingestion_listbox.insert(LV, "end", text='Veðurstøðir')
+ingestion_listbox.insert(LV, "end", text='Aldumátingar')
+ingestion_listbox.insert(LV, "end", text='Vatnstøða')
 
 #ingestion_listbox.insert(END, 'Test')
 ingestion_listbox.pack(fill=BOTH, expand=True, side=TOP, anchor=W)

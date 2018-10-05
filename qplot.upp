@@ -1,0 +1,26 @@
+# Standard Kort
+clf
+latmax=61.5078
+lonmax=-6.7044
+latmin=61.49
+lonmin=-6.75
+landlitur=green
+title=Húsaeiði - Kl 14:00
+Tekna kort
+dybdarlinjur=Kort_Data/depth_new_LG_smooth.tec
+quiverskala=0.002
+quiverf=0.csv
+#qkey=1
+
+linjuSlag=eingin
+breiddarlinjur=10
+longdarlinjur=6
+suppress_ticks=True
+
+
+lin_fil=/home/johannus/Documents/FA_Ingestion_engine/Kort_Data/Hovsfjøðrur - A-18.csv
+
+
+
+
+
