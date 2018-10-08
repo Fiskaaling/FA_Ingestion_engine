@@ -18,11 +18,15 @@ def vedurstodirPlt(frame, root2):
         widget.destroy()
     Label(frame, text='Landsverk', font='Helvetica 18 bold').pack(side=TOP)
     Label(frame, text='Veðurstøðir').pack(side=TOP, anchor=W)
-    velMappuBtn = Button(frame, text='Vel Fíl', command=lambda: velFil())
-    velMappuBtn.pack(side=TOP, anchor=W)
 
-    teknaPltBtn = Button(frame, text='Tekna Plot', command=lambda: tekna(fig, canvas))
-    teknaPltBtn.pack(side=TOP, anchor=W)
+    menuFrame = Frame(frame)
+    menuFrame.pack(side=TOP, fill=X, expand=False, anchor=N)
+
+    velMappuBtn = Button(menuFrame, text='Vel Fíl', command=lambda: velFil())
+    velMappuBtn.pack(side=LEFT)
+
+    teknaPltBtn = Button(menuFrame, text='Tekna Plot', command=lambda: tekna(fig, canvas))
+    teknaPltBtn.pack(side=LEFT)
 
     fig = Figure(figsize=(8, 12), dpi=100)
     plot_frame = Frame(frame, borderwidth=1, highlightbackground="green", highlightcolor="green", highlightthickness=1)
@@ -40,8 +44,6 @@ def tekna(fig, canvas):
     ax = fig.add_subplot(111)
     #ax = plt.gca()
     data = pd.read_csv(filnavn, sep='\t')
-    print(data)
-    print(data.columns.values)
 
     farvaHer = np.zeros((len(data), 1))
     farts = []
@@ -61,13 +63,12 @@ def tekna(fig, canvas):
     ax.set_xticks(np.linspace(0, len(data), 10))
     ax.set_xticklabels(xax, rotation=40)
     #plt.xticks(np.linspace(0, len(data), 10), rotation='vertical', ax=ax)
-    #ax.fill_between(xax, -100, 100, where=farts, facecolor='green', alpha=0.5)
-    plt.ylim(0, 15)
+    ax.fill_between(xax, -100, 100, where=farts, facecolor='green', alpha=0.5)
+    ax.set_ylim(0, 15)
     ax.legend()
     #plt.legend()
     #plt.savefig('Figures/test.png', bbox_inches='tight')
     #plt.show()
-
     canvas.draw()
     canvas.get_tk_widget().pack(fill=BOTH, expand=1)
     print('done')

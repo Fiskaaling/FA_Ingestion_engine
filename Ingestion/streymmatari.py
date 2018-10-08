@@ -98,11 +98,11 @@ def rokna(fra, til, punktPerPil, bins, skip):
     root.update()
     n_trips = len(range(fra, til+1))
     for trip_index in range(0, n_trips):
-        print('Lesur fíl :' + str(trip_index+1) + '_nav.txt')
-        df_nav = pd.read_csv(mappunavn + '/' + str(trip_index+1) + '_nav.txt', skiprows=16, sep='\t', index_col=0,
+        print('Lesur fíl :' + str(trip_index) + '_nav.txt')
+        df_nav = pd.read_csv(mappunavn + '/' + str(trip_index) + '_nav.txt', skiprows=16, sep='\t', index_col=0,
                              decimal=",")
-        df_u = pd.read_csv(mappunavn + '/' + str(trip_index+1) + '_u.txt', skiprows=16, sep='\t', index_col=0, decimal=",")
-        df_v = pd.read_csv(mappunavn + '/' + str(trip_index+1) + '_v.txt', skiprows=16, sep='\t', index_col=0, decimal=",")
+        df_u = pd.read_csv(mappunavn + '/' + str(trip_index) + '_u.txt', skiprows=16, sep='\t', index_col=0, decimal=",")
+        df_v = pd.read_csv(mappunavn + '/' + str(trip_index) + '_v.txt', skiprows=16, sep='\t', index_col=0, decimal=",")
         n_ensembles = len(df_u.iloc[:, 1])
         n_arrows = int(np.floor((n_ensembles - skip[trip_index]) / punktPerPil))
         print('tal av pílum:' + str(n_arrows))
@@ -132,7 +132,7 @@ def rokna(fra, til, punktPerPil, bins, skip):
         print(len(mean_v[trip_index,:]))
         print(len(mean_u[trip_index, :]))
         turur = pd.DataFrame({'lat': lat, 'lon': lon, 'u': mean_u[trip_index, :], 'v': mean_v[trip_index]})
-        turur.to_csv(str(trip_index) + '.csv', index=False)
+        turur.to_csv(str(trip_index+1) + '.csv', index=False)
     log.config(state=NORMAL)
     log.delete(1.0, 2.0)
     log.insert(1.0, 'Liðugt\n')

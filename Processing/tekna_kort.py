@@ -124,7 +124,7 @@ def goymmynd(fig, canvas):
 
 def print(text):
     log.config(state=NORMAL)
-    log.insert(3.0, str(text) + '\n')
+    log.insert(2.0, str(text) + '\n')
     root.update()
     log.config(state=DISABLED)
 
@@ -288,7 +288,8 @@ def les_og_tekna(text, fig, canvas, log):
                 else:
                     suppress_ticks = False
             elif variable == 'kortSkala':
-                m.drawmapscale(lonmax - 0.006, latmax - 0.001, lonmax + 0.018, latmax - 0.015,
+                #m.drawmapscale(lonmax - 0.006, latmax - 0.001, lonmax + 0.018, latmax - 0.015,
+                m.drawmapscale(lonmin + 0.006, latmin + 0.001, lonmax-lonmin + lonmin, latmax-latmin+latmin,
                                # 500, units = 'm',
                                int(command[toindex::]), units='km', format='%2.1f',
                                barstyle='fancy', fontsize=14, yoffset=50,
@@ -334,10 +335,10 @@ def les_og_tekna(text, fig, canvas, log):
 
                 q = m.quiver(x_undir, y_undir, u_undir, v_undir, color='g', scale=10, width=0.003, headwidth=5,
                              zorder=100)
-                ax.quiverkey(q, 0.7, 0.95 - 0 * 0.03, 2.57222, label="Undir 1 m/s", labelpos='W')
+                ax.quiverkey(q, 0.85, 0.95 - 0 * 0.03, 1, label="Undir 1 m/s", labelpos='W') # 2.57222
 
                 q = m.quiver(x_yvir, y_yvir, u_yvir, v_yvir, color='r', scale=10, width=0.003, headwidth=5, zorder=100)
-                ax.quiverkey(q, 0.7, 0.95 - 1 * 0.03, 2.57222, label='Yvir 1 m/s', labelpos='W')
+                ax.quiverkey(q, 0.85, 0.95 - 1 * 0.03, 1, label='Yvir 1 m/s', labelpos='W')
 
             elif variable == 'quiverskala':
                 qskala = float(command[toindex::])
