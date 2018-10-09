@@ -180,6 +180,10 @@ def les_og_tekna(text, fig, canvas, log):
     linjuSlag = [1, 0]
     btn_striku_hvor = 5
     qskala = 0.001
+    lin_farv='b'
+    lin_legend=''
+    show_legend = False
+    quiverf_threshold = 1
     for command in text:
         print(command)
         if "=" in command:
@@ -254,7 +258,7 @@ def les_og_tekna(text, fig, canvas, log):
                 #ax.clabel(c, inline=1, fontsize=15, fmt='%2.0f')
             elif variable == 'btn_interpolation':
                 btn_interpolation = command[toindex::]
-            elif variable ==  'btn_track':
+            elif variable == 'btn_track':
                 if command[toindex::] == 'True':
                     btn_track = True
             elif variable == 'btn_gridsize':
@@ -264,11 +268,23 @@ def les_og_tekna(text, fig, canvas, log):
             elif variable == 'lin_fil':
                 lineData = pd.read_csv(command[toindex::])
                 line_x, line_y = m(lineData['lon'].values, lineData['lat'].values)
-                ax.plot(line_x, line_y, 'b', linewidth=1)
+                ax.plot(line_x, line_y, lin_farv, linewidth=1, label=lin_legend)
             elif variable == 'scatter_fil':
                 scatterData = pd.read_csv(command[toindex::])
                 line_x, line_y = m(scatterData['lon'].values, scatterData['lat'].values)
-                ax.scatter(line_x, line_y, zorder=100, color='black')
+                Samla = True
+                columns = scatterData.columns.values
+                for i in range(len(columns)):
+                    if columns[i] == 'legend':
+                        Samla = False
+                if Samla:
+                    ax.scatter(line_x, line_y, zorder=100, color='black')
+                else:
+                    lables = scatterData['legend'].values
+                    for i in range(len(line_x)):
+                        ax.scatter(line_x[i], line_y[i], zorder=100, label=lables[i])
+                        print('Funni legend :' + lables[i])
+                    show_legend = True
             elif variable == 'linjuSlag':
                 if command[toindex::] == 'eingin':
                     linjuSlag = [0, 1]
@@ -320,7 +336,7 @@ def les_og_tekna(text, fig, canvas, log):
                 v_yvir = []
                 for arrow_index in range(len(u)):
                     print(np.sqrt(v[arrow_index] ** 2 + u[arrow_index] ** 2))
-                    if np.sqrt(v[arrow_index] ** 2 + u[arrow_index] ** 2) > 1:
+                    if np.sqrt(v[arrow_index] ** 2 + u[arrow_index] ** 2) > quiverf_threshold:
                         lon_yvir.append(pos_lon[arrow_index])
                         lat_yvir.append(pos_lat[arrow_index])
                         u_yvir.append(u[arrow_index])
@@ -339,11 +355,17 @@ def les_og_tekna(text, fig, canvas, log):
 
                 q = m.quiver(x_yvir, y_yvir, u_yvir, v_yvir, color='r', scale=10, width=0.003, headwidth=5, zorder=100)
                 ax.quiverkey(q, 0.85, 0.95 - 1 * 0.03, 1, label='Yvir 1 m/s', labelpos='W')
-
+            elif variable == 'quiverf_threshold'
+                quiverf_threshold = float(command[toindex::])
             elif variable == 'quiverskala':
                 qskala = float(command[toindex::])
             elif variable == 'qkey':
                 ax.quiverkey(q, 0.8, 0.95, float(command[toindex::]), label=command[toindex::] + ' m/s', labelpos='W')
+            elif variable == 'lin_farv':
+                lin_farv = command[toindex::]
+            elif variable == 'lin_legend':
+                lin_legend = command[toindex::]
+                show_legend = True
         else:
             if command == 'clf':
                 fig.clf()
@@ -356,7 +378,7 @@ def les_og_tekna(text, fig, canvas, log):
                     lo, aa, la = np.genfromtxt('Kort_Data/Coasts/' + island, delimiter=' ').T
                     xpt, ypt = m(lo, la)
                     m.plot(xpt, ypt, 'k', linewidth=1)
-                    ax.fill(xpt, ypt, landlitur, zorder=100)
+                    ax.fill(xpt, ypt, landlitur, zorder=10)
             elif command == 'btn_contourf':
                 grid_z0 = griddata((btn_x, btn_y), dypid.values, (meshgridx, meshgridy), method=btn_interpolation)
                 #grid_z0 = interpolate.interp2d(btn_x, btn_y, dypid.values, kind='cubic')
@@ -371,6 +393,10 @@ def les_og_tekna(text, fig, canvas, log):
                 #c = m.contour(meshgridx, meshgridy, -1*grid_z0, lv, ax=ax)  # Um kodan kiksar her broyt basemap fílin til // har feilurin peik
                 c = m.contour(meshgridx, meshgridy, -1 * grid_z0, lv, ax=ax, colors='black', linestyles='solid', linewidths=0.2)
                 #ax.clabel(c, inline=1, fontsize=15, fmt='%2.0f')
+    if show_legend:
+        print('Showing Legend')
+        leg = ax.legend(loc='best')
+        leg.set_zorder(3000)
     canvas.draw()
     canvas.get_tk_widget().pack(fill=BOTH, expand=1)
     log.config(state=NORMAL)
