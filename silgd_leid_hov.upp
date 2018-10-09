@@ -1,0 +1,42 @@
+# Standard Kort
+clf
+latmax=61.5078
+lonmax=-6.7044
+latmin=61.49
+lonmin=-6.75
+landlitur=green
+title=Hovsfjørður - Silgd leið
+Tekna kort
+dybdarlinjur=Kort_Data/depth_new_LG_smooth.tec
+quiverskala=0.002
+#quiverf=0.csv
+#qkey=1
+
+linjuSlag=eingin
+breiddarlinjur=10
+longdarlinjur=6
+suppress_ticks=True
+
+lin_legend=Aliøki A-18
+lin_farv=red
+lin_fil=/home/johannus/Documents/FA_Ingestion_engine/Kort_Data/Hovsfjøðrur - A-18.csv
+lin_farv=blue
+
+lin_legend=Silgd Leið
+#lin_fil=/home/johannus/Documents/FA_Ingestion_engine/0.csv
+lin_fil=/home/johannus/Documents/FA_Ingestion_engine/1.csv
+lin_legend=
+lin_fil=/home/johannus/Documents/FA_Ingestion_engine/2.csv
+lin_fil=/home/johannus/Documents/FA_Ingestion_engine/3.csv
+lin_fil=/home/johannus/Documents/FA_Ingestion_engine/4.csv
+lin_fil=/home/johannus/Documents/FA_Ingestion_engine/5.csv
+lin_fil=/home/johannus/Documents/FA_Ingestion_engine/6.csv
+lin_fil=/home/johannus/Documents/FA_Ingestion_engine/7.csv
+lin_fil=/home/johannus/Documents/FA_Ingestion_engine/8.csv
+lin_fil=/home/johannus/Documents/FA_Ingestion_engine/10.csv
+lin_fil=/home/johannus/Documents/FA_Ingestion_engine/11.csv
+lin_fil=/home/johannus/Documents/FA_Ingestion_engine/12.csv
+lin_fil=/home/johannus/Documents/FA_Ingestion_engine/13.csv
+
+
+scatter_fil=/home/johannus/Documents/FA_Ingestion_engine/Kort_Data/hov_punktir.csv
