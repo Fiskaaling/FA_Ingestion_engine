@@ -119,7 +119,7 @@ def innlesFil(text):
 def goymmynd(fig, canvas):
     filnavn = filedialog.asksaveasfilename(parent=root, title="Goym mynd",  filetypes=(("png Fílur", "*.png"), ("jpg Fílur", "*.jpg")))
     print('Goymir mynd')
-    fig.savefig(filnavn + '.png', dpi=1200, bbox_inches='tight')
+    fig.savefig(filnavn, dpi=1200, bbox_inches='tight')
     print('Liðugt')
 
 def print(text):
@@ -355,7 +355,7 @@ def les_og_tekna(text, fig, canvas, log):
 
                 q = m.quiver(x_yvir, y_yvir, u_yvir, v_yvir, color='r', scale=10, width=0.003, headwidth=5, zorder=100)
                 ax.quiverkey(q, 0.85, 0.95 - 1 * 0.03, 1, label='Yvir 1 m/s', labelpos='W')
-            elif variable == 'quiverf_threshold'
+            elif variable == 'quiverf_threshold':
                 quiverf_threshold = float(command[toindex::])
             elif variable == 'quiverskala':
                 qskala = float(command[toindex::])
