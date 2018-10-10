@@ -1,8 +1,148 @@
 from tkinter import *
 from tkinter import filedialog
+import tkinter.ttk as ttk
 import pandas as pd
 import numpy as np
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
+import os.path
+R = 6373  # Radius av jørð (km)
+def roknaMidalstreym(frame, root2):
+    global root
+    root = root2
+    global mappunavn
+    mappunavn = '/home/johannus/Documents/data/Streymmátingar/Hov/DATA_EXTRACTED'
+    for widget in frame.winfo_children():
+        widget.destroy()
+    Label(frame, text='Streymmátingar', font='Helvetica 18 bold').pack(side=TOP)
+    Label(frame, text='Rokna Miðal streym í punktum').pack(side=TOP, anchor=W)
 
+    setup_frame = Frame(frame, borderwidth=1, highlightbackground="green", highlightcolor="green", highlightthickness=1)
+    setup_frame.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
+
+    treeView_frame = Frame(setup_frame, borderwidth=1, highlightbackground="green", highlightcolor="green", highlightthickness=1)
+    treeView_frame.pack(fill=Y, expand=False, side=RIGHT, anchor=N)
+
+    punktir = ttk.Treeview(treeView_frame)
+    scrollbar = Scrollbar(treeView_frame, orient=VERTICAL)
+    scrollbar.config(command=punktir.yview)
+    scrollbar.pack(side=RIGHT, fill=Y)
+    punktir["columns"] = ("lon", "lat")
+    punktir.heading("lon", text="lon")
+    punktir.heading("lat", text="lat")
+    punktir.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
+
+    velPunktirBtn = Button(setup_frame, text='Vel Punktir', command=lambda: velPunktir(punktir))
+    velPunktirBtn.pack(side=TOP, anchor=W)
+
+    velMappuBtn = Button(setup_frame, text='Vel Mappu', command=lambda: velMappu())
+    velMappuBtn.pack(side=TOP, anchor=W)
+
+    roknaBtn = Button(setup_frame, text='Rokna', command=lambda: rokna_Midalstreym(punktir, fig, canvas))
+    roknaBtn.pack(side=TOP, anchor=W)
+
+    fig = Figure(figsize=(80, 120), dpi=100)
+    plot_frame = Frame(frame, borderwidth=1, highlightbackground="green", highlightcolor="green", highlightthickness=1)
+    plot_frame.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
+    canvas = FigureCanvasTkAgg(fig, master=plot_frame)
+
+    log_frame = Frame(setup_frame, height=300, borderwidth=1, highlightbackground="green", highlightcolor="green", highlightthickness=1)
+    log_frame.pack(fill=X, expand=False, side=BOTTOM, anchor=W)
+    global log
+    log = Text(log_frame, bg='#888888')
+    log.pack(fill=X, expand=True)
+    log.insert(1.0, 'Klárt\n')
+    log.tag_add('fystalinja', '1.0', '2.0')
+    log.tag_config('fystalinja', foreground='white', background='green')
+    log.config(state=DISABLED)
+
+def rokna_Midalstreym(punktir, fig, canvas):
+    fig.clf()
+    ax = fig.add_subplot(111)
+    punkt = punktir.get_children()
+    lon = []
+    lat = []
+    text = []
+    for i in range(len(punkt)):
+        tmp = punktir.item(punkt[i])["values"]
+        lon.append(float(tmp[0]))
+        lat.append(float(tmp[1]))
+        print(punktir.item(punkt[i]))
+        text.append(punktir.item(punkt[i])["text"])
+    n_trips = 1
+    funnifil = True
+    while funnifil:
+        if os.path.isfile(mappunavn + '/' + str(n_trips) + '_nav.txt'):
+            n_trips += 1
+        else:
+            funnifil = False
+    print('Funnið ' + str(n_trips) + ' fílir')
+    urslit = np.zeros((len(lat), n_trips))
+    for punkt_index in range(len(lat)):
+        print('Roknar punkt' + str(punkt_index))
+        for route_index in range(n_trips):
+            print('Túrur nr. ' + str(route_index))
+            df_nav = pd.read_csv(mappunavn + '/' + str(route_index) + '_nav.txt', skiprows=16, sep='\t', index_col=0,
+                                 decimal=",")
+            df_u = pd.read_csv(mappunavn + '/' + str(route_index) + '_u.txt', skiprows=16, sep='\t', index_col=0,
+                               decimal=",")
+            df_v = pd.read_csv(mappunavn + '/' + str(route_index) + '_v.txt', skiprows=16, sep='\t', index_col=0,
+                               decimal=",")
+            innanfyri = []
+            for ensemble_index in range(len(df_nav)):
+                delta_lon = np.deg2rad(lon[punkt_index]) - np.deg2rad(df_nav.iloc[ensemble_index, 11])
+                delta_lat = np.deg2rad(lat[punkt_index]) - np.deg2rad(df_nav.iloc[ensemble_index, 10])
+                a = np.sin(delta_lat / 2) ** 2 + np.cos(np.deg2rad(lat[punkt_index])) * np.cos(
+                    np.deg2rad(df_nav.iloc[ensemble_index, 10])) * np.sin(delta_lon / 2) ** 2
+                c = 2 * np.arctan2(np.sqrt(a), np.sqrt(1 - a))
+                distance = R * c
+                if distance < 0.05:
+                    innanfyri.append(ensemble_index)
+            tmp_u = 0
+            tmp_v = 0
+            divideby = 0
+            for funnidPunktIndex in range(len(innanfyri)):
+                for bin_index in range(9, 9 + 20):
+                    if not np.isnan(df_u.iloc[innanfyri[funnidPunktIndex], bin_index]):
+                        tmp_u += df_u.iloc[innanfyri[funnidPunktIndex], bin_index]
+                        tmp_v += df_v.iloc[innanfyri[funnidPunktIndex], bin_index]
+                        divideby += 1
+            if divideby != 0:
+                tmp_u = tmp_u / divideby
+                tmp_v = tmp_v / divideby
+            print(len(innanfyri))
+            print(tmp_u)
+            print(tmp_v)
+            print(np.sqrt(tmp_u**2+tmp_v**2))
+            urslit[punkt_index, route_index] = np.sqrt(tmp_u**2+tmp_v**2)
+        ax.plot(urslit[punkt_index, :], label=text[punkt_index])
+    ax.legend()
+    canvas.draw()
+    canvas.get_tk_widget().pack(fill=BOTH, expand=1)
+    print('done')
+
+def velPunktir(punktir):
+    filnavn = filedialog.askopenfile(title='Vel punktir frá fíli', filetypes=(('csv fílur', '*.csv'),
+                                                                              ('Allir fílir', '*.*')))
+    data = pd.read_csv(filnavn)
+    lon = data['lon'].values
+    lat = data['lat'].values
+    punktir.delete(*punktir.get_children())
+    Samla = True
+    columns = data.columns.values
+    for i in range(len(columns)):
+        if columns[i] == 'legend':
+            Samla = False
+    if Samla:
+        for i in range(len(data)):
+            punktir.insert("", 0, text=str(len(data)-i-1), values=(lon[len(data)-i-1], lat[len(data)-i-1]))
+    else:
+        legends = data['legend'].values
+        for i in range(len(data)):
+            punktir.insert("", 0, text=legends[len(data)-i-1], values=(lon[len(data)-i-1], lat[len(data)-i-1]))
+
+
+# Alt undur her er til at rokna Quiver
 def roknaQuiver(frame, root2):
     global root
     root = root2
