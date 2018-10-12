@@ -90,6 +90,7 @@ def tekna(fig, canvas, tekna, fra, til):
         ax.fill_between(xax, -100, 100, where=farts, facecolor='green', alpha=0.4)
     ax.set_ylim(0, 15)
     ax.legend()
+    fig.savefig('tmp.png')
     #plt.legend()
     #plt.savefig('Figures/test.png', bbox_inches='tight')
     #plt.show()

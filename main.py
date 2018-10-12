@@ -33,6 +33,8 @@ def OnDoubleClick(event, tree):
         Ingestion.streymmatari.roknaQuiver(RightFrame, root)
     elif item == 'Veðurstøðir':
         Ingestion.LV.vedurstodirPlt(RightFrame, root)
+    elif item == 'Rokna miðal streym':
+        Ingestion.streymmatari.roknaMidalstreym(RightFrame, root)
 
 global root
 root = Tk()
@@ -65,6 +67,7 @@ ingestion_listbox.insert(streymmatingar, "end", text='Kopiera data frá feltteld
 ingestion_listbox.insert(streymmatingar, "end", text='Evt. Reprocessera')
 ingestion_listbox.insert(streymmatingar, "end", text='Exportera csv fílar')
 ingestion_listbox.insert(streymmatingar, "end", text='Rokna quiver data')
+ingestion_listbox.insert(streymmatingar, "end", text='Rokna miðal streym')
 ingestion_listbox.insert(streymmatingar, "end", text='Tekna Kort')
 ingestion_listbox.bind("<Double-1>", lambda event, arg=ingestion_listbox: OnDoubleClick(event, arg))
 
