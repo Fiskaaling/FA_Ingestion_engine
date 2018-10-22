@@ -8,6 +8,8 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
 import os.path
 R = 6373  # Radius av jørð (km)
+
+
 def roknaMidalstreym(frame, root2):
     global root
     root = root2
@@ -97,6 +99,8 @@ def rokna_Midalstreym(punktir, fig, canvas):
     print('Funnið ' + str(n_trips) + ' fílir')
     urslit = np.zeros((len(lat), n_trips))
     midal_vinkul = np.zeros((len(lat), n_trips))
+    lonPunktir = []
+    latPunktir = []
     for punkt_index in range(len(lat)):
         print('Roknar punkt ' + text[punkt_index])
         print('|' + '-'*n_trips + '|')
@@ -121,12 +125,14 @@ def rokna_Midalstreym(punktir, fig, canvas):
                 c = 2 * np.arctan2(np.sqrt(a), np.sqrt(1 - a))
                 distance = R * c
                 if distance < 0.05:
+                    lonPunktir.append(df_nav.iloc[ensemble_index, 11])
+                    latPunktir.append(df_nav.iloc[ensemble_index, 10])
                     innanfyri.append(ensemble_index)
             tmp_u = 0
             tmp_v = 0
             divideby = 0
             for funnidPunktIndex in range(len(innanfyri)):
-                for bin_index in range(9, 9 + 20):
+                for bin_index in range(9, 9 + 10):
                     if not np.isnan(df_u.iloc[innanfyri[funnidPunktIndex], bin_index]):
                         tmp_u += df_u.iloc[innanfyri[funnidPunktIndex], bin_index]
                         tmp_v += df_v.iloc[innanfyri[funnidPunktIndex], bin_index]
@@ -140,6 +146,10 @@ def rokna_Midalstreym(punktir, fig, canvas):
         print('|', False)
         ax1.plot(x_lables, urslit[punkt_index, :], label=text[punkt_index])
         ax2.plot(x_lables, midal_vinkul[punkt_index, :])
+    if True:  # Ger ein checkbox seinni!
+        punktirAtPlotta = pd.DataFrame({'lat': latPunktir, 'lon': lonPunktir})
+        punktirAtPlotta.to_csv('punktir.csv', index=False)
+        print(punktirAtPlotta)
     print('Teknar')
     ax1.legend()
     ax1.set_ylabel('Miðal streymur [m/s]')
