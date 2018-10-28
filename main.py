@@ -1,8 +1,9 @@
 from tkinter import *
-import Processing.tekna_kort
+#import Processing.tekna_kort
 import tkinter.ttk as ttk
 import Ingestion.streymmatari
 import Ingestion.LV
+import Strfbotni.strbotni
 
 class Window(Frame):
     def __init__(self, master=None):
@@ -35,7 +36,8 @@ def OnDoubleClick(event, tree):
         Ingestion.LV.vedurstodirPlt(RightFrame, root)
     elif item == 'Rokna miðal streym':
         Ingestion.streymmatari.roknaMidalstreym(RightFrame, root)
-
+    elif item == 'Countour plot':
+        Strfbotni.strbotni.botnmatPlt(RightFrame,root)
 global root
 root = Tk()
 root.geometry("1200x800")
@@ -70,6 +72,7 @@ ingestion_listbox.insert(streymmatingar_frabati, "end", text='Exportera csv fíl
 ingestion_listbox.insert(streymmatingar_frabati, "end", text='Rokna quiver data')
 ingestion_listbox.insert(streymmatingar_frabati, "end", text='Rokna miðal streym')
 ingestion_listbox.insert(streymmatingar_frabati, "end", text='Tekna Kort')
+ingestion_listbox.insert(streymmatingar_stationert, "end", text='Countour plot')
 ingestion_listbox.bind("<Double-1>", lambda event, arg=ingestion_listbox: OnDoubleClick(event, arg))
 
 ingestion_listbox.insert(LV, "end", text='Veðurstøðir')
