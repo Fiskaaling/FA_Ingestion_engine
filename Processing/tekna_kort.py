@@ -13,6 +13,7 @@ import os
 import pandas as pd
 from scipy.interpolate import griddata
 from scipy import interpolate
+from misc.faLog import *
 
 class Window(Frame):
     def __init__(self, master=None):
@@ -64,18 +65,12 @@ def teknakort():
 
     log_frame = Frame(content_frame, height=300, borderwidth=1, highlightbackground="green", highlightcolor="green", highlightthickness=1)
     log_frame.pack(fill=X, expand=False, side=TOP, anchor=W)
+    gerlog(log_frame, root)
 
-    global log
-    log = Text(log_frame, bg='#888888')
-    log.pack(fill=X, expand=True)
-    log.insert(1.0, 'Klárt\n')
-    log.tag_add('fystalinja', '1.0', '2.0')
-    log.tag_config('fystalinja', foreground='white', background='green')
-    log.config(state=DISABLED)
     load_btn = Button(menu_frame, text='Les inn uppsetan', command=lambda: innlesFil(text_list)).pack(side=LEFT)
     save_btn = Button(menu_frame, text='Goym uppsetan', command=lambda: goymuppsetan(text_list)).pack(side=LEFT)
     nytt_kort = Button(menu_frame, text='Nýtt Kort', command=lambda: nyttkort(text_list, root)).pack(side=LEFT)
-    tekna_btn = Button(menu_frame, text='Tekna Kort', command=lambda: les_og_tekna(text_list.get("1.0", END), fig, canvas, log)).pack(side=LEFT)
+    tekna_btn = Button(menu_frame, text='Tekna Kort', command=lambda: les_og_tekna(text_list.get("1.0", END), fig, canvas)).pack(side=LEFT)
     zoomin_btn = Button(menu_frame, text='+', command=lambda: zoom(0.01, text_list)).pack(side=LEFT)
     zoomout_btn = Button(menu_frame, text='-', command=lambda: zoom(-0.01, text_list)).pack(side=LEFT)
     teknaLinjur_btn = Button(menu_frame, text='Tekna Linjur', command=lambda: teknaLinjur(text_list, root)).pack(side=LEFT)
@@ -117,16 +112,12 @@ def innlesFil(text):
 
 
 def goymmynd(fig, canvas):
+    log_b()
     filnavn = filedialog.asksaveasfilename(parent=root, title="Goym mynd",  filetypes=(("png Fílur", "*.png"), ("jpg Fílur", "*.jpg")))
     print('Goymir mynd')
     fig.savefig(filnavn, dpi=1200, bbox_inches='tight')
     print('Liðugt')
-
-def print(text):
-    log.config(state=NORMAL)
-    log.insert(2.0, str(text) + '\n')
-    root.update()
-    log.config(state=DISABLED)
+    log_e()
 
 def teknaLinjur(text_list, root):
     filnavn = filedialog.askopenfilename(parent=root,title = "Vel Fíl",filetypes = (("csv Fílir","*.csv"),("all files","*.*")))
@@ -161,13 +152,8 @@ def zoom(mongd, textbox):
     textbox.delete(1.0, END)
     textbox.insert(INSERT, raw_text)
 
-def les_og_tekna(text, fig, canvas, log):
-    log.config(state=NORMAL)
-    log.delete(1.0, 2.0)
-    log.insert(1.0, 'Arbeðir\n')
-    log.tag_add('fystalinja', '1.0', '2.0')
-    log.tag_config('fystalinja', foreground='white', background='red')
-    root.update()
+def les_og_tekna(text, fig, canvas):
+    log_b()
     text = text.split('\n')
     dpi = 400
     dybdarlinjur = False
@@ -426,13 +412,7 @@ def les_og_tekna(text, fig, canvas, log):
         leg.set_zorder(3000)
     canvas.draw()
     canvas.get_tk_widget().pack(fill=BOTH, expand=1)
-    log.config(state=NORMAL)
-    log.delete(1.0, 2.0)
-    log.insert(1.0, 'Klárt\n')
-    log.tag_add('fystalinja', '1.0', '2.0')
-    log.tag_config('fystalinja', foreground='white', background='green')
-    log.config(state=DISABLED)
-    root.update()
+    log_e()
     def onclick(event):
         nonlocal m
         lat, lon = m(event.xdata, event.ydata, inverse=True)
