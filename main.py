@@ -1,5 +1,5 @@
 from tkinter import *
-#import Processing.tekna_kort
+import Processing.tekna_kort
 import tkinter.ttk as ttk
 import Ingestion.streymmatari
 import Ingestion.LV
@@ -62,6 +62,7 @@ ingestion_listbox.insert("", 0, text='Tekna Kort')
 LV = ingestion_listbox.insert("", 0, text='Landsverk')
 streymmatingar_frabati = ingestion_listbox.insert("", 0, text="Streymmátingar frá báti")
 streymmatingar_stationert = ingestion_listbox.insert("", 0, text="Streymmátinar frá botni")
+termistorkeda = ingestion_listbox.insert("", 0, text="Termistor Keda")
 ctd = ingestion_listbox.insert("", 0, text='CTD')
 alduboya = ingestion_listbox.insert("", 0, text='Alduboya')
 

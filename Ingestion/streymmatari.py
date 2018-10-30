@@ -227,9 +227,7 @@ def roknaQuiver(frame, root2):
     punktPerPilEntry = Entry(punktPerPilFrame, width=3)
     punktPerPilEntry.pack(side=LEFT)
     punktPerPilEntry.insert(0, '30')
-
     Label(frame, text='').pack(side=TOP, anchor=W)
-
     binSettingsFrame = Frame(frame)
     binSettingsFrame.pack(side=TOP, anchor=W, expand=False, fill=Y)
     Label(binSettingsFrame, text='Bins at rokna miðal frá ').pack(side=LEFT)

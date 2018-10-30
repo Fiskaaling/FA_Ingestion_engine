@@ -184,6 +184,7 @@ def les_og_tekna(text, fig, canvas, log):
     lin_legend=''
     show_legend = False
     quiverf_threshold = 1
+    circle_stodd = 0.05
     for command in text:
         print(command)
         if "=" in command:
@@ -371,7 +372,27 @@ def les_og_tekna(text, fig, canvas, log):
             elif variable == 'lin_legend':
                 lin_legend = command[toindex::]
                 show_legend = True
-
+            elif variable == 'circle_fil':
+                print('Teknar rundingar')
+                scatterData = pd.read_csv(command[toindex::])
+                line_x, line_y = m(scatterData['lon'].values, scatterData['lat'].values)
+                Samla = True
+                columns = scatterData.columns.values
+                for i in range(len(columns)):
+                    if columns[i] == 'legend':
+                        Samla = False
+                if Samla:
+                    ax.scatter(line_x, line_y, s=circle_stodd, facecolor='none', edgecolor='black')
+                    #plt.Circle((line_x, line_y), circle_stodd, color='black', fill=False)
+                else:
+                    lables = scatterData['legend'].values
+                    for i in range(len(line_x)):
+                        ax.scatter(line_x[i], line_y[i], s=circle_stodd, facecolor='none', edgecolor='black')
+                        #circle = plt.Circle((line_x, line_y), circle_stodd, fill=False, label=lables[i], zorder=100)
+                        print('Funni legend :' + lables[i])
+                    show_legend = True
+            elif variable == 'circle_stodd':
+                circle_stodd = float(command[toindex::])
         else:
             if command == 'clf':
                 fig.clf()
