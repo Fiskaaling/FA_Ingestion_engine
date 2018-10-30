@@ -4,6 +4,7 @@ import tkinter.ttk as ttk
 import Ingestion.streymmatari
 import Ingestion.LV
 import Strfbotni.strbotni
+import Ingestion.oxygenkeda
 
 class Window(Frame):
     def __init__(self, master=None):
@@ -37,7 +38,9 @@ def OnDoubleClick(event, tree):
     elif item == 'Rokna miðal streym':
         Ingestion.streymmatari.roknaMidalstreym(RightFrame, root)
     elif item == 'Countour plot':
-        Strfbotni.strbotni.botnmatPlt(RightFrame,root)
+        Strfbotni.strbotni.botnmatPlt(RightFrame, root)
+    elif item == 'Decimering':
+        Ingestion.oxygenkeda.decimering(RightFrame, root)
 global root
 root = Tk()
 root.geometry("1200x800")
@@ -66,6 +69,7 @@ termistorkeda = ingestion_listbox.insert("", 0, text="Termistor Keda")
 ctd = ingestion_listbox.insert("", 0, text='CTD')
 alduboya = ingestion_listbox.insert("", 0, text='Alduboya')
 
+ingestion_listbox.insert(termistorkeda, "end", text="Decimering")
 ingestion_listbox.insert(ctd, "end", text='Les data frá CTD')
 ingestion_listbox.insert(streymmatingar_frabati, "end", text='Kopiera data frá feltteldu')
 ingestion_listbox.insert(streymmatingar_frabati, "end", text='Evt. Reprocessera')
