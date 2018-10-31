@@ -11,6 +11,10 @@ from matplotlib.figure import Figure
 def botnmatPlt(frame, root2):
     global root
 
+    global stru
+
+    global strv
+
     stru = 'Kort_Data/u.txt'
 
     strv = 'Kort_Data/v.txt'
@@ -25,7 +29,9 @@ def botnmatPlt(frame, root2):
 
     dato_a_xksa = 8  # sikkurt +1
 
-    takast_av = 60  # metrar takast av toppinum
+    takast_av = 0  # metrar takast av toppinum
+
+    takast_av_botni = 0
 
     fpbadi = 'B'  # (F) farvu, (P) píl, (B) Bæði
 
@@ -52,33 +58,40 @@ def botnmatPlt(frame, root2):
     menuFrame = Frame(frame)
     menuFrame.pack(side=TOP, fill=X, expand=False, anchor=N)
 
-    #velMappuBtn = Button(menuFrame, text='Vel u', command=lambda: velu())
-    #velMappuBtn.pack(side=LEFT)
+    velMappuBtn = Button(menuFrame, text='Vel U Fíl', command=lambda: veluFil())
+    velMappuBtn.pack(side=LEFT)
+
+    velMappuBtn = Button(menuFrame, text='Vel V Fíl', command=lambda: velvFil())
+    velMappuBtn.pack(side=LEFT)
 
     teknaPltBtn = Button(menuFrame, text='Tekna Plot', command=lambda: tekna(stru, strv, startdato_str, endadato_str,
-                                                                             dato_a_xksa,takast_av, fpbadi,
-                                                                             hvatskalplottast, titil, vmin_max,
+                                                                             dato_a_xksa,takast_av, takast_av_botni,
+                                                                             fpbadi, hvatskalplottast, titil, vmin_max,
                                                                              boolabs, talavpilum,fig,canvas))
     teknaPltBtn.pack(side=LEFT)
-    #markeraTidvar = IntVar()
-    #markeraTid = Checkbutton(menuFrame, text='Markera tíðarinterval', variable=markeraTidvar)
-    #markeraTid.pack(side=LEFT)
 
-    #Label(menuFrame, text='Frá:').pack(side=LEFT)
+    Label(menuFrame, text='Frá:').pack(side=LEFT)
 
-    #fraEntry = Entry(menuFrame, width =3)
-    #fraEntry.pack(side=LEFT)
-    #Label(menuFrame, text='Til:').pack(side=LEFT)
-    #tilEntry = Entry(menuFrame, width=3)
-    #tilEntry.pack(side=LEFT)
+    fraEntry = Entry(menuFrame, width=3)
+    fraEntry.pack(side=LEFT)
 
     fig = Figure(figsize=(8, 12), dpi=100)
     plot_frame = Frame(frame, borderwidth=1, highlightbackground="green", highlightcolor="green", highlightthickness=1)
     plot_frame.pack(fill=BOTH, expand=True, side=LEFT, anchor=N)
     canvas = FigureCanvasTkAgg(fig, master=plot_frame)
 
+def veluFil():
+    global stru
+    stru = filedialog.askopenfile(title='Vel fíl', filetypes = (("csv Fílir", "*.csv"), ("all files", "*.*"))).name
+    print(stru)
+
+def velvFil():
+    global strv
+    strv = filedialog.askopenfile(title='Vel fíl', filetypes = (("csv Fílir", "*.csv"), ("all files", "*.*"))).name
+    print(strv)
+
 def tekna(stru, strv, startdato_str, endadato_str, dato_a_xksa,
-    takast_av, fpbadi, hvatskalplottast, titil, vmin_max, boolabs, talavpilum, fig, canvas):
+    takast_av, takast_av_botni, fpbadi, hvatskalplottast, titil, vmin_max, boolabs, talavpilum, fig, canvas):
     fig.clf()
     ax = fig.add_subplot(111)
     if fpbadi == 'F':
@@ -124,7 +137,7 @@ def tekna(stru, strv, startdato_str, endadato_str, dato_a_xksa,
 
         return data_u, data_v, data_abs, Bin_Size_u, dato, datoskift
 
-    def meshsetup(startdato_str, endadato_str, takast_av, Bin_Size_u, data_u, data_v, data_abs):
+    def meshsetup(startdato_str, endadato_str, takast_av, takast_av_botni, Bin_Size_u, data_u, data_v, data_abs):
         startdato = dato.index(startdato_str)
         endadato = dato.index(endadato_str)
         startdato_i = datoskift[startdato]
@@ -134,11 +147,13 @@ def tekna(stru, strv, startdato_str, endadato_str, dato_a_xksa,
 
         # setup plot
         topav = int(np.ceil(takast_av / Bin_Size_u))
-        X, Y = np.meshgrid(np.arange(startdato_i, endadato_i), \
-                           np.arange(Bin_Size_u * len(data_u[:, 0]), topav * Bin_Size_u, -Bin_Size_u))
-        data_plot_u = data_u[0:len(data_u[:, 0]) - topav, startdato_i: endadato_i]
-        data_plot_v = data_v[0:len(data_v[:, 0]) - topav, startdato_i: endadato_i]
-        data_plot_abs = data_abs[0:len(data_abs[:, 0]) - topav, startdato_i: endadato_i]
+        botnpav = int(np.ceil(takast_av_botni / Bin_Size_u))
+
+        X, Y = np.meshgrid(np.arange(startdato_i, endadato_i),
+                           np.arange(Bin_Size_u * (len(data_u[:, 0]) - botnpav), topav * Bin_Size_u, -Bin_Size_u))
+        data_plot_u = data_u[botnpav:len(data_u[:, 0]) - topav, startdato_i: endadato_i]
+        data_plot_v = data_v[botnpav:len(data_v[:, 0]) - topav, startdato_i: endadato_i]
+        data_plot_abs = data_abs[botnpav:len(data_abs[:, 0]) - topav, startdato_i: endadato_i]
         return startdato, endadato, startdato_i, endadato_i, ll, ll_step, X, Y, data_plot_u, data_plot_v, data_plot_abs
 
     def drawcontour(X, Y, data_plot, vmin_max=True, boolabs=False):
@@ -187,7 +202,7 @@ def tekna(stru, strv, startdato_str, endadato_str, dato_a_xksa,
     data_u, data_v, data_abs, Bin_Size_u, dato, datoskift = inles_uv(stru, strv)
 
     startdato, endadato, startdato_i, endadato_i, ll, ll_step, X, Y, data_plot_u, data_plot_v, data_plot_abs = \
-        meshsetup(startdato_str, endadato_str, takast_av, Bin_Size_u, data_u, data_v, data_abs)
+        meshsetup(startdato_str, endadato_str, takast_av, takast_av_botni, Bin_Size_u, data_u, data_v, data_abs)
 
     if hvatskalplottast == 'U':
         data_plot = data_plot_u
@@ -211,7 +226,7 @@ def tekna(stru, strv, startdato_str, endadato_str, dato_a_xksa,
     plt.ylabel('djúpd (m)')
     plt.gca().invert_yaxis()
     plt.xticks(datoskift[startdato:startdato + ll:ll_step], dato[startdato:startdato + ll:ll_step])  # rotate
-    temp=ax.axis()
+    temp = ax.axis()
     ax.axis((temp[0], temp[1], temp[3], temp[2]))
 
     canvas.draw()
