@@ -3,6 +3,7 @@ from tkinter import filedialog
 from misc.faLog import *
 import pandas as pd
 import scipy.signal as sig
+import os
 
 def decimering(frame, root2):
     global root
@@ -42,6 +43,8 @@ def velFil():
 def rokna(q):
     log_b()
     global filnavn
+    if not os.path.isdir(os.path.dirname(filnavn)+'/'+str(q)):
+        os.mkdir(os.path.dirname(filnavn)+'/'+str(q))
     for fil_index in range(len(filnavn)):
         print('Lesur fíl ' + filnavn[fil_index])
         fil_data = pd.read_csv(filnavn[fil_index], encoding='latin', skiprows=25, sep='\s+')
@@ -57,7 +60,7 @@ def rokna(q):
             if i % q == 0:
                 decimated_time.append(date[i] + '_' + time[i])
         nyttfilnavn = filnavn[fil_index]
-        nyttfilnavn = nyttfilnavn[0:len(filnavn[fil_index]) - 13] + 'd' + str(q) + '.csv'
+        nyttfilnavn = os.path.dirname(filnavn) + '/' + str(q) + '/' + nyttfilnavn[len(os.path.dirname(filnavn))+1:len(filnavn[fil_index]) - 13] + 'd' + str(q) + '.csv'
         print('Goymur fíl ' + nyttfilnavn)
         filur_at_goyma = pd.DataFrame({'time': decimated_time, 'signal': decimated_data})
         filur_at_goyma.to_csv(nyttfilnavn, index=False)
