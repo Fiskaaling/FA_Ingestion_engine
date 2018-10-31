@@ -5,6 +5,19 @@ import pandas as pd
 import scipy.signal as sig
 import os
 
+def init(ingestion_listbox):
+    termistorkeda = ingestion_listbox.insert("", 0, text="Termistor Keda")
+    oxygenmatarir = ingestion_listbox.insert(termistorkeda, 0, text="Oxygen mátarir")
+    tempraturmatarir = ingestion_listbox.insert(termistorkeda, 0, text="Hitamálarir")
+    ingestion_listbox.insert(oxygenmatarir, "end", text="Decimering")
+    ingestion_listbox.insert(tempraturmatarir, "end", text="Decimering")
+    ingestion_listbox.insert(oxygenmatarir, "end", text="Kalibrering")
+    ingestion_listbox.insert(oxygenmatarir, "end", text="Fyrireika Seaguard data")
+    ingestion_listbox.insert(tempraturmatarir, "end", text="Fyrireika Seaguard data")
+    ingestion_listbox.insert(oxygenmatarir, "end", text="Rokna upploystiligheit (mg/l)")
+    ingestion_listbox.insert(oxygenmatarir, "end", text="Ger Countour plot")
+    ingestion_listbox.insert(tempraturmatarir, "end", text="Ger Countour plot")
+
 def decimering(frame, root2):
     global root
     global filnavn

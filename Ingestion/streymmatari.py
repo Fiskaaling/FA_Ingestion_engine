@@ -293,3 +293,12 @@ def rokna(fra, til, punktPerPil, bins, skip):
         turur = pd.DataFrame({'lat': lat, 'lon': lon, 'u': mean_u[trip_index, :], 'v': mean_v[trip_index]})
         turur.to_csv(str(trip_index+1) + '.csv', index=False)
     log_e()
+
+def init(ingestion_listbox):
+    streymmatingar_frabati = ingestion_listbox.insert("", 0, text="Streymmátingar frá báti")
+    ingestion_listbox.insert(streymmatingar_frabati, "end", text='Kopiera data frá feltteldu')
+    ingestion_listbox.insert(streymmatingar_frabati, "end", text='Evt. Reprocessera')
+    ingestion_listbox.insert(streymmatingar_frabati, "end", text='Exportera csv fílar')
+    ingestion_listbox.insert(streymmatingar_frabati, "end", text='Rokna quiver data')
+    ingestion_listbox.insert(streymmatingar_frabati, "end", text='Rokna miðal streym')
+    ingestion_listbox.insert(streymmatingar_frabati, "end", text='Tekna Kort')
