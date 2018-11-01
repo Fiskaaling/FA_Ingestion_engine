@@ -19,6 +19,49 @@ def init(ingestion_listbox):
     ingestion_listbox.insert(oxygenmatarir, "end", text="Ger Countour plot")
     ingestion_listbox.insert(tempraturmatarir, "end", text="Ger Countour plot")
 
+
+def seaguard_data(frame, root2):
+    global root
+    global filnavn
+    filnavn = '/home/johannus/Documents/FA_Ingestion_engine/Kort_Data/Syðradalur.txt'
+    root = root2
+    for widget in frame.winfo_children():
+        widget.destroy()
+    Label(frame, text='Termistorkeda', font='Helvetica 18 bold').pack(side=TOP)
+    Label(frame, text='Les seaguard data').pack(side=TOP, anchor=W)
+
+    menuFrame = Frame(frame)
+    menuFrame.pack(side=TOP, fill=X, expand=False, anchor=N)
+
+    velfilir_Btn = Button(menuFrame, text='Vel Seaguard fíl', command=lambda: vel_fil())
+    velfilir_Btn.pack(side=LEFT)
+    v = IntVar()
+    temp_radBtn = Radiobutton(frame, text='Tempratur', variable=v, value=1)
+    temp_radBtn.pack(side=TOP, anchor=W)
+    o2metn = Radiobutton(frame, text='Oxygen metningur', variable=v, value=2)
+    o2metn.pack(side=TOP, anchor=W)
+    o2cong = Radiobutton(frame, text='Oxygen upploysiligheit', variable=v, value=3)
+    o2cong.pack(side=TOP, anchor=W)
+
+
+
+    log_frame = Frame(frame, height=300)
+    log_frame.pack(fill=X, expand=False, side=BOTTOM, anchor=W)
+    gerlog(log_frame, root)
+
+
+def vel_fil():
+    global filnavn
+    filnavn = filedialog.askopenfile(title='Vel Seaguard fíl', filetypes=(("txt Fílir", "*.txt"), ("csv Fílir", "*.csv"),
+                                                                 ("all files", "*.*"))).name
+
+########################################################################################################################
+#                                                                                                                      #
+#                                                   Kalibrering                                                        #
+#                                                                                                                      #
+########################################################################################################################
+
+
 def kalibering(frame, root2):
     global root
     global filnavn
@@ -85,6 +128,12 @@ def rokna_kalib(kalib_tree):
 
 
     print('TODO')
+
+########################################################################################################################
+#                                                                                                                      #
+#                                                    Decimering                                                        #
+#                                                                                                                      #
+########################################################################################################################
 
 def decimering(frame, root2):
     global root

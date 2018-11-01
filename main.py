@@ -40,6 +40,8 @@ def OnDoubleClick(event, tree):
         Ingestion.oxygenkeda.decimering(RightFrame, root)
     elif item == 'Kalibrering':
         Ingestion.oxygenkeda.kalibering(RightFrame, root)
+    elif item == 'Fyrireika Seaguard data':
+        Ingestion.oxygenkeda.seaguard_data(RightFrame, root)
 
 
 global root
