@@ -37,7 +37,7 @@ def kalibering(frame, root2):
     velfilir_Btn = Button(menuFrame, text='Vel fílir at kalibrera', command=lambda: velFilir())
     velfilir_Btn.pack(side=LEFT)
 
-    rokna_btn = Button(menuFrame, text='Rokna', command=lambda: rokna_kalib())
+    rokna_btn = Button(menuFrame, text='Rokna', command=lambda: rokna_kalib(kalib_tree))
     rokna_btn.pack(side=LEFT)
 
     log_frame = Frame(frame, height=300)
@@ -59,11 +59,31 @@ def kalibering(frame, root2):
     kalib_tree.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
 
 
-def rokna_kalib():
+def rokna_kalib(kalib_tree):
     global filnavn
+    kalib_tree_ting = kalib_tree.get_children()
+    a = []
+    b = []
+    text = []
+    if not os.path.isdir(str(os.path.dirname(filnavn[0]))+'/kalib'):
+        os.mkdir(os.path.dirname(filnavn[0])+'/kalib')
+    for i in range(len(kalib_tree_ting)):
+        tmp = kalib_tree.item(kalib_tree_ting[i])["values"]
+        a.append(float(tmp[0]))
+        b.append(float(tmp[1]))
+        text.append(kalib_tree.item(kalib_tree_ting[i])["text"])
+
     for i in range(len(filnavn)):
         print('Lesur ' + filnavn[i])
         data = pd.read_csv(filnavn[i])
+        kalibrera_data = a[i] * data['signal'] + b[i]
+        nyttfilnavn = filnavn[i]
+        nyttfilnavn = os.path.dirname(filnavn[i]) + '/kalib/' + nyttfilnavn[len(os.path.dirname(filnavn[i])):len(filnavn[i])] + '_kalib.csv'
+        print('Goymur fíl ' + nyttfilnavn)
+        filur_at_goyma = pd.DataFrame({'time': data['time'], 'signal': kalibrera_data})
+        filur_at_goyma.to_csv(nyttfilnavn, index=False)
+
+
     print('TODO')
 
 def decimering(frame, root2):
