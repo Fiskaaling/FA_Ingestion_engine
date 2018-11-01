@@ -390,7 +390,6 @@ def les_og_tekna(text, fig, canvas):
             if command == 'clf':
                 fig.clf()
                 ax = fig.add_subplot(111)
-                ax.prop_cycle: cycler('color', ['E24A33', '988ED5', '777777', 'FBC15E', '8EBA42', 'FFB5B8'])
             elif command == 'Tekna kort':
                 m = Basemap(projection='merc', resolution=None,
                             llcrnrlat=latmin, urcrnrlat=latmax,
