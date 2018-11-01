@@ -212,13 +212,13 @@ def les_og_tekna(text, fig, canvas):
                 csvData = csvData_heilt
                 rows_to_drop = []
                 for row in range(len(csvData)-1, 0, -1):
-                    if csvData.iloc[row, 0] > (lonmax+0.05):
+                    if float(csvData.iloc[row, 0]) > (lonmax+0.05):
                         rows_to_drop.append(row)
-                    elif csvData.iloc[row, 0] < (lonmin-0.05):
+                    elif float(csvData.iloc[row, 0]) < (lonmin-0.05):
                         rows_to_drop.append(row)
-                    elif csvData.iloc[row, 1] > (latmax+0.05):
+                    elif float(csvData.iloc[row, 1]) > (latmax+0.05):
                         rows_to_drop.append(row)
-                    elif csvData.iloc[row, 1] < (latmin-0.05):
+                    elif float(csvData.iloc[row, 1]) < (latmin-0.05):
                         rows_to_drop.append(row)
                 csvData = csvData.drop(rows_to_drop)
                 print(len(csvData))
