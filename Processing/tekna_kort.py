@@ -168,6 +168,8 @@ def les_og_tekna(text, fig, canvas):
     qskala = 0.001
     lin_farv='b'
     lin_legend=''
+    scatter_farv = 'b'
+    scatter_legend=''
     show_legend = False
     quiverf_threshold = 1
     circle_stodd = 0.05
@@ -265,7 +267,7 @@ def les_og_tekna(text, fig, canvas):
                     if columns[i] == 'legend':
                         Samla = False
                 if Samla:
-                    ax.scatter(line_x, line_y, zorder=100, color='black')
+                    ax.scatter(line_x, line_y, zorder=100, color=scatter_farv, label=scatter_legend)
                 else:
                     lables = scatterData['legend'].values
                     for i in range(len(line_x)):
@@ -379,10 +381,16 @@ def les_og_tekna(text, fig, canvas):
                     show_legend = True
             elif variable == 'circle_stodd':
                 circle_stodd = float(command[toindex::])
+            elif variable == 'scatter_farv':
+                scatter_farv=command[toindex::]
+            elif variable == 'scatter_legend':
+                scatter_legend = command[toindex::]
         else:
+
             if command == 'clf':
                 fig.clf()
                 ax = fig.add_subplot(111)
+                ax.prop_cycle: cycler('color', ['E24A33', '988ED5', '777777', 'FBC15E', '8EBA42', 'FFB5B8'])
             elif command == 'Tekna kort':
                 m = Basemap(projection='merc', resolution=None,
                             llcrnrlat=latmin, urcrnrlat=latmax,
