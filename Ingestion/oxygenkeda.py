@@ -31,25 +31,40 @@ def kalibering(frame, root2):
     menuFrame = Frame(frame)
     menuFrame.pack(side=TOP, fill=X, expand=False, anchor=N)
 
-    velMappuBtn = Button(menuFrame, text='Les inn kaliberingskofficientar', command=lambda: velFil())
+    velMappuBtn = Button(menuFrame, text='Les inn kaliberingskofficientar', command=lambda: les_kalib_kofficientar(kalib_tree))
     velMappuBtn.pack(side=LEFT)
 
-    treeView_frame = Frame(frame)
-    treeView_frame.pack(fill=Y, expand=False, side=RIGHT, anchor=N)
-    punktir = ttk.Treeview(treeView_frame)
-    punktir["columns"] = ("a", "b")
-    punktir.column("#0", width=100)
-    punktir.column("#1", width=100)
-    punktir.column("#2", width=100)
+    velfilir_Btn = Button(menuFrame, text='Vel fílir at kalibrera', command=lambda: velFilir())
+    velfilir_Btn.pack(side=LEFT)
 
-    punktir.heading("a", text="a")
-    punktir.heading("b", text="b")
-    punktir.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
+    rokna_btn = Button(menuFrame, text='Rokna', command=lambda: rokna_kalib())
+    rokna_btn.pack(side=LEFT)
 
     log_frame = Frame(frame, height=300)
     log_frame.pack(fill=X, expand=False, side=BOTTOM, anchor=W)
     gerlog(log_frame, root)
 
+    treeView_frame = Frame(frame)
+    treeView_frame.pack(fill=Y, expand=False, side=RIGHT, anchor=N)
+    kalib_tree = ttk.Treeview(treeView_frame)
+    kalib_tree["columns"] = ("a", "b")
+    kalib_tree.column("#0", width=100)
+    kalib_tree.column("#1", width=100)
+    kalib_tree.column("#2", width=100)
+    scrollbar = Scrollbar(treeView_frame, orient=VERTICAL)
+    scrollbar.config(command=kalib_tree.yview)
+    scrollbar.pack(side=RIGHT, fill=Y)
+    kalib_tree.heading("a", text="a")
+    kalib_tree.heading("b", text="b")
+    kalib_tree.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
+
+
+def rokna_kalib():
+    global filnavn
+    for i in range(len(filnavn)):
+        print('Lesur ' + filnavn[i])
+        data = pd.read_csv(filnavn[i])
+    print('TODO')
 
 def decimering(frame, root2):
     global root
@@ -88,11 +103,20 @@ def velFilir():
     print(filnavn)
 
 
-def velFil():
-    global filnavn
-    filnavn = filedialog.askopenfile(title='Vel fíl', filetypes=(("csv Fílir", "*.csv"), ("txt Fílir", "*.txt"),
+
+def les_kalib_kofficientar(kalib_tree):
+    global kalib_filnavn
+    kalib_filnavn = filedialog.askopenfile(title='Vel fíl', filetypes=(("csv Fílir", "*.csv"), ("txt Fílir", "*.txt"),
                                                                  ("all files", "*.*"))).name
-    print(filnavn)
+    print(kalib_filnavn)
+    kalib_tree.delete(*kalib_tree.get_children())
+    data = pd.read_csv(kalib_filnavn)
+    a_data = data['a'].values
+    b_data = data['b'].values
+    legends = data['serial'].values
+    print(legends)
+    for i in range(len(data)):
+        kalib_tree.insert("", 0, text=legends[len(data)-i-1], values=(a_data[len(data) - i - 1], b_data[len(data) - i - 1]))
 
 
 def rokna(q):
