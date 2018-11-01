@@ -397,7 +397,7 @@ def les_og_tekna(text, fig, canvas):
                 for island in os.listdir('Kort_Data/Coasts'):
                     lo, aa, la = np.genfromtxt('Kort_Data/Coasts/' + island, delimiter=' ').T
                     xpt, ypt = m(lo, la)
-                    m.plot(xpt, ypt, 'k', linewidth=1)
+                    plt.plot(xpt, ypt, 'k', linewidth=1)
                     ax.fill(xpt, ypt, landlitur, zorder=10)
             elif command == 'btn_contourf':
                 grid_z0 = griddata((btn_x, btn_y), dypid.values, (meshgridx, meshgridy), method=btn_interpolation)
