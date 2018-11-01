@@ -4,6 +4,7 @@ import tkinter.ttk as ttk
 import Ingestion.streymmatari
 import Ingestion.LV
 import Strfbotni.strbotni
+import Ingestion.oxygenkeda
 
 class Window(Frame):
     def __init__(self, master=None):
@@ -15,11 +16,8 @@ class Window(Frame):
     def init_window(self):
         self.master.title("Fiskaaling Ingestion Engine")
         self.pack(fill=BOTH, expand=1)
-
-        #tools_frame = Frame(self, relief=RAISED, borderwidth=1)
         main_frame = Frame(self, borderwidth=1)
         main_frame.pack(fill=BOTH, expand=False, side=TOP)
-
 
     def client_exit(self):
         exit()
@@ -37,7 +35,13 @@ def OnDoubleClick(event, tree):
     elif item == 'Rokna miðal streym':
         Ingestion.streymmatari.roknaMidalstreym(RightFrame, root)
     elif item == 'Countour plot':
-        Strfbotni.strbotni.botnmatPlt(RightFrame,root)
+        Strfbotni.strbotni.botnmatPlt(RightFrame, root)
+    elif item == 'Decimering':
+        Ingestion.oxygenkeda.decimering(RightFrame, root)
+    elif item == 'Kalibrering':
+        Ingestion.oxygenkeda.kalibering(RightFrame, root)
+
+
 global root
 root = Tk()
 root.geometry("1200x800")
@@ -60,19 +64,16 @@ scrollbar.pack(side=RIGHT, fill=Y)
 
 ingestion_listbox.insert("", 0, text='Tekna Kort')
 LV = ingestion_listbox.insert("", 0, text='Landsverk')
-streymmatingar_frabati = ingestion_listbox.insert("", 0, text="Streymmátingar frá báti")
+
 streymmatingar_stationert = ingestion_listbox.insert("", 0, text="Streymmátinar frá botni")
-termistorkeda = ingestion_listbox.insert("", 0, text="Termistor Keda")
+
+Ingestion.streymmatari.init(ingestion_listbox)
+Ingestion.oxygenkeda.init(ingestion_listbox)
+
 ctd = ingestion_listbox.insert("", 0, text='CTD')
 alduboya = ingestion_listbox.insert("", 0, text='Alduboya')
 
 ingestion_listbox.insert(ctd, "end", text='Les data frá CTD')
-ingestion_listbox.insert(streymmatingar_frabati, "end", text='Kopiera data frá feltteldu')
-ingestion_listbox.insert(streymmatingar_frabati, "end", text='Evt. Reprocessera')
-ingestion_listbox.insert(streymmatingar_frabati, "end", text='Exportera csv fílar')
-ingestion_listbox.insert(streymmatingar_frabati, "end", text='Rokna quiver data')
-ingestion_listbox.insert(streymmatingar_frabati, "end", text='Rokna miðal streym')
-ingestion_listbox.insert(streymmatingar_frabati, "end", text='Tekna Kort')
 ingestion_listbox.insert(streymmatingar_stationert, "end", text='Countour plot')
 ingestion_listbox.bind("<Double-1>", lambda event, arg=ingestion_listbox: OnDoubleClick(event, arg))
 

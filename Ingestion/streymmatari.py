@@ -7,6 +7,7 @@ from matplotlib.figure import Figure
 #from matplotlib import pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
 import os.path
+from misc.faLog import *
 R = 6373  # Radius av jørð (km)
 
 
@@ -62,21 +63,10 @@ def roknaMidalstreym(frame, root2):
 
     log_frame = Frame(leftFrame, height=300, borderwidth=1, highlightbackground="green", highlightcolor="green", highlightthickness=1)
     log_frame.pack(fill=X, expand=False, side=TOP, anchor=W)
-    global log
-    log = Text(log_frame, bg='#888888')
-    log.pack(fill=X, expand=True)
-    log.insert(1.0, 'Klárt\n')
-    log.tag_add('fystalinja', '1.0', '2.0')
-    log.tag_config('fystalinja', foreground='white', background='green')
-    log.config(state=DISABLED)
+    gerlog(log_frame, root)
 
 def rokna_Midalstreym(punktir, fig, canvas):
-    log.config(state=NORMAL)
-    log.delete(1.0, 2.0)
-    log.insert(1.0, 'Arbeðir\n')
-    log.tag_add('fystalinja', '1.0', '2.0')
-    log.tag_config('fystalinja', foreground='white', background='red')
-    root.update()
+    log_b()
     fig.clf()
     ax1 = fig.add_subplot(2, 1, 1)
     ax2 = fig.add_subplot(2, 1, 2)
@@ -158,19 +148,17 @@ def rokna_Midalstreym(punktir, fig, canvas):
     ax2.set_ylabel('Miðal ætt')
     canvas.draw()
     canvas.get_tk_widget().pack(fill=BOTH, expand=1)
-    log.config(state=NORMAL)
-    log.delete(1.0, 2.0)
-    log.insert(1.0, 'Liðugt\n')
-    log.tag_add('fystalinja', '1.0', '2.0')
-    log.tag_config('fystalinja', foreground='white', background='green')
-    log.config(state=DISABLED)
-    root.update()
+    log_e()
+
 
 def goymmynd(fig, canvas):
+    log_b()
     filnavn = filedialog.asksaveasfilename(parent=root, title="Goym mynd",  filetypes=(("png Fílur", "*.png"), ("jpg Fílur", "*.jpg")))
     print('Goymir mynd')
     fig.savefig(filnavn, dpi=600, bbox_inches='tight')
     print('Liðugt')
+    log_e()
+
 
 def velPunktir(punktir):
     filnavn = filedialog.askopenfile(title='Vel punktir frá fíli', filetypes=(('csv fílur', '*.csv'),
@@ -257,14 +245,7 @@ def roknaQuiver(frame, root2):
 
     log_frame = Frame(frame, height=300, borderwidth=1, highlightbackground="green", highlightcolor="green", highlightthickness=1)
     log_frame.pack(fill=X, expand=False, side=BOTTOM, anchor=W)
-
-    global log
-    log = Text(log_frame, bg='#888888')
-    log.pack(fill=X, expand=True)
-    log.insert(1.0, 'Klárt\n')
-    log.tag_add('fystalinja', '1.0', '2.0')
-    log.tag_config('fystalinja', foreground='white', background='green')
-    log.config(state=DISABLED)
+    gerlog(log_frame, root)
 
 def velMappu():
     global mappunavn
@@ -272,23 +253,8 @@ def velMappu():
     print(mappunavn)
 
 
-def print(text, nl=True):
-    log.config(state=NORMAL)
-    if nl:
-        log.insert(2.0, str(text) + '\n')
-    else:
-        log.insert(2.0, str(text))
-    root.update()
-    log.config(state=DISABLED)
-
-
 def rokna(fra, til, punktPerPil, bins, skip):
-    log.config(state=NORMAL)
-    log.delete(1.0, 2.0)
-    log.insert(1.0, 'Arbeðir\n')
-    log.tag_add('fystalinja', '1.0', '2.0')
-    log.tag_config('fystalinja', foreground='white', background='red')
-    root.update()
+    log_b()
     n_trips = len(range(fra, til+1))
     for trip_index in range(0, n_trips):
         print('Lesur fíl :' + str(trip_index) + '_nav.txt')
@@ -326,10 +292,13 @@ def rokna(fra, til, punktPerPil, bins, skip):
         print(len(mean_u[trip_index, :]))
         turur = pd.DataFrame({'lat': lat, 'lon': lon, 'u': mean_u[trip_index, :], 'v': mean_v[trip_index]})
         turur.to_csv(str(trip_index+1) + '.csv', index=False)
-    log.config(state=NORMAL)
-    log.delete(1.0, 2.0)
-    log.insert(1.0, 'Liðugt\n')
-    log.tag_add('fystalinja', '1.0', '2.0')
-    log.tag_config('fystalinja', foreground='white', background='green')
-    log.config(state=DISABLED)
-    root.update()
+    log_e()
+
+def init(ingestion_listbox):
+    streymmatingar_frabati = ingestion_listbox.insert("", 0, text="Streymmátingar frá báti")
+    ingestion_listbox.insert(streymmatingar_frabati, "end", text='Kopiera data frá feltteldu')
+    ingestion_listbox.insert(streymmatingar_frabati, "end", text='Evt. Reprocessera')
+    ingestion_listbox.insert(streymmatingar_frabati, "end", text='Exportera csv fílar')
+    ingestion_listbox.insert(streymmatingar_frabati, "end", text='Rokna quiver data')
+    ingestion_listbox.insert(streymmatingar_frabati, "end", text='Rokna miðal streym')
+    ingestion_listbox.insert(streymmatingar_frabati, "end", text='Tekna Kort')
