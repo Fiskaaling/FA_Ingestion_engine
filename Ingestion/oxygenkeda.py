@@ -35,6 +35,9 @@ def seaguard_data(frame, root2):
 
     velfilir_Btn = Button(menuFrame, text='Vel Seaguard fíl', command=lambda: vel_fil())
     velfilir_Btn.pack(side=LEFT)
+
+    eksportera_Btn = Button(menuFrame, text='Eksportera fíl', command=lambda: eksportera()).pack(side=LEFT)
+
     v = IntVar()
     temp_radBtn = Radiobutton(frame, text='Tempratur', variable=v, value=1)
     temp_radBtn.pack(side=TOP, anchor=W)
@@ -49,6 +52,22 @@ def seaguard_data(frame, root2):
     log_frame.pack(fill=X, expand=False, side=BOTTOM, anchor=W)
     gerlog(log_frame, root)
 
+
+def eksportera():
+    log_b()
+    global filnavn
+    data = pd.read_csv(filnavn, sep='\t', skiprows=1)
+    print(data.columns.values)
+    timestamp = data['Time tag (Gmt)'].values
+    print(timestamp[0])
+    for i in range(len(timestamp)):
+        timestamp[i] = timestamp[i].replace(' ', '_')
+    print(timestamp[0])
+    o2 = data['AirSaturation']
+    savefilnavn = filedialog.asksaveasfilename(title='Goym fíl', filetypes=(("csv Fílir", "*.csv"), ("all files", "*.*")))
+    data_tosave = pd.DataFrame({'time': timestamp, 'signal': o2})
+    data_tosave.to_csv(savefilnavn, index=False)
+    log_e()
 
 def vel_fil():
     global filnavn
