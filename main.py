@@ -38,6 +38,8 @@ def OnDoubleClick(event, tree):
         Strfbotni.strbotni.botnmatPlt(RightFrame, root)
     elif item == 'Decimering':
         Ingestion.oxygenkeda.decimering(RightFrame, root)
+    elif item == 'Kalibrering':
+        Ingestion.oxygenkeda.kalibering(RightFrame, root)
 
 
 global root
