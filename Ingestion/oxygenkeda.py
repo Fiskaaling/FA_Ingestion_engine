@@ -10,6 +10,8 @@ from matplotlib.figure import Figure
 import matplotlib.dates as md
 from datetime import datetime
 import numpy as np
+from scipy import interpolate
+from scipy.interpolate import griddata
 
 def init(ingestion_listbox):
     termistorkeda = ingestion_listbox.insert("", 0, text="Termistor Keda")
@@ -38,7 +40,7 @@ def check_click(item, RightFrame, root):
 
 ########################################################################################################################
 #                                                                                                                      #
-#                                                  Seaguard data                                                       #
+#                                                     Contour plot                                                     #
 #                                                                                                                      #
 ########################################################################################################################
 
@@ -70,34 +72,89 @@ def rokna_og_tekna_contour(fig, canvas):
     log_b()
     fig.clf()
     ax = fig.add_subplot(111)
-    canvas.draw()
-    canvas.get_tk_widget().pack(fill=BOTH, expand=1)
     global dfilnavn
-    dypir = pd.read_csv(dfilnavn)
+    dypirfil = pd.read_csv(dfilnavn)
     global filnavn
     signal = []
     timestamp = []
     print('Lesur datafílir')
     for i in range(len(filnavn)):
         data = pd.read_csv(filnavn[i])
-        signal.append(['signal'])
-        timestamp.append(['time'])
+        signal.append(data['signal'])
+        timestamp.append(data['time'])
     print('Roknar um til datetime')
-    mdTimestamp = []
+    flat_timestamp = []
+    flat_signal = []
+    starttid = 100000000000
+    stoptid = 0
+    dypir = []
+    dypir_sernr = dypirfil['serial']
+    dypir_virdir = dypirfil['d']
+    stostadypid = 1
+    for i in range(len(dypir_virdir)):
+        if float(dypir_virdir[i]) > stostadypid:
+            stostadypid = dypir_virdir[i]
+    print(np.linspace(0, stostadypid, 10))
     for i in range(len(filnavn)):
-        tmpTimestamp = []
+        print('Fílur' + str(i))
+        # Finn dýpi á fíli
+        hettardypid = -99.9
+        for j in range(len(dypirfil)):
+            print(j)
+            print(dypir_sernr[j])
+            if dypir_sernr[j] in filnavn[i]:
+                print('funnið dypir' + str(dypir_sernr[j]))
+                hettardypid = -dypir_virdir[j]
+
         for j in range(len(timestamp[i])):
             try:
-                tmpTimestamp.append(md.date2num(datetime.strptime(timestamp[i][j], '%Y-%m-%d_%H:%M:%S')))
+                flat_timestamp.append(md.date2num(datetime.strptime(timestamp[i][j], '%Y-%m-%d_%H:%M:%S.%f')))
+                flat_signal.append(signal[i][j])
+                dypir.append(hettardypid)
             except:
                 try:
-                    tmpTimestamp.append(md.date2num(datetime.strptime(timestamp[i][j], '%d.%m.%y_%H:%M:%S')))
+                    flat_timestamp.append(md.date2num(datetime.strptime(timestamp[i][j], '%d.%m.%y_%H:%M:%S')))
+                    flat_signal.append(signal[i][j])
+                    dypir.append(hettardypid)
                 except:
                     print('Hjálp ' + timestamp[i][j])
                     print(filnavn[i])
-        mdTimestamp.append(tmpTimestamp)
+    for j in range(len(flat_timestamp)):
+        if flat_timestamp[j] > stoptid:
+            stoptid = flat_timestamp[j]
+        if flat_timestamp[j] < starttid:
+            starttid = flat_timestamp[j]
     print('Ger meshgrid')
-    X, Y = np.meshgrid(range(0, 200), np.linspace(0, -82, len(tidaksi)))
+    n = 1000
+    print(np.linspace(starttid, stoptid, n))
+    print(np.linspace(0, -stostadypid, n))
+    X, Y = np.meshgrid(np.linspace(starttid, stoptid, n), np.linspace(0, -stostadypid, n))
+    #X, Y = np.meshgrid(flat_timestamp, dypir)
+    print('Interpolerar')
+    print(len(flat_timestamp))
+    print(len(dypir))
+    print(len(flat_signal))
+    print(len(X))
+    print(len(Y))
+    f = griddata((flat_timestamp, dypir), flat_signal, (X, Y), method='linear')
+    #f = interpolate.interp2d((flat_timestamp, dypir), flat_signal, (X, Y), kind='linear')
+    #f = interpolate.interp2d(flat_timestamp, dypir, flat_signal, kind='linear')
+    #levels = np.round(np.linspace(75, 95, 100), 1)
+    #levels = np.append(levels, np.round(np.linspace(105, 115), 1))
+    levels = np.round(np.linspace(75, 115, 200), 1)
+    print(levels)
+    ax.contourf(X, Y, f, levels=levels, cmap='jet', extend='both')
+    try:
+        ax.colorbar(extend='both')
+    except:
+        print('pokas')
+    try:
+        fig.colorbar(extend='both')
+    except:
+        print('ok riggar heldur ikki')
+    canvas.draw()
+    canvas.get_tk_widget().pack(fill=BOTH, expand=1)
+    fig.savefig('tmp.png')
     log_e()
 
 
