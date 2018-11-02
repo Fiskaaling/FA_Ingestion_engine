@@ -58,22 +58,38 @@ def botnmatPlt(frame, root2):
     menuFrame = Frame(frame)
     menuFrame.pack(side=TOP, fill=X, expand=False, anchor=N)
 
-    velMappuBtn = Button(menuFrame, text='Vel U Fíl', command=lambda: veluFil())
-    velMappuBtn.pack(side=LEFT)
+    veluMappuBtn = Button(menuFrame, text='Vel U Fíl', command=lambda: veluFil())
+    veluMappuBtn.pack(side=LEFT)
 
-    velMappuBtn = Button(menuFrame, text='Vel V Fíl', command=lambda: velvFil())
-    velMappuBtn.pack(side=LEFT)
+    velvMappuBtn = Button(menuFrame, text='Vel V Fíl', command=lambda: velvFil())
+    velvMappuBtn.pack(side=LEFT)
 
-    teknaPltBtn = Button(menuFrame, text='Tekna Plot', command=lambda: tekna(stru, strv, startdato_str, endadato_str,
+    teknaPltBtn = Button(menuFrame, text='Tekna Plot', command=lambda: tekna(stru, strv, fraEntry.get(), tilEntry.get(),
                                                                              dato_a_xksa,takast_av, takast_av_botni,
-                                                                             fpbadi, hvatskalplottast, titil, vmin_max,
+                                                                             FPBEntry.get(), UVaEntry.get(), titil, vmin_max,
                                                                              boolabs, talavpilum,fig,canvas))
     teknaPltBtn.pack(side=LEFT)
 
     Label(menuFrame, text='Frá:').pack(side=LEFT)
 
-    fraEntry = Entry(menuFrame, width=3)
+    fraEntry = Entry(menuFrame, width=8)
     fraEntry.pack(side=LEFT)
+    fraEntry.insert(0, startdato_str)
+
+    Label(menuFrame, text='Til:').pack(side=LEFT)
+    tilEntry = Entry(menuFrame, width=8)
+    tilEntry.pack(side=LEFT)
+    tilEntry.insert(0, endadato_str)
+
+    Label(menuFrame, text='FPB:').pack(side=LEFT)
+    FPBEntry = Entry(menuFrame, width=1)
+    FPBEntry.pack(side=LEFT)
+    FPBEntry.insert(0, fpbadi)
+
+    Label(menuFrame, text='UV/abs:').pack(side=LEFT)
+    UVaEntry = Entry(menuFrame, width=3)
+    UVaEntry.pack(side=LEFT)
+    UVaEntry.insert(0, hvatskalplottast)
 
     fig = Figure(figsize=(8, 12), dpi=100)
     plot_frame = Frame(frame, borderwidth=1, highlightbackground="green", highlightcolor="green", highlightthickness=1)

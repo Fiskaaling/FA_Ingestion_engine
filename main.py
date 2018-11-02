@@ -36,10 +36,8 @@ def OnDoubleClick(event, tree):
         Ingestion.streymmatari.roknaMidalstreym(RightFrame, root)
     elif item == 'Countour plot':
         Strfbotni.strbotni.botnmatPlt(RightFrame, root)
-    elif item == 'Decimering':
-        Ingestion.oxygenkeda.decimering(RightFrame, root)
-    elif item == 'Kalibrering':
-        Ingestion.oxygenkeda.kalibering(RightFrame, root)
+    else:
+        Ingestion.oxygenkeda.check_click(item, RightFrame, root)
 
 
 global root
