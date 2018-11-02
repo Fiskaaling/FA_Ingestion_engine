@@ -7,6 +7,9 @@ import os
 import tkinter.ttk as ttk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
 from matplotlib.figure import Figure
+import matplotlib.dates as md
+from datetime import datetime
+import numpy as np
 
 def init(ingestion_listbox):
     termistorkeda = ingestion_listbox.insert("", 0, text="Termistor Keda")
@@ -41,8 +44,6 @@ def check_click(item, RightFrame, root):
 
 def termistorkeda_contourplot(frame, root2):
     global root
-    global filnavn
-    filnavn = '/home/johannus/Documents/FA_Ingestion_engine/Kort_Data/Syðradalur.txt'
     root = root2
     for widget in frame.winfo_children():
         widget.destroy()
@@ -51,21 +52,60 @@ def termistorkeda_contourplot(frame, root2):
 
     menuFrame = Frame(frame)
     menuFrame.pack(side=TOP, fill=X, expand=False, anchor=N)
-    Button(menuFrame, text='Vel dýpir', command=lambda: rokna_og_tekna_contour(fig, canvas)).pack(side=LEFT)
-    Button(menuFrame, text='Vel datafílir', command=lambda: rokna_og_tekna_contour(fig, canvas)).pack(side=LEFT)
+    Button(menuFrame, text='Vel dýpir', command=lambda: vel_dypir()).pack(side=LEFT)
+    Button(menuFrame, text='Vel datafílir', command=lambda: velFilir()).pack(side=LEFT)
     Button(menuFrame, text='Tekna', command=lambda: rokna_og_tekna_contour(fig, canvas)).pack(side=LEFT)
+
+    log_frame = Frame(frame, height=300)
+    log_frame.pack(fill=X, expand=False, side=TOP, anchor=W)
+    gerlog(log_frame, root)
 
     fig = Figure(figsize=(8, 12), dpi=100)
     plot_frame = Frame(frame)
     plot_frame.pack(fill=BOTH, expand=True, side=BOTTOM, anchor=W)
     canvas = FigureCanvasTkAgg(fig, master=plot_frame)
 
+
 def rokna_og_tekna_contour(fig, canvas):
+    log_b()
     fig.clf()
     ax = fig.add_subplot(111)
     canvas.draw()
     canvas.get_tk_widget().pack(fill=BOTH, expand=1)
+    global dfilnavn
+    dypir = pd.read_csv(dfilnavn)
+    global filnavn
+    signal = []
+    timestamp = []
+    print('Lesur datafílir')
+    for i in range(len(filnavn)):
+        data = pd.read_csv(filnavn[i])
+        signal.append(['signal'])
+        timestamp.append(['time'])
+    print('Roknar um til datetime')
+    mdTimestamp = []
+    for i in range(len(filnavn)):
+        tmpTimestamp = []
+        for j in range(len(timestamp[i])):
+            try:
+                tmpTimestamp.append(md.date2num(datetime.strptime(timestamp[i][j], '%Y-%m-%d_%H:%M:%S')))
+            except:
+                try:
+                    tmpTimestamp.append(md.date2num(datetime.strptime(timestamp[i][j], '%d.%m.%y_%H:%M:%S')))
+                except:
+                    print('Hjálp ' + timestamp[i][j])
+                    print(filnavn[i])
+        mdTimestamp.append(tmpTimestamp)
+    print('Ger meshgrid')
+    X, Y = np.meshgrid(range(0, 200), np.linspace(0, -82, len(tidaksi)))
+    log_e()
 
+
+
+def vel_dypir():
+    global dfilnavn
+    dfilnavn = filedialog.askopenfile(title='Vel Dýpid fíl',
+                                      filetypes=(("csv Fílir", "*.csv"), ("all files", "*.*"))).name
 
 ########################################################################################################################
 #                                                                                                                      #
@@ -235,7 +275,7 @@ def decimering(frame, root2):
 
 def velFilir():
     global filnavn
-    filnavn = filedialog.askopenfilenames(title='Vel fíl', filetypes=(("txt Fílir", "*.txt"), ("csv Fílir", "*.csv"),
+    filnavn = filedialog.askopenfilenames(title='Vel fílir', filetypes=(("txt Fílir", "*.txt"), ("csv Fílir", "*.csv"),
                                                                       ("all files", "*.*")))
     print(filnavn)
 
