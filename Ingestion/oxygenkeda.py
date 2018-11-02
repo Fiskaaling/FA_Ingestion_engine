@@ -20,6 +20,39 @@ def init(ingestion_listbox):
     ingestion_listbox.insert(tempraturmatarir, "end", text="Ger Countour plot")
 
 
+def check_click(item, RightFrame, root):
+    if item == 'Decimering':
+        decimering(RightFrame, root)
+    elif item == 'Kalibrering':
+        kalibering(RightFrame, root)
+    elif item == 'Fyrireika Seaguard data':
+        seaguard_data(RightFrame, root)
+    elif item == 'Ger Countour plot':
+        termistorkeda_contourplot(RightFrame, root)
+
+
+########################################################################################################################
+#                                                                                                                      #
+#                                                  Seaguard data                                                       #
+#                                                                                                                      #
+########################################################################################################################
+
+def termistorkeda_contourplot(frame, root2):
+    global root
+    global filnavn
+    filnavn = '/home/johannus/Documents/FA_Ingestion_engine/Kort_Data/Syðradalur.txt'
+    root = root2
+    for widget in frame.winfo_children():
+        widget.destroy()
+    Label(frame, text='Termistorkeda', font='Helvetica 18 bold').pack(side=TOP)
+    Label(frame, text='Plotta contour data').pack(side=TOP, anchor=W)
+
+########################################################################################################################
+#                                                                                                                      #
+#                                                  Seaguard data                                                       #
+#                                                                                                                      #
+########################################################################################################################
+
 def seaguard_data(frame, root2):
     global root
     global filnavn
@@ -51,7 +84,6 @@ def seaguard_data(frame, root2):
     log_frame = Frame(frame, height=300)
     log_frame.pack(fill=X, expand=False, side=BOTTOM, anchor=W)
     gerlog(log_frame, root)
-
 
 def eksportera():
     log_b()
