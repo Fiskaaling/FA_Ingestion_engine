@@ -79,6 +79,7 @@ def rokna_og_tekna_contour(fig, canvas):
     timestamp = []
     print('Lesur datafílir')
     for i in range(len(filnavn)):
+        print(filnavn[i])
         data = pd.read_csv(filnavn[i])
         signal.append(data['signal'])
         timestamp.append(data['time'])
@@ -143,18 +144,28 @@ def rokna_og_tekna_contour(fig, canvas):
     #levels = np.append(levels, np.round(np.linspace(105, 115), 1))
     levels = np.round(np.linspace(75, 115, 200), 1)
     print(levels)
-    ax.contourf(X, Y, f, levels=levels, cmap='jet', extend='both')
-    try:
-        ax.colorbar(extend='both')
-    except:
-        print('pokas')
-    try:
-        fig.colorbar(extend='both')
-    except:
-        print('ok riggar heldur ikki')
+    c = ax.contourf(X, Y, f, levels=levels, cmap='jet', extend='both')
+    fig.colorbar(c)
+    tlb = ax.get_xticklabels()
+    print(tlb)
+    text_timestamps = []
+    for i in range(len(tlb)):
+        print(tlb[i])
+        a = tlb[i]
+        print(a._text)
+        if a._text != '':
+            print('woohoo' + i)
+    #for i in range(len(tlb)):
+    #    tmp = tlb[i]
+    #    tmp = tmp._text
+    #    print(tmp)
+    #    tmp = md.num2date(float(tmp))
+    #    tmp = tmp.strftime("%d, %b")
+    #    text_timestamps.append(tmp)
+    #ax.set_xticklabels(text_timestamps)
     canvas.draw()
     canvas.get_tk_widget().pack(fill=BOTH, expand=1)
-    fig.savefig('tmp.png')
+    fig.savefig('tmp.png', figsize=(8, 12), dpi=300)
     log_e()
 
 

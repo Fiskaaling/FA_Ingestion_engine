@@ -5,13 +5,13 @@ lonmax=-6.7044
 latmin=61.49
 lonmin=-6.75
 landlitur=green
-title=Húsaeiði - Kl 14:00
+title=Hovsfjørður - Kl 14:00
 Tekna kort
-dybdarlinjur=Kort_Data/depth_new_LG_smooth.tec
-quiverskala=0.002
-quiverf_threshold=0.25
+#dybdarlinjur=Kort_Data/depth_new_LG_smooth.tec
+quiverskala=2
+quiverf_threshold=0.15
 quiverf=1.csv
-#qkey=1
+qkey=1
 
 linjuSlag=eingin
 breiddarlinjur=10
@@ -21,8 +21,17 @@ suppress_ticks=True
 
 lin_fil=/home/johannus/Documents/FA_Ingestion_engine/Kort_Data/Hovsfjøðrur - A-18.csv
 
+#scatter_farv=blue
+
+#scatter_fil=/home/johannus/Documents/FA_Ingestion_engine/Kort_Data/botnkort/samla.csv
+
+#scatter_farv=red
+#scatter_fil=/home/johannus/Documents/FA_Ingestion_engine/Kort_Data/botnkort/LVHov.csv
 
 
-
-
-
+btn_interpolation=linear
+btn_track=False
+btn_gridsize=100
+btn_striku_hvor=5
+csv_dybdarkort=Kort_Data/botnkort/samla.csv
+btn_contour

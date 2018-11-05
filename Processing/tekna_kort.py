@@ -311,10 +311,10 @@ def les_og_tekna(text, fig, canvas):
                 Qdata = pd.read_csv(command[toindex::])
                 pos_lon = Qdata['lon']
                 pos_lat = Qdata['lat']
-                v = Qdata['v']
-                u = Qdata['u']
-                v = v*qskala
-                u = u*qskala
+                v_org = Qdata['v']/1000
+                u_org = Qdata['u']/1000
+                v = v_org*qskala
+                u = u_org*qskala
                 lon_undir = []
                 lat_undir = []
                 lon_yvir = []
@@ -325,7 +325,7 @@ def les_og_tekna(text, fig, canvas):
                 v_yvir = []
                 for arrow_index in range(len(u)):
                     print(np.sqrt(v[arrow_index] ** 2 + u[arrow_index] ** 2))
-                    if np.sqrt(v[arrow_index] ** 2 + u[arrow_index] ** 2) > quiverf_threshold:
+                    if np.sqrt(v_org[arrow_index] ** 2 + u_org[arrow_index] ** 2) > quiverf_threshold:
                         lon_yvir.append(pos_lon[arrow_index])
                         lat_yvir.append(pos_lat[arrow_index])
                         u_yvir.append(u[arrow_index])
@@ -340,10 +340,10 @@ def les_og_tekna(text, fig, canvas):
 
                 q = m.quiver(x_undir, y_undir, u_undir, v_undir, color='g', scale=10, width=0.003, headwidth=5,
                              zorder=100)
-                ax.quiverkey(q, 0.85, 0.95 - 0 * 0.03, quiverf_threshold, label='Undir ' + str(quiverf_threshold) + ' m/s', labelpos='W') # 2.57222
+                ax.quiverkey(q, 0.85, 0.95 - 0 * 0.03, quiverf_threshold*qskala, label='Undir ' + str(quiverf_threshold) + ' m/s', labelpos='W') # 2.57222
 
                 q = m.quiver(x_yvir, y_yvir, u_yvir, v_yvir, color='r', scale=10, width=0.003, headwidth=5, zorder=100)
-                ax.quiverkey(q, 0.85, 0.95 - 1 * 0.03, quiverf_threshold, label='Yvir ' + str(quiverf_threshold) + ' m/s', labelpos='W')
+                ax.quiverkey(q, 0.85, 0.95 - 1 * 0.03, quiverf_threshold*qskala, label='Yvir ' + str(quiverf_threshold) + ' m/s', labelpos='W')
 
             elif variable == 'quiverf_threshold':
                 quiverf_threshold = float(command[toindex::])
@@ -351,10 +351,10 @@ def les_og_tekna(text, fig, canvas):
                 qskala = float(command[toindex::])
             elif variable == 'qkey':
                 if 'x_undir' in locals():
-                    ax.quiverkey(q, 0.8, 0.95 - 2 * 0.03, float(command[toindex::]), label=command[toindex::] + ' m/s',
+                    ax.quiverkey(q, 0.8, 0.95 - 2 * 0.03, float(command[toindex::])*qskala, label=command[toindex::] + ' m/s',
                                  labelpos='W')
                 else:
-                    ax.quiverkey(q, 0.8, 0.95, float(command[toindex::]), label=command[toindex::] + ' m/s', labelpos='W')
+                    ax.quiverkey(q, 0.8, 0.95, float(command[toindex::]*qskala), label=command[toindex::] + ' m/s', labelpos='W')
             elif variable == 'lin_farv':
                 lin_farv = command[toindex::]
             elif variable == 'lin_legend':
