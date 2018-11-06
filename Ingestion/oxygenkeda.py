@@ -12,6 +12,7 @@ from datetime import datetime
 import numpy as np
 from scipy import interpolate
 from scipy.interpolate import griddata
+from matplotlib.ticker import MaxNLocator
 
 def init(ingestion_listbox):
     termistorkeda = ingestion_listbox.insert("", 0, text="Termistor Keda")
@@ -57,11 +58,11 @@ def termistorkeda_contourplot(frame, root2):
     Button(menuFrame, text='Vel dýpir', command=lambda: vel_dypir()).pack(side=LEFT)
     Button(menuFrame, text='Vel datafílir', command=lambda: velFilir()).pack(side=LEFT)
     Button(menuFrame, text='Tekna', command=lambda: rokna_og_tekna_contour(fig, canvas)).pack(side=LEFT)
+    Button(menuFrame, text='Goym mynd', command=lambda: goymmynd(fig)).pack(side=RIGHT)
 
     log_frame = Frame(frame, height=300)
     log_frame.pack(fill=X, expand=False, side=TOP, anchor=W)
     gerlog(log_frame, root)
-
     fig = Figure(figsize=(8, 12), dpi=100)
     plot_frame = Frame(frame)
     plot_frame.pack(fill=BOTH, expand=True, side=BOTTOM, anchor=W)
@@ -81,7 +82,7 @@ def rokna_og_tekna_contour(fig, canvas):
     for i in range(len(filnavn)):
         print(filnavn[i])
         data = pd.read_csv(filnavn[i])
-        signal.append(data['signal'])
+        signal.append(data['signal'].values)
         timestamp.append(data['time'])
     print('Roknar um til datetime')
     flat_timestamp = []
@@ -101,12 +102,9 @@ def rokna_og_tekna_contour(fig, canvas):
         # Finn dýpi á fíli
         hettardypid = -99.9
         for j in range(len(dypirfil)):
-            print(j)
-            print(dypir_sernr[j])
             if dypir_sernr[j] in filnavn[i]:
                 print('funnið dypir' + str(dypir_sernr[j]))
                 hettardypid = -dypir_virdir[j]
-
         for j in range(len(timestamp[i])):
             try:
                 flat_timestamp.append(md.date2num(datetime.strptime(timestamp[i][j], '%Y-%m-%d_%H:%M:%S.%f')))
@@ -120,6 +118,9 @@ def rokna_og_tekna_contour(fig, canvas):
                 except:
                     print('Hjálp ' + timestamp[i][j])
                     print(filnavn[i])
+    tmp = pd.DataFrame(timestamp)
+    tmp.to_csv('farts.csv')
+    print('Finnur endapunkt í tíðsaksanum')
     for j in range(len(flat_timestamp)):
         if flat_timestamp[j] > stoptid:
             stoptid = flat_timestamp[j]
@@ -127,17 +128,13 @@ def rokna_og_tekna_contour(fig, canvas):
             starttid = flat_timestamp[j]
     print('Ger meshgrid')
     n = 1000
-    print(np.linspace(starttid, stoptid, n))
-    print(np.linspace(0, -stostadypid, n))
     X, Y = np.meshgrid(np.linspace(starttid, stoptid, n), np.linspace(0, -stostadypid, n))
     #X, Y = np.meshgrid(flat_timestamp, dypir)
     print('Interpolerar')
-    print(len(flat_timestamp))
-    print(len(dypir))
-    print(len(flat_signal))
-    print(len(X))
-    print(len(Y))
-    f = griddata((flat_timestamp, dypir), flat_signal, (X, Y), method='linear')
+    flat_signal = np.array(flat_signal)
+    flat_timestamp = np.array(flat_timestamp)
+    dypir = np.array(dypir)
+    f = griddata((flat_timestamp, dypir), flat_signal, (X, Y), method='linear', rescale=True)
     #f = interpolate.interp2d((flat_timestamp, dypir), flat_signal, (X, Y), kind='linear')
     #f = interpolate.interp2d(flat_timestamp, dypir, flat_signal, kind='linear')
     #levels = np.round(np.linspace(75, 95, 100), 1)
@@ -146,15 +143,23 @@ def rokna_og_tekna_contour(fig, canvas):
     print(levels)
     c = ax.contourf(X, Y, f, levels=levels, cmap='jet', extend='both')
     fig.colorbar(c)
-    tlb = ax.get_xticklabels()
-    print(tlb)
+    ax.xaxis.set_major_locator(MaxNLocator(10))
+    #xticksloc, xtickslabel = plt.xticks()
+    xt = ax.get_xticks()
     text_timestamps = []
-    for i in range(len(tlb)):
-        print(tlb[i])
-        a = tlb[i]
-        print(a._text)
-        if a._text != '':
-            print('woohoo' + i)
+    for i in range(len(xt)):
+        tmp = md.num2date(float(xt[i]))
+        text_timestamps.append(tmp.strftime("%d %b"))
+    try:
+        ax.set_xticks(text_timestamps)
+    except:
+        print('nooo')
+    try:
+        ax.set_xticklabels(text_timestamps)
+    except:
+        print('bapokafs')
+
+    text_timestamps = []
     #for i in range(len(tlb)):
     #    tmp = tlb[i]
     #    tmp = tmp._text
@@ -174,6 +179,15 @@ def vel_dypir():
     global dfilnavn
     dfilnavn = filedialog.askopenfile(title='Vel Dýpid fíl',
                                       filetypes=(("csv Fílir", "*.csv"), ("all files", "*.*"))).name
+
+
+def goymmynd(fig):
+    log_b()
+    filnavn = filedialog.asksaveasfilename(parent=root, title="Goym mynd",  filetypes=(("png Fílur", "*.png"), ("jpg Fílur", "*.jpg")))
+    print('Goymir mynd')
+    fig.savefig(filnavn, dpi=1200, bbox_inches='tight')
+    print('Liðugt')
+    log_e()
 
 ########################################################################################################################
 #                                                                                                                      #
@@ -371,18 +385,28 @@ def rokna(q):
         os.mkdir(os.path.dirname(filnavn[0])+'/'+str(q))
     for fil_index in range(len(filnavn)):
         print('Lesur fíl ' + filnavn[fil_index])
-        fil_data = pd.read_csv(filnavn[fil_index], encoding='latin', skiprows=25, sep='\s+')
-        print(fil_data.columns.values)
-        raw_data = fil_data['Time']
+        decimated_time = []
+        if 'd' in filnavn[fil_index]:
+            fil_data = pd.read_csv(filnavn[fil_index])
+            raw_data = fil_data['signal']
+            date = fil_data['time']
+            print('Decimerar tíð')
+            for i in range(len(fil_data)):
+                if i % q == 0:
+                    decimated_time.append(date[i])
+        else:
+            fil_data = pd.read_csv(filnavn[fil_index], encoding='latin', skiprows=25, sep='\s+')
+            raw_data = fil_data['Time']
+            date = fil_data['Date']
+            time = fil_data['&']
+            print('Decimerar tíð')
+            for i in range(len(fil_data)):
+                if i % q == 0:
+                    decimated_time.append(date[i] + '_' + time[i])
+
         print('Decimerar data')
         decimated_data = sig.decimate(raw_data, q, 3, ftype='fir')
-        decimated_time = []
-        print('Decimerar tíð')
-        date = fil_data['Date']
-        time = fil_data['&']
-        for i in range(len(fil_data)):
-            if i % q == 0:
-                decimated_time.append(date[i] + '_' + time[i])
+
         nyttfilnavn = filnavn[fil_index]
         nyttfilnavn = os.path.dirname(filnavn[fil_index]) + '/' + str(q) + '/' + nyttfilnavn[len(os.path.dirname(filnavn[fil_index]))+1:len(filnavn[fil_index]) - 13] + 'd' + str(q) + '.csv'
         print('Goymur fíl ' + nyttfilnavn)
