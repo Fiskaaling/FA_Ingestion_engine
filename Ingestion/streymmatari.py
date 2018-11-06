@@ -53,8 +53,7 @@ def roknaMidalstreym(frame, root2):
     velMappuBtn.pack(side=LEFT, anchor=W)
     roknaBtn = Button(knottarFrame, text='Rokna', command=lambda: rokna_Midalstreym(punktir, fig, canvas))
     roknaBtn.pack(side=LEFT, anchor=W)
-    goymmynd_btn = Button(knottarFrame, text='Goym Mynd', command=lambda: goymmynd(fig, canvas)).pack(side=LEFT)
-    roknaBtn.pack(side=LEFT, anchor=W)
+    Button(knottarFrame, text='Goym Mynd', command=lambda: goymmynd(fig, canvas)).pack(side=LEFT)
 
     fig = Figure(figsize=(10, 15), dpi=100)
     plot_frame = Frame(frame, borderwidth=1, highlightbackground="green", highlightcolor="green", highlightthickness=1)
@@ -108,12 +107,14 @@ def rokna_Midalstreym(punktir, fig, canvas):
                                decimal=",")
             innanfyri = []
             for ensemble_index in range(len(df_nav)):
+                # Finnur avstandin til hvørt punkt
                 delta_lon = np.deg2rad(lon[punkt_index]) - np.deg2rad(df_nav.iloc[ensemble_index, 11])
                 delta_lat = np.deg2rad(lat[punkt_index]) - np.deg2rad(df_nav.iloc[ensemble_index, 10])
                 a = np.sin(delta_lat / 2) ** 2 + np.cos(np.deg2rad(lat[punkt_index])) * np.cos(
                     np.deg2rad(df_nav.iloc[ensemble_index, 10])) * np.sin(delta_lon / 2) ** 2
                 c = 2 * np.arctan2(np.sqrt(a), np.sqrt(1 - a))
                 distance = R * c
+                # Um tað er innanfyri 50 m
                 if distance < 0.05:
                     lonPunktir.append(df_nav.iloc[ensemble_index, 11])
                     latPunktir.append(df_nav.iloc[ensemble_index, 10])

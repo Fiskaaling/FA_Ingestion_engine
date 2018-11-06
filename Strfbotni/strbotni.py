@@ -3,10 +3,13 @@ from tkinter import filedialog
 import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
+import matplotlib.dates as mdate
 import matplotlib
 matplotlib.use('TkAgg')
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
 from matplotlib.figure import Figure
+import time
+import datetime as dt
 
 def botnmatPlt(frame, root2):
     global root
@@ -23,9 +26,9 @@ def botnmatPlt(frame, root2):
 
     hædd = 4.8
 
-    startdato_str = '20-5-18'
+    startdato_str = '20.05.18'
 
-    endadato_str = '30-7-18'
+    endadato_str = '30.07.18'
 
     dato_a_xksa = 8  # sikkurt +1
 
@@ -142,22 +145,28 @@ def tekna(stru, strv, startdato_str, endadato_str, dato_a_xksa,
         Bin_Size_u = 4.00  # ger hettar automatist
 
         temp = list(df_u.keys()).index('YR')
-        datodata = np.array(df_u.iloc[j::, temp:temp + 3])
-        datoskift = [0]
-        dato = []
-        dato.append(f"{datodata[0,2]}-{datodata[0,1]}-{datodata[0,0]}")
-        for kan in range(1, len(datodata[:, 0]) - 1):
-            if datodata[kan, 2] != datodata[kan - 1, 2]:
-                datoskift.append(kan)
-                dato.append(f"{datodata[kan,2]}-{datodata[kan,1]}-{datodata[kan,0]}")
+        datodata = np.array(df_u.iloc[j::, temp:temp + 6])
+        dato = [mdate.date2num(dt.datetime(x[0]+2000,x[1],x[2],x[3],x[4],x[5])) for x in datodata]
 
-        return data_u, data_v, data_abs, Bin_Size_u, dato, datoskift
+        return data_u, data_v, data_abs, Bin_Size_u, dato
 
-    def meshsetup(startdato_str, endadato_str, takast_av, takast_av_botni, Bin_Size_u, data_u, data_v, data_abs):
-        startdato = dato.index(startdato_str)
-        endadato = dato.index(endadato_str)
-        startdato_i = datoskift[startdato]
-        endadato_i = datoskift[endadato]
+    def meshsetup(startdato_str, endadato_str, takast_av, takast_av_botni, Bin_Size_u, data_u, data_v, data_abs, dato):
+        startdato = max(dato[0],mdate.date2num(dt.datetime.strptime(startdato_str,'%d.%m.%y')))
+        endadato = min(dato[-1],mdate.date2num(dt.datetime.strptime(endadato_str,'%d.%m.%y')))
+        print(dato.index(startdato))
+        print(dato.index(endadato))
+        time.sleep(3600)
+        startdato_i = dato.index(startdato)
+        endadato_i  = dato.index(endadato)
+
+        '''
+        alt er ok í meshsetup her og til'''
+
+
+
+
+
+
         ll = endadato - startdato
         ll_step = int(max(ll / dato_a_xksa, 1))
 
@@ -215,10 +224,10 @@ def tekna(stru, strv, startdato_str, endadato_str, dato_a_xksa,
         pivot = 'mid'
         return X, Y, data_plot1, data_plot2, pivot
 
-    data_u, data_v, data_abs, Bin_Size_u, dato, datoskift = inles_uv(stru, strv)
+    data_u, data_v, data_abs, Bin_Size_u, dato = inles_uv(stru, strv)
 
     startdato, endadato, startdato_i, endadato_i, ll, ll_step, X, Y, data_plot_u, data_plot_v, data_plot_abs = \
-        meshsetup(startdato_str, endadato_str, takast_av, takast_av_botni, Bin_Size_u, data_u, data_v, data_abs)
+        meshsetup(startdato_str, endadato_str, takast_av, takast_av_botni, Bin_Size_u, data_u, data_v, data_abs, dato)
 
     if hvatskalplottast == 'U':
         data_plot = data_plot_u

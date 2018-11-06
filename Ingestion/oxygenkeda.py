@@ -5,6 +5,14 @@ import pandas as pd
 import scipy.signal as sig
 import os
 import tkinter.ttk as ttk
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
+from matplotlib.figure import Figure
+import matplotlib.dates as md
+from datetime import datetime
+import numpy as np
+from scipy import interpolate
+from scipy.interpolate import griddata
+from matplotlib.ticker import MaxNLocator
 
 def init(ingestion_listbox):
     termistorkeda = ingestion_listbox.insert("", 0, text="Termistor Keda")
@@ -33,19 +41,153 @@ def check_click(item, RightFrame, root):
 
 ########################################################################################################################
 #                                                                                                                      #
-#                                                  Seaguard data                                                       #
+#                                                     Contour plot                                                     #
 #                                                                                                                      #
 ########################################################################################################################
 
 def termistorkeda_contourplot(frame, root2):
     global root
-    global filnavn
-    filnavn = '/home/johannus/Documents/FA_Ingestion_engine/Kort_Data/Syðradalur.txt'
     root = root2
     for widget in frame.winfo_children():
         widget.destroy()
     Label(frame, text='Termistorkeda', font='Helvetica 18 bold').pack(side=TOP)
     Label(frame, text='Plotta contour data').pack(side=TOP, anchor=W)
+
+    menuFrame = Frame(frame)
+    menuFrame.pack(side=TOP, fill=X, expand=False, anchor=N)
+    Button(menuFrame, text='Vel dýpir', command=lambda: vel_dypir()).pack(side=LEFT)
+    Button(menuFrame, text='Vel datafílir', command=lambda: velFilir()).pack(side=LEFT)
+    Button(menuFrame, text='Tekna', command=lambda: rokna_og_tekna_contour(fig, canvas)).pack(side=LEFT)
+    Button(menuFrame, text='Goym mynd', command=lambda: goymmynd(fig)).pack(side=RIGHT)
+
+    log_frame = Frame(frame, height=300)
+    log_frame.pack(fill=X, expand=False, side=TOP, anchor=W)
+    gerlog(log_frame, root)
+    fig = Figure(figsize=(8, 12), dpi=100)
+    plot_frame = Frame(frame)
+    plot_frame.pack(fill=BOTH, expand=True, side=BOTTOM, anchor=W)
+    canvas = FigureCanvasTkAgg(fig, master=plot_frame)
+
+
+def rokna_og_tekna_contour(fig, canvas):
+    log_b()
+    fig.clf()
+    ax = fig.add_subplot(111)
+    global dfilnavn
+    dypirfil = pd.read_csv(dfilnavn)
+    global filnavn
+    signal = []
+    timestamp = []
+    print('Lesur datafílir')
+    for i in range(len(filnavn)):
+        print(filnavn[i])
+        data = pd.read_csv(filnavn[i])
+        signal.append(data['signal'].values)
+        timestamp.append(data['time'])
+    print('Roknar um til datetime')
+    flat_timestamp = []
+    flat_signal = []
+    starttid = 100000000000
+    stoptid = 0
+    dypir = []
+    dypir_sernr = dypirfil['serial']
+    dypir_virdir = dypirfil['d']
+    stostadypid = 1
+    for i in range(len(dypir_virdir)):
+        if float(dypir_virdir[i]) > stostadypid:
+            stostadypid = dypir_virdir[i]
+    print(np.linspace(0, stostadypid, 10))
+    for i in range(len(filnavn)):
+        print('Fílur' + str(i))
+        # Finn dýpi á fíli
+        hettardypid = -99.9
+        for j in range(len(dypirfil)):
+            if dypir_sernr[j] in filnavn[i]:
+                print('funnið dypir' + str(dypir_sernr[j]))
+                hettardypid = -dypir_virdir[j]
+        for j in range(len(timestamp[i])):
+            try:
+                flat_timestamp.append(md.date2num(datetime.strptime(timestamp[i][j], '%Y-%m-%d_%H:%M:%S.%f')))
+                flat_signal.append(signal[i][j])
+                dypir.append(hettardypid)
+            except:
+                try:
+                    flat_timestamp.append(md.date2num(datetime.strptime(timestamp[i][j], '%d.%m.%y_%H:%M:%S')))
+                    flat_signal.append(signal[i][j])
+                    dypir.append(hettardypid)
+                except:
+                    print('Hjálp ' + timestamp[i][j])
+                    print(filnavn[i])
+    tmp = pd.DataFrame(timestamp)
+    tmp.to_csv('farts.csv')
+    print('Finnur endapunkt í tíðsaksanum')
+    for j in range(len(flat_timestamp)):
+        if flat_timestamp[j] > stoptid:
+            stoptid = flat_timestamp[j]
+        if flat_timestamp[j] < starttid:
+            starttid = flat_timestamp[j]
+    print('Ger meshgrid')
+    n = 1000
+    X, Y = np.meshgrid(np.linspace(starttid, stoptid, n), np.linspace(0, -stostadypid, n))
+    #X, Y = np.meshgrid(flat_timestamp, dypir)
+    print('Interpolerar')
+    flat_signal = np.array(flat_signal)
+    flat_timestamp = np.array(flat_timestamp)
+    dypir = np.array(dypir)
+    f = griddata((flat_timestamp, dypir), flat_signal, (X, Y), method='linear', rescale=True)
+    #f = interpolate.interp2d((flat_timestamp, dypir), flat_signal, (X, Y), kind='linear')
+    #f = interpolate.interp2d(flat_timestamp, dypir, flat_signal, kind='linear')
+    #levels = np.round(np.linspace(75, 95, 100), 1)
+    #levels = np.append(levels, np.round(np.linspace(105, 115), 1))
+    levels = np.round(np.linspace(75, 115, 200), 1)
+    print(levels)
+    c = ax.contourf(X, Y, f, levels=levels, cmap='jet', extend='both')
+    fig.colorbar(c)
+    ax.xaxis.set_major_locator(MaxNLocator(10))
+    #xticksloc, xtickslabel = plt.xticks()
+    xt = ax.get_xticks()
+    text_timestamps = []
+    for i in range(len(xt)):
+        tmp = md.num2date(float(xt[i]))
+        text_timestamps.append(tmp.strftime("%d %b"))
+    try:
+        ax.set_xticks(text_timestamps)
+    except:
+        print('nooo')
+    try:
+        ax.set_xticklabels(text_timestamps)
+    except:
+        print('bapokafs')
+
+    text_timestamps = []
+    #for i in range(len(tlb)):
+    #    tmp = tlb[i]
+    #    tmp = tmp._text
+    #    print(tmp)
+    #    tmp = md.num2date(float(tmp))
+    #    tmp = tmp.strftime("%d, %b")
+    #    text_timestamps.append(tmp)
+    #ax.set_xticklabels(text_timestamps)
+    canvas.draw()
+    canvas.get_tk_widget().pack(fill=BOTH, expand=1)
+    fig.savefig('tmp.png', figsize=(8, 12), dpi=300)
+    log_e()
+
+
+
+def vel_dypir():
+    global dfilnavn
+    dfilnavn = filedialog.askopenfile(title='Vel Dýpid fíl',
+                                      filetypes=(("csv Fílir", "*.csv"), ("all files", "*.*"))).name
+
+
+def goymmynd(fig):
+    log_b()
+    filnavn = filedialog.asksaveasfilename(parent=root, title="Goym mynd",  filetypes=(("png Fílur", "*.png"), ("jpg Fílur", "*.jpg")))
+    print('Goymir mynd')
+    fig.savefig(filnavn, dpi=1200, bbox_inches='tight')
+    print('Liðugt')
+    log_e()
 
 ########################################################################################################################
 #                                                                                                                      #
@@ -55,8 +197,6 @@ def termistorkeda_contourplot(frame, root2):
 
 def seaguard_data(frame, root2):
     global root
-    global filnavn
-    filnavn = '/home/johannus/Documents/FA_Ingestion_engine/Kort_Data/Syðradalur.txt'
     root = root2
     for widget in frame.winfo_children():
         widget.destroy()
@@ -66,10 +206,9 @@ def seaguard_data(frame, root2):
     menuFrame = Frame(frame)
     menuFrame.pack(side=TOP, fill=X, expand=False, anchor=N)
 
-    velfilir_Btn = Button(menuFrame, text='Vel Seaguard fíl', command=lambda: vel_fil())
-    velfilir_Btn.pack(side=LEFT)
+    Button(menuFrame, text='Vel Seaguard fíl', command=lambda: vel_fil()).pack(side=LEFT)
 
-    eksportera_Btn = Button(menuFrame, text='Eksportera fíl', command=lambda: eksportera()).pack(side=LEFT)
+    Button(menuFrame, text='Eksportera fíl', command=lambda: eksportera()).pack(side=LEFT)
 
     v = IntVar()
     temp_radBtn = Radiobutton(frame, text='Tempratur', variable=v, value=1)
@@ -218,7 +357,7 @@ def decimering(frame, root2):
 
 def velFilir():
     global filnavn
-    filnavn = filedialog.askopenfilenames(title='Vel fíl', filetypes=(("txt Fílir", "*.txt"), ("csv Fílir", "*.csv"),
+    filnavn = filedialog.askopenfilenames(title='Vel fílir', filetypes=(("txt Fílir", "*.txt"), ("csv Fílir", "*.csv"),
                                                                       ("all files", "*.*")))
     print(filnavn)
 
@@ -246,18 +385,28 @@ def rokna(q):
         os.mkdir(os.path.dirname(filnavn[0])+'/'+str(q))
     for fil_index in range(len(filnavn)):
         print('Lesur fíl ' + filnavn[fil_index])
-        fil_data = pd.read_csv(filnavn[fil_index], encoding='latin', skiprows=25, sep='\s+')
-        print(fil_data.columns.values)
-        raw_data = fil_data['Time']
+        decimated_time = []
+        if 'd' in filnavn[fil_index]:
+            fil_data = pd.read_csv(filnavn[fil_index])
+            raw_data = fil_data['signal']
+            date = fil_data['time']
+            print('Decimerar tíð')
+            for i in range(len(fil_data)):
+                if i % q == 0:
+                    decimated_time.append(date[i])
+        else:
+            fil_data = pd.read_csv(filnavn[fil_index], encoding='latin', skiprows=25, sep='\s+')
+            raw_data = fil_data['Time']
+            date = fil_data['Date']
+            time = fil_data['&']
+            print('Decimerar tíð')
+            for i in range(len(fil_data)):
+                if i % q == 0:
+                    decimated_time.append(date[i] + '_' + time[i])
+
         print('Decimerar data')
         decimated_data = sig.decimate(raw_data, q, 3, ftype='fir')
-        decimated_time = []
-        print('Decimerar tíð')
-        date = fil_data['Date']
-        time = fil_data['&']
-        for i in range(len(fil_data)):
-            if i % q == 0:
-                decimated_time.append(date[i] + '_' + time[i])
+
         nyttfilnavn = filnavn[fil_index]
         nyttfilnavn = os.path.dirname(filnavn[fil_index]) + '/' + str(q) + '/' + nyttfilnavn[len(os.path.dirname(filnavn[fil_index]))+1:len(filnavn[fil_index]) - 13] + 'd' + str(q) + '.csv'
         print('Goymur fíl ' + nyttfilnavn)

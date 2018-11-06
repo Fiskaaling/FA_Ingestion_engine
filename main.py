@@ -19,6 +19,7 @@ class Window(Frame):
         main_frame = Frame(self, borderwidth=1)
         main_frame.pack(fill=BOTH, expand=False, side=TOP)
 
+    @staticmethod
     def client_exit(self):
         exit()
 
@@ -41,30 +42,34 @@ def OnDoubleClick(event, tree):
 
 
 global root
+# Teknar main gui
 root = Tk()
 root.geometry("1200x800")
 app = Window(root)
-
+# Teknar vinstru frame (har instrumentini eru)
 Ingestion_frame = Frame(app)
 Ingestion_frame.pack(fill=BOTH, expand=True, side=LEFT, anchor=N)
 Label(Ingestion_frame, text='Ingestion').pack(side=TOP)
-
+# Teknar høgru frame
 RightFrame = Frame(app)
 RightFrame.pack(fill=BOTH, expand=True, side=LEFT, anchor=N)
 
 ingestion_subframe = Frame(Ingestion_frame)
 ingestion_subframe.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
-
+# Ger objekti ið inniheldur listan av instumentum
 ingestion_listbox = ttk.Treeview(ingestion_subframe)
 scrollbar = Scrollbar(ingestion_subframe, orient=VERTICAL)
 scrollbar.config(command=ingestion_listbox.yview)
 scrollbar.pack(side=RIGHT, fill=Y)
+
+# Byrjar at fylla ting inní listan
 
 ingestion_listbox.insert("", 0, text='Tekna Kort')
 LV = ingestion_listbox.insert("", 0, text='Landsverk')
 
 streymmatingar_stationert = ingestion_listbox.insert("", 0, text="Streymmátinar frá botni")
 
+# Rudduligari máti at gera hettar uppá, ikki implementera allastaðni enn
 Ingestion.streymmatari.init(ingestion_listbox)
 Ingestion.oxygenkeda.init(ingestion_listbox)
 
