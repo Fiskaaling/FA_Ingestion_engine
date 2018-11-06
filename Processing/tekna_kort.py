@@ -173,6 +173,7 @@ def les_og_tekna(text, fig, canvas):
     show_legend = False
     quiverf_threshold = 1
     circle_stodd = 0.05
+    renderengine='Standard Kort'
     for command in text:
         print(command)
         if "=" in command:
@@ -186,6 +187,8 @@ def les_og_tekna(text, fig, canvas):
                 lonmin = float(command[toindex::])
             elif variable == 'lonmax':
                 lonmax = float(command[toindex::])
+            elif variable == 'renderengine':
+                renderengine = command[toindex::]
             elif variable == 'landlitur':
                 landlitur = command[toindex::]
             elif variable == 'title':
@@ -194,7 +197,7 @@ def les_og_tekna(text, fig, canvas):
             elif variable == 'dpi':
                 dpi = command[toindex::]
             elif variable == 'dybdarlinjur':
-                if command[toindex::] != 'False':
+                if command[toindex::] != 'False' or renderengine == '3D_botn':
                     dybdarlinjur = command[toindex::]
                     with open(dybdarlinjur) as f:
                         f.readline()
@@ -238,7 +241,10 @@ def les_og_tekna(text, fig, canvas):
 
                 #ax.scatter(meshgridx, meshgridy, s=1)
                 if btn_track:
-                    ax.scatter(btn_x, btn_y, s=0.1, zorder=100, c=dypid)
+                    if renderengine == '3D_botn':
+                        ax.scatter(btn_x, btn_y, -dypid, s=0.1, zorder=100)
+                    else:
+                        ax.scatter(btn_x, btn_y, s=0.1, zorder=100, c=dypid)
                 #grid_x, grid_y = np.mgrid[np.linspace(latmin, latmax, num=7312), np.linspace(lonmin, lonmax, num=7312)]
                 #grid_x, grid_y = np.meshgrid(np.linspace(latmin, latmax, num=7312), np.linspace(lonmin, lonmax, num=7312))
                 #grid_z0 = griddata((btn_x, btn_y), dypid.values, (meshgridx, meshgridy), method='linear')
@@ -250,6 +256,8 @@ def les_og_tekna(text, fig, canvas):
             elif variable == 'btn_track':
                 if command[toindex::] == 'True':
                     btn_track = True
+                elif command[toindex::] == 'False':
+                    btn_track = False
             elif variable == 'btn_gridsize':
                 btn_gridsize = command[toindex::]
             elif variable == 'btn_striku_hvor':
@@ -266,6 +274,7 @@ def les_og_tekna(text, fig, canvas):
                 for i in range(len(columns)):
                     if columns[i] == 'legend':
                         Samla = False
+                        break
                 if Samla:
                     ax.scatter(line_x, line_y, zorder=100, color=scatter_farv, label=scatter_legend)
                 else:
@@ -282,11 +291,13 @@ def les_og_tekna(text, fig, canvas):
                 elif command[toindex::] == 'heil':
                     linjuSlag = [1, 0]
             elif variable == 'breiddarlinjur':
-                breiddarlinjur = np.linspace(latmin, latmax, int(command[toindex::]))
-                m.drawparallels(breiddarlinjur, labels=[1, 0, 0, 0], zorder=1000, color='lightgrey', dashes=linjuSlag)
+                if not renderengine == '3D_botn':
+                    breiddarlinjur = np.linspace(latmin, latmax, int(command[toindex::]))
+                    m.drawparallels(breiddarlinjur, labels=[1, 0, 0, 0], zorder=1000, color='lightgrey', dashes=linjuSlag)
             elif variable == 'longdarlinjur':
-                longdarlinjur = np.linspace(lonmin, lonmax, int(command[toindex::]))
-                m.drawmeridians(longdarlinjur, labels=[0, 0, 0, 1], zorder=1000, color='lightgrey', dashes=linjuSlag)
+                if not renderengine == '3D_botn':
+                    longdarlinjur = np.linspace(lonmin, lonmax, int(command[toindex::]))
+                    m.drawmeridians(longdarlinjur, labels=[0, 0, 0, 1], zorder=1000, color='lightgrey', dashes=linjuSlag)
             elif variable == 'suppress_ticks':
                 if command[toindex::] == 'True':
                     suppress_ticks = True
