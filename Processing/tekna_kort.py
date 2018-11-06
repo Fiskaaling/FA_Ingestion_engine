@@ -423,7 +423,7 @@ def les_og_tekna(text, fig, canvas):
     def onclick(event):
         nonlocal m
         lat, lon = m(event.xdata, event.ydata, inverse=True)
-        print('%s click: lat=%f, lon=%f' %
+        print('%s click: lon=%f, lat=%f' %
               ('double' if event.dblclick else 'single', lat, lon))
 
     cid = fig.canvas.mpl_connect('button_press_event', onclick)
