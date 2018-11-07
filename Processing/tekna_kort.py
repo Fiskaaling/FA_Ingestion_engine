@@ -1,3 +1,4 @@
+from mpl_toolkits.mplot3d import Axes3D
 from tkinter import *
 from tkinter import messagebox
 from tkinter import filedialog
@@ -264,25 +265,61 @@ def les_og_tekna(text, fig, canvas):
                 btn_striku_hvor= int(command[toindex::])
             elif variable == 'lin_fil':
                 lineData = pd.read_csv(command[toindex::])
-                line_x, line_y = m(lineData['lon'].values, lineData['lat'].values)
-                ax.plot(line_x, line_y, lin_farv, linewidth=1, label=lin_legend)
+                if renderengine == '3D_botn':
+                    line_x_hj, line_y_hj = m(lineData['lon'].values, lineData['lat'].values)
+                    line_x = [y for i in range(len(line_x_hj)-1)
+                              for y in np.linspace(line_x_hj[i] , line_x_hj[i+1], btn_gridsize)]
+                    line_y = [y for i in range(len(line_x_hj) - 1)
+                              for y in np.linspace(line_y_hj[i], line_y_hj[i+1], btn_gridsize)]
+                    line_z = griddata((btn_x, btn_y), -dypid.values,
+                                      (line_x, line_y), method=btn_interpolation)
+                    ax.plot(line_x, line_y, line_z, color=lin_farv, linewidth=3,
+                            linestyle='solid', label=lin_legend)
+                    ax.plot(line_x, line_y, 0*line_z, color=lin_farv, linewidth=3,
+                            linestyle='solid')
+                    for i in line_x_hj:
+                        j = line_x.index(i)
+                        ax.plot([line_x[j], line_x[j]], [line_y[j], line_y[j]],[line_z[j], 0]
+                                , color=lin_farv, linewidth=3
+                                , linestyle='solid')
+                else:
+                    line_x, line_y = m(lineData['lon'].values, lineData['lat'].values)
+                    ax.plot(line_x, line_y, lin_farv, linewidth=1, label=lin_legend)
             elif variable == 'scatter_fil':
                 scatterData = pd.read_csv(command[toindex::])
                 line_x, line_y = m(scatterData['lon'].values, scatterData['lat'].values)
                 Samla = True
+                z_sca_a_yvirfladu = True
                 columns = scatterData.columns.values
                 for i in range(len(columns)):
                     if columns[i] == 'legend':
                         Samla = False
-                        break
-                if Samla:
-                    ax.scatter(line_x, line_y, zorder=100, color=scatter_farv, label=scatter_legend)
+                    if columns[i] == 'd':
+                        z_sca_a_yvirfladu = False
+                if renderengine == '3D_botn':
+                    if z_sca_a_yvirfladu:
+                        line_z = 0*line_x
+                    else:
+                        line_z = -scatterData['d'].values
+                    if Samla:
+                        ax.scatter(line_x, line_y, line_z, zorder=100
+                                   , color=scatter_farv, label=scatter_legend)
+                    else:
+                        lables = scatterData['legend'].values
+                        for i in range(len(line_x)):
+                            ax.scatter(line_x[i], line_y[i], line_z[i]
+                                       , zorder=100, label=lables[i])
+                            print('Funni legend :' + lables[i])
+                        show_legend = True
                 else:
-                    lables = scatterData['legend'].values
-                    for i in range(len(line_x)):
-                        ax.scatter(line_x[i], line_y[i], zorder=100, label=lables[i])
-                        print('Funni legend :' + lables[i])
-                    show_legend = True
+                    if Samla:
+                        ax.scatter(line_x, line_y, zorder=100, color=scatter_farv, label=scatter_legend)
+                    else:
+                        lables = scatterData['legend'].values
+                        for i in range(len(line_x)):
+                            ax.scatter(line_x[i], line_y[i], zorder=100, label=lables[i])
+                            print('Funni legend :' + lables[i])
+                        show_legend = True
             elif variable == 'linjuSlag':
                 if command[toindex::] == 'eingin':
                     linjuSlag = [0, 1]
@@ -402,33 +439,60 @@ def les_og_tekna(text, fig, canvas):
                 fig.clf()
                 ax = fig.add_subplot(111)
             elif command == 'Tekna kort':
-                m = Basemap(projection='merc', resolution=None,
-                            llcrnrlat=latmin, urcrnrlat=latmax,
-                            llcrnrlon=lonmin, urcrnrlon=lonmax, ax=ax, suppress_ticks=suppress_ticks)
-                for island in os.listdir('Kort_Data/Coasts'):
-                    lo, aa, la = np.genfromtxt('Kort_Data/Coasts/' + island, delimiter=' ').T
-                    xpt, ypt = m(lo, la)
-                    plt.plot(xpt, ypt, 'k', linewidth=1)
-                    ax.fill(xpt, ypt, landlitur, zorder=10)
+
+                if renderengine == '3D_botn':
+                    m = Basemap(projection='merc', resolution=None,
+                                llcrnrlat=latmin, urcrnrlat=latmax,
+                                llcrnrlon=lonmin, urcrnrlon=lonmax, ax=ax, suppress_ticks=suppress_ticks)
+                    ax = fig.add_subplot(111, projection='3d')
+                else:
+                    m = Basemap(projection='merc', resolution=None,
+                                llcrnrlat=latmin, urcrnrlat=latmax,
+                                llcrnrlon=lonmin, urcrnrlon=lonmax, ax=ax, suppress_ticks=suppress_ticks)
+                    for island in os.listdir('Kort_Data/Coasts'):
+                        lo, aa, la = np.genfromtxt('Kort_Data/Coasts/' + island, delimiter=' ').T
+                        xpt, ypt = m(lo, la)
+                        plt.plot(xpt, ypt, 'k', linewidth=1)
+                        ax.fill(xpt, ypt, landlitur, zorder=10)
 
             elif command == 'btn_contourf':
                 grid_z0 = griddata((btn_x, btn_y), dypid.values, (meshgridx, meshgridy), method=btn_interpolation)
                 #grid_z0 = interpolate.interp2d(btn_x, btn_y, dypid.values, kind='cubic')
-                lv = range(-150, 0, btn_striku_hvor)
-                c = m.contourf(meshgridx, meshgridy, -grid_z0, lv, ax=ax)  # Um kodan kiksar her broyt basemap fílin til // har feilurin peikar
-                #ax.clabel(c, inline=1, fontsize=15, fmt='%2.0f')
-                fig.colorbar(c)
+                vmin = min(-150, min([-y for x in grid_z0 for y in x]))
+                lv = range(vmin, btn_striku_hvor, btn_striku_hvor)
+                if renderengine == '3D_botn':
+                    ax.plot_surface(meshgridx, meshgridy, -grid_z0, alpha=.5, rcount=50, ccount=50, vmax=0,
+                                    cmap='ocean', zorder=21000)
+                else:
+                    c = m.contourf(meshgridx, meshgridy, -grid_z0, lv, ax=ax)  # Um kodan kiksar her broyt basemap fílin til // har feilurin peikar
+                    #ax.clabel(c, inline=1, fontsize=15, fmt='%2.0f')
+                    fig.colorbar(c)
             elif command == 'btn_contour':
-                lv = range(-150, 0, btn_striku_hvor)
                 grid_z0 = griddata((btn_x, btn_y), dypid.values, (meshgridx, meshgridy), method=btn_interpolation)
+                vmin = min(-150, min([-y for x in grid_z0 for y in x]))
+                lv = range(vmin, btn_striku_hvor, btn_striku_hvor)
                 #grid_z0 = interpolate.interp2d(btn_x, btn_y, dypid.values, kind='cubic')
                 #c = m.contour(meshgridx, meshgridy, -1*grid_z0, lv, ax=ax)  # Um kodan kiksar her broyt basemap fílin til // har feilurin peik
-                c = m.contour(meshgridx, meshgridy, -1 * grid_z0, lv, ax=ax, colors='black', linestyles='solid', linewidths=0.2)
-                #ax.clabel(c, inline=1, fontsize=15, fmt='%2.0f')
+                if renderengine == '3D_botn':
+                    ax.contour3D(meshgridx, meshgridy, -1 * grid_z0, levels=lv,
+                                 colors='k',vmax=0 , linestyles='solid')
+                else:
+                    c = m.contour(meshgridx, meshgridy, -1 * grid_z0, lv, ax=ax, colors='black', linestyles='solid', linewidths=0.2)
+                    #ax.clabel(c, inline=1, fontsize=15, fmt='%2.0f')
     if show_legend:
         print('Showing Legend')
         leg = ax.legend(loc='best')
         leg.set_zorder(3000)
+    if renderengine == '3D_botn':
+        s1, s2 = m(lonmax, latmax)
+        sm = max(s1,s2)
+        s1 = s1/sm
+        s2 = s2/sm
+        def short_proj():
+            return np.dot(Axes3D.get_proj(ax), np.diag([s1, s2, 1, 1]))
+
+        ax.get_proj = short_proj
+
     canvas.draw()
     canvas.get_tk_widget().pack(fill=BOTH, expand=1)
     log_e()
