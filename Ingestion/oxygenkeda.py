@@ -12,7 +12,9 @@ from datetime import datetime
 import numpy as np
 from scipy import interpolate
 from scipy.interpolate import griddata
+from scipy.interpolate import RectBivariateSpline
 from matplotlib.ticker import MaxNLocator
+import pylab
 
 def init(ingestion_listbox):
     termistorkeda = ingestion_listbox.insert("", 0, text="Termistor Keda")
@@ -57,22 +59,35 @@ def termistorkeda_contourplot(frame, root2):
     menuFrame.pack(side=TOP, fill=X, expand=False, anchor=N)
     Button(menuFrame, text='Vel dýpir', command=lambda: vel_dypir()).pack(side=LEFT)
     Button(menuFrame, text='Vel datafílir', command=lambda: velFilir()).pack(side=LEFT)
-    Button(menuFrame, text='Tekna', command=lambda: rokna_og_tekna_contour(fig, canvas)).pack(side=LEFT)
+    Button(menuFrame, text='Tekna', command=lambda: rokna_og_tekna_contour(canvas, int(fra_entry.get()),
+           int(til_entry.get()))).pack(side=LEFT)
     Button(menuFrame, text='Goym mynd', command=lambda: goymmynd(fig)).pack(side=RIGHT)
+    Label(menuFrame, text='Dýpið frá:').pack(side=LEFT)
+    fra_entry = Entry(menuFrame, width=3)
+    fra_entry.pack(side=LEFT)
+    fra_entry.insert(0, '0')
+    Label(menuFrame, text='til').pack(side=LEFT)
+    til_entry = Entry(menuFrame, width=3)
+    til_entry.pack(side=LEFT)
+    til_entry.insert(0, '100')
 
     log_frame = Frame(frame, height=300)
     log_frame.pack(fill=X, expand=False, side=TOP, anchor=W)
     gerlog(log_frame, root)
-    fig = Figure(figsize=(8, 12), dpi=100)
     plot_frame = Frame(frame)
     plot_frame.pack(fill=BOTH, expand=True, side=BOTTOM, anchor=W)
+    global fig
+    global ax
+    fig = Figure(figsize=(8, 12), dpi=100)
     canvas = FigureCanvasTkAgg(fig, master=plot_frame)
-
-
-def rokna_og_tekna_contour(fig, canvas):
-    log_b()
     fig.clf()
     ax = fig.add_subplot(111)
+
+
+def rokna_og_tekna_contour(canvas, d_fra, d_til):
+    log_b()
+    global ax
+    global fig
     global dfilnavn
     dypirfil = pd.read_csv(dfilnavn)
     global filnavn
@@ -97,28 +112,32 @@ def rokna_og_tekna_contour(fig, canvas):
         if float(dypir_virdir[i]) > stostadypid:
             stostadypid = dypir_virdir[i]
     print(np.linspace(0, stostadypid, 10))
+    ctr = 0
     for i in range(len(filnavn)):
         print('Fílur' + str(i))
         # Finn dýpi á fíli
         hettardypid = -99.9
+        print(len(dypirfil))
         for j in range(len(dypirfil)):
-            if dypir_sernr[j] in filnavn[i]:
-                print('funnið dypir' + str(dypir_sernr[j]))
+            if str(dypir_sernr[j]) in filnavn[i]:
+                print('funnið dypir á fíli ' + str(dypir_sernr[j]))
                 hettardypid = -dypir_virdir[j]
         for j in range(len(timestamp[i])):
             try:
                 flat_timestamp.append(md.date2num(datetime.strptime(timestamp[i][j], '%Y-%m-%d_%H:%M:%S.%f')))
-                flat_signal.append(signal[i][j])
+                flat_signal.append(float(signal[i][j]))
                 dypir.append(hettardypid)
+                ctr += 1
             except:
                 try:
                     flat_timestamp.append(md.date2num(datetime.strptime(timestamp[i][j], '%d.%m.%y_%H:%M:%S')))
-                    flat_signal.append(signal[i][j])
+                    flat_signal.append(float(signal[i][j]))
                     dypir.append(hettardypid)
+                    ctr += 1
                 except:
                     print('Hjálp ' + timestamp[i][j])
                     print(filnavn[i])
-    tmp = pd.DataFrame(timestamp)
+    tmp = pd.DataFrame(flat_timestamp)
     tmp.to_csv('farts.csv')
     print('Finnur endapunkt í tíðsaksanum')
     for j in range(len(flat_timestamp)):
@@ -126,25 +145,39 @@ def rokna_og_tekna_contour(fig, canvas):
             stoptid = flat_timestamp[j]
         if flat_timestamp[j] < starttid:
             starttid = flat_timestamp[j]
-    print('Ger meshgrid')
     n = 1000
-    X, Y = np.meshgrid(np.linspace(starttid, stoptid, n), np.linspace(0, -stostadypid, n))
     #X, Y = np.meshgrid(flat_timestamp, dypir)
+    #f = griddata((flat_timestamp, dypir), flat_signal, (X, Y), method='linear', rescale=False)
+    #f = interpolate.interp2d((flat_timestamp, dypir), flat_signal, (X, Y), kind='linear')
+
+    flat_signal = flat_signal[0::100]
+    flat_timestamp = flat_timestamp[0::100]
+    dypir = dypir[0::100]
+    print('Ger meshgrid')
+    X, Y = np.meshgrid(np.linspace(starttid, stoptid, n), np.linspace(d_fra, -d_til, len(flat_timestamp)))
+    #X, Y = np.mgrid[starttid-10:stoptid+10:100j, -stostadypid-10:d_fra+10]
     print('Interpolerar')
     flat_signal = np.array(flat_signal)
     flat_timestamp = np.array(flat_timestamp)
     dypir = np.array(dypir)
-    f = griddata((flat_timestamp, dypir), flat_signal, (X, Y), method='linear', rescale=True)
-    #f = interpolate.interp2d((flat_timestamp, dypir), flat_signal, (X, Y), kind='linear')
-    #f = interpolate.interp2d(flat_timestamp, dypir, flat_signal, kind='linear')
-    #levels = np.round(np.linspace(75, 95, 100), 1)
-    #levels = np.append(levels, np.round(np.linspace(105, 115), 1))
-    levels = np.round(np.linspace(75, 115, 200), 1)
-    print(levels)
-    c = ax.contourf(X, Y, f, levels=levels, cmap='jet', extend='both')
-    fig.colorbar(c)
+    f = griddata((flat_timestamp, dypir), flat_signal, (X, Y), method='linear', rescale=False)
+
+    levels_exists = False
+    if 'levels' in globals():
+        levels_exists = True
+
+    global levels
+
+    if levels_exists:
+        c = ax.contourf(X, Y, f, levels=levels, cmap='jet', extend='both')
+    else:
+        levels = np.round(np.linspace(75, 115, 200), 1)
+        c = ax.contourf(X, Y, f, levels=levels, cmap='jet', extend='both')
+        fig.colorbar(c)
+
+    ax.set_ylim(-d_til, -d_fra)
+
     ax.xaxis.set_major_locator(MaxNLocator(10))
-    #xticksloc, xtickslabel = plt.xticks()
     xt = ax.get_xticks()
     text_timestamps = []
     for i in range(len(xt)):
@@ -158,16 +191,7 @@ def rokna_og_tekna_contour(fig, canvas):
         ax.set_xticklabels(text_timestamps)
     except:
         print('bapokafs')
-
-    text_timestamps = []
-    #for i in range(len(tlb)):
-    #    tmp = tlb[i]
-    #    tmp = tmp._text
-    #    print(tmp)
-    #    tmp = md.num2date(float(tmp))
-    #    tmp = tmp.strftime("%d, %b")
-    #    text_timestamps.append(tmp)
-    #ax.set_xticklabels(text_timestamps)
+    ax.scatter(flat_timestamp, dypir, alpha=.2, s=.5, c='black')
     canvas.draw()
     canvas.get_tk_widget().pack(fill=BOTH, expand=1)
     fig.savefig('tmp.png', figsize=(8, 12), dpi=300)
