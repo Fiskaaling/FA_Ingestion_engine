@@ -175,6 +175,8 @@ def les_og_tekna(text, fig, canvas):
     quiverf_threshold = 1
     circle_stodd = 0.05
     renderengine='Standard Kort'
+    s3 = 1 #z scale
+    ncol =1
     for command in text:
         print(command)
         if "=" in command:
@@ -479,9 +481,13 @@ def les_og_tekna(text, fig, canvas):
                 else:
                     c = m.contour(meshgridx, meshgridy, -1 * grid_z0, lv, ax=ax, colors='black', linestyles='solid', linewidths=0.2)
                     #ax.clabel(c, inline=1, fontsize=15, fmt='%2.0f')
+            elif command == 's3':
+                s3 = float(command[toindex::])
+            elif command == 'ncol':
+                ncol = int(command[toindex::])
     if show_legend:
         print('Showing Legend')
-        leg = ax.legend(loc='best')
+        leg = ax.legend(loc='best', ncol=ncol)
         leg.set_zorder(3000)
     if renderengine == '3D_botn':
         s1, s2 = m(lonmax, latmax)
@@ -492,6 +498,7 @@ def les_og_tekna(text, fig, canvas):
             return np.dot(Axes3D.get_proj(ax), np.diag([s1, s2, 1, 1]))
 
         ax.get_proj = short_proj
+        print('hello')
 
     canvas.draw()
     canvas.get_tk_widget().pack(fill=BOTH, expand=1)

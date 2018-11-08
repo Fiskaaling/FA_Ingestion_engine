@@ -47,6 +47,7 @@ def check_click(item, RightFrame, root):
 #                                                                                                                      #
 ########################################################################################################################
 
+
 def termistorkeda_contourplot(frame, root2):
     global root
     root = root2
@@ -198,7 +199,6 @@ def rokna_og_tekna_contour(canvas, d_fra, d_til):
     log_e()
 
 
-
 def vel_dypir():
     global dfilnavn
     dfilnavn = filedialog.askopenfile(title='Vel Dýpid fíl',
@@ -218,6 +218,7 @@ def goymmynd(fig):
 #                                                  Seaguard data                                                       #
 #                                                                                                                      #
 ########################################################################################################################
+
 
 def seaguard_data(frame, root2):
     global root
@@ -248,6 +249,7 @@ def seaguard_data(frame, root2):
     log_frame.pack(fill=X, expand=False, side=BOTTOM, anchor=W)
     gerlog(log_frame, root)
 
+
 def eksportera():
     log_b()
     global filnavn
@@ -263,6 +265,7 @@ def eksportera():
     data_tosave = pd.DataFrame({'time': timestamp, 'signal': o2})
     data_tosave.to_csv(savefilnavn, index=False)
     log_e()
+
 
 def vel_fil():
     global filnavn
@@ -349,6 +352,7 @@ def rokna_kalib(kalib_tree):
 #                                                                                                                      #
 ########################################################################################################################
 
+
 def decimering(frame, root2):
     global root
     global filnavn
@@ -384,7 +388,6 @@ def velFilir():
     filnavn = filedialog.askopenfilenames(title='Vel fílir', filetypes=(("txt Fílir", "*.txt"), ("csv Fílir", "*.csv"),
                                                                       ("all files", "*.*")))
     print(filnavn)
-
 
 
 def les_kalib_kofficientar(kalib_tree):
