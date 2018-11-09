@@ -57,7 +57,8 @@ def velFil():
 
 def tekna(fig, canvas, tekna, fra, til):
     fig.clf()
-    ax = fig.add_subplot(111)
+    ax = fig.add_subplot(211)
+    ax2 = fig.add_subplot(212)
     print(tekna)
     #ax = plt.gca()
     data = pd.read_csv(filnavn, sep='\t')
@@ -89,18 +90,26 @@ def tekna(fig, canvas, tekna, fra, til):
     #        del xaxc[i]
     ax.xaxis.set_major_locator(plt.MaxNLocator(10))
     ax.xaxis.set_major_formatter(md.DateFormatter('%d. %b %H:%M'))
+    ax2.xaxis.set_major_locator(plt.MaxNLocator(10))
+    ax2.xaxis.set_major_formatter(md.DateFormatter('%d. %b %H:%M'))
     fig.autofmt_xdate()
 
     ax.plot(xax, data['hm0'], label='Alduhædd (hm0)')
+    ax2.plot(xax, data['dirp'], label='Ætt')
 
     #ax.set_xticklabels(xax, rotation=40)
     #plt.xticks(np.linspace(0, len(data), 10), rotation='vertical')
     if tekna:
         ax.fill_between(xax, -100, 100, where=farts, facecolor='green', alpha=0.2)
-    ax.legend()
-    ax.set_ylim(0, 2)
+        ax2.fill_between(xax, -100, 400, where=farts, facecolor='green', alpha=0.2)
 
-    fig.savefig('tmp.png',bbox_inches='tight')
+    ax.legend()
+    ax2.legend()
+
+    ax.set_ylim(0, 2)
+    ax2.set_ylim(0,360)
+
+    fig.savefig('tmp.png', bbox_inches='tight')
     #plt.legend()
     #plt.savefig('Figures/test.png', bbox_inches='tight')
     #plt.show()

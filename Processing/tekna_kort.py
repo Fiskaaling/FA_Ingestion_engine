@@ -177,6 +177,7 @@ def les_og_tekna(text, fig, canvas):
     renderengine='Standard Kort'
     s3 = 1 #z scale
     ncol =1
+    scatter_tekst = False
     for command in text:
         print(command)
         if "=" in command:
@@ -314,14 +315,23 @@ def les_og_tekna(text, fig, canvas):
                             print('Funni legend :' + lables[i])
                         show_legend = True
                 else:
-                    if Samla:
-                        ax.scatter(line_x, line_y, zorder=100, color=scatter_farv, label=scatter_legend)
-                    else:
+                    if scatter_tekst:
                         lables = scatterData['legend'].values
                         for i in range(len(line_x)):
-                            ax.scatter(line_x[i], line_y[i], zorder=100, label=lables[i])
-                            print('Funni legend :' + lables[i])
-                        show_legend = True
+                            ax.scatter(line_x[i], line_y[i], zorder=100, c='k')
+                            if i==7 or i==3 or i==5 or i ==2:
+                                ax.text(line_x[i] - 350, line_y[i] + 150, lables[i], zorder=1000000)
+                            else:
+                                ax.text(line_x[i]-350, line_y[i]-350, lables[i], zorder=1000000)
+                    else:
+                        if Samla:
+                            ax.scatter(line_x, line_y, zorder=100, color=scatter_farv, label=scatter_legend)
+                        else:
+                            lables = scatterData['legend'].values
+                            for i in range(len(line_x)):
+                                ax.scatter(line_x[i], line_y[i], zorder=100, label=lables[i])
+                                print('Funni legend :' + str(lables[i]))
+                            show_legend = True
             elif variable == 'linjuSlag':
                 if command[toindex::] == 'eingin':
                     linjuSlag = [0, 1]
@@ -350,6 +360,10 @@ def les_og_tekna(text, fig, canvas):
                                barstyle='fancy', fontsize=14, yoffset=50,
                                fillcolor1='whitesmoke', fillcolor2='gray', zorder=10000)
             elif variable == 'savefig':
+                if show_legend:
+                    print('Showing Legend')
+                    leg = ax.legend(loc='best', ncol=ncol)
+                    leg.set_zorder(3000)
                 fig.savefig(command[toindex::], dpi=int(dpi), bbox_inches='tight')
             elif variable == 'quiver':
                 Qdata = pd.read_csv(command[toindex::])
@@ -435,6 +449,11 @@ def les_og_tekna(text, fig, canvas):
                 scatter_farv=command[toindex::]
             elif variable == 'scatter_legend':
                 scatter_legend = command[toindex::]
+            elif variable == 'scatter_tekst':
+                if command[toindex::] == 'True':
+                    scatter_tekst = True
+                else:
+                    scatter_tekst = False
         else:
 
             if command == 'clf':
