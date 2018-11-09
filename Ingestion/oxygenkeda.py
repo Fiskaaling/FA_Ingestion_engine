@@ -16,17 +16,21 @@ from scipy.interpolate import RectBivariateSpline
 from matplotlib.ticker import MaxNLocator
 import pylab
 
+
 def init(ingestion_listbox):
     termistorkeda = ingestion_listbox.insert("", 0, text="Termistor Keda")
     oxygenmatarir = ingestion_listbox.insert(termistorkeda, 0, text="Oxygen mátarir")
     tempraturmatarir = ingestion_listbox.insert(termistorkeda, 0, text="Hitamálarir")
     ingestion_listbox.insert(oxygenmatarir, "end", text="Decimering")
-    ingestion_listbox.insert(tempraturmatarir, "end", text="Decimering")
     ingestion_listbox.insert(oxygenmatarir, "end", text="Kalibrering")
     ingestion_listbox.insert(oxygenmatarir, "end", text="Fyrireika Seaguard data")
-    ingestion_listbox.insert(tempraturmatarir, "end", text="Fyrireika Seaguard data")
     ingestion_listbox.insert(oxygenmatarir, "end", text="Rokna upploystiligheit (mg/l)")
     ingestion_listbox.insert(oxygenmatarir, "end", text="Ger Countour plot")
+
+    ingestion_listbox.insert(tempraturmatarir, "end", text="Fyrireika RBR fíl")
+    ingestion_listbox.insert(tempraturmatarir, "end", text="Fyrireika dat fíl")
+    ingestion_listbox.insert(tempraturmatarir, "end", text="Decimering")
+    ingestion_listbox.insert(tempraturmatarir, "end", text="Fyrireika Seaguard data")
     ingestion_listbox.insert(tempraturmatarir, "end", text="Ger Countour plot")
 
 
@@ -39,8 +43,120 @@ def check_click(item, RightFrame, root):
         seaguard_data(RightFrame, root)
     elif item == 'Ger Countour plot':
         termistorkeda_contourplot(RightFrame, root)
+    elif item == 'Fyrireika RBR fíl':
+        rbr_fyrireking(RightFrame, root)
+    elif item == 'Fyrireika dat fíl':
+        dat_fyrireking(RightFrame, root)
 
 
+########################################################################################################################
+#                                                                                                                      #
+#                                            Termistor Keda koda byrjar her                                            #
+#                                                                                                                      #
+########################################################################################################################
+#                                                                                                                      #
+#                                                   Fyrireika dat fíl                                                  #
+#                                                                                                                      #
+########################################################################################################################
+
+
+def dat_fyrireking(frame, root2):
+    global root
+    root = root2
+    for widget in frame.winfo_children():
+        widget.destroy()
+    Label(frame, text='Termistorkeda', font='Helvetica 18 bold').pack(side=TOP)
+    Label(frame, text='Fyrireika dat fíl').pack(side=TOP, anchor=W)
+    menuFrame = Frame(frame)
+    menuFrame.pack(side=TOP, fill=X, expand=False, anchor=N)
+    Button(menuFrame, text='Vel datafílir', command=lambda: velFilir()).pack(side=LEFT)
+    Button(menuFrame, text='Rokna', command=lambda: dat_rokna()).pack(side=LEFT)
+
+    log_frame = Frame(frame, height=300)
+    log_frame.pack(fill=X, expand=False, side=BOTTOM, anchor=W)
+    gerlog(log_frame, root)
+
+
+def dat_rokna():
+    log_b()
+    global filnavn
+    if not os.path.isdir(str(os.path.dirname(filnavn[0]))+'/dat'):
+        os.mkdir(os.path.dirname(filnavn[0])+'/dat')
+    for i in range(len(filnavn)):
+        print('Lesur fíl' + filnavn[i])
+        data = pd.read_csv(filnavn[i], encoding='latin', skiprows=13, sep='\s+')
+        print(data.columns.values)
+        date = data.iloc[:, 1]
+        time = data.iloc[:, 2]
+        temprature = data.iloc[:, 3]
+        str_timestamp = []
+        for j in range(len(date)):
+            tmp = date[j] + ' ' + time[j]
+            timestamp = datetime.strptime(tmp, '%d.%m.%Y %H:%M:%S')
+            str_timestamp.append(timestamp.strftime('%Y-%m-%d_%H:%M:%S.%f'))
+        nyttfilnavn = filnavn[i]
+        nyttfilnavn = os.path.dirname(filnavn[i]) + '/rbr/' + nyttfilnavn[len(os.path.dirname(filnavn[i])):len(filnavn[i])] + '_rbr.csv'
+        print('Goymur fíl ' + nyttfilnavn)
+        filur_at_goyma = pd.DataFrame({'time': str_timestamp, 'signal': temprature})
+        filur_at_goyma.to_csv(nyttfilnavn, index=False)
+    log_e()
+
+
+
+
+
+
+
+########################################################################################################################
+#                                                                                                                      #
+#                                                   Fyrireika RBR fíl                                                  #
+#                                                                                                                      #
+########################################################################################################################
+
+
+def rbr_fyrireking(frame, root2):
+    global root
+    root = root2
+    for widget in frame.winfo_children():
+        widget.destroy()
+    Label(frame, text='Termistorkeda', font='Helvetica 18 bold').pack(side=TOP)
+    Label(frame, text='Fyrireika RBR fíl').pack(side=TOP, anchor=W)
+    menuFrame = Frame(frame)
+    menuFrame.pack(side=TOP, fill=X, expand=False, anchor=N)
+    Button(menuFrame, text='Vel datafílir', command=lambda: velFilir()).pack(side=LEFT)
+    Button(menuFrame, text='Rokna', command=lambda: rbr_rokna()).pack(side=LEFT)
+
+    log_frame = Frame(frame, height=300)
+    log_frame.pack(fill=X, expand=False, side=BOTTOM, anchor=W)
+    gerlog(log_frame, root)
+
+def rbr_rokna():
+    log_b()
+    global filnavn
+    if not os.path.isdir(str(os.path.dirname(filnavn[0]))+'/rbr'):
+        os.mkdir(os.path.dirname(filnavn[0])+'/rbr')
+    for i in range(len(filnavn)):
+        print('Lesur fíl' + filnavn[i])
+        data = pd.read_csv(filnavn[i])
+        print(data.columns.values)
+        unixtime = data['tstamp']
+        temprature = data['channel02']
+        str_timestamp = []
+        for j in range(len(unixtime)):
+            tmp = unixtime[j]/1000
+            timestamp = datetime.utcfromtimestamp(tmp)
+            str_timestamp.append(timestamp.strftime('%Y-%m-%d_%H:%M:%S.%f'))
+        nyttfilnavn = filnavn[i]
+        nyttfilnavn = os.path.dirname(filnavn[i]) + '/rbr/' + nyttfilnavn[len(os.path.dirname(filnavn[i])):len(filnavn[i])] + '_rbr.csv'
+        print('Goymur fíl ' + nyttfilnavn)
+        filur_at_goyma = pd.DataFrame({'time': str_timestamp, 'signal': temprature})
+        filur_at_goyma.to_csv(nyttfilnavn, index=False)
+    log_e()
+
+########################################################################################################################
+#                                                                                                                      #
+#                                             Oxygen Keda koda byrjar her                                              #
+#                                                                                                                      #
 ########################################################################################################################
 #                                                                                                                      #
 #                                                     Contour plot                                                     #
@@ -125,13 +241,18 @@ def rokna_og_tekna_contour(canvas, d_fra, d_til):
                 hettardypid = -dypir_virdir[j]
         for j in range(len(timestamp[i])):
             try:
-                flat_timestamp.append(md.date2num(datetime.strptime(timestamp[i][j], '%Y-%m-%d_%H:%M:%S.%f')))
+                tmp = timestamp[i][j]
+                if len(tmp) > 24:  # nasty máti at hontera millisekund við nógvur sifrum
+                    tmp = tmp[:len(tmp)-3]
+                    print(tmp)
+                    print('langttimestamp')
+                flat_timestamp.append(md.date2num(datetime.strptime(tmp, '%Y-%m-%d_%H:%M:%S.%f')))  # Vanlig ox format
                 flat_signal.append(float(signal[i][j]))
                 dypir.append(hettardypid)
                 ctr += 1
             except:
                 try:
-                    flat_timestamp.append(md.date2num(datetime.strptime(timestamp[i][j], '%d.%m.%y_%H:%M:%S')))
+                    flat_timestamp.append(md.date2num(datetime.strptime(timestamp[i][j], '%d.%m.%y_%H:%M:%S'))) # Raw seaguard data
                     flat_signal.append(float(signal[i][j]))
                     dypir.append(hettardypid)
                     ctr += 1
@@ -233,7 +354,7 @@ def seaguard_data(frame, root2):
 
     Button(menuFrame, text='Vel Seaguard fíl', command=lambda: vel_fil()).pack(side=LEFT)
 
-    Button(menuFrame, text='Eksportera fíl', command=lambda: eksportera()).pack(side=LEFT)
+    Button(menuFrame, text='Eksportera fíl', command=lambda: eksportera(v)).pack(side=LEFT)
 
     v = IntVar()
     temp_radBtn = Radiobutton(frame, text='Tempratur', variable=v, value=1)
@@ -250,7 +371,7 @@ def seaguard_data(frame, root2):
     gerlog(log_frame, root)
 
 
-def eksportera():
+def eksportera(v):
     log_b()
     global filnavn
     data = pd.read_csv(filnavn, sep='\t', skiprows=1)
@@ -260,7 +381,11 @@ def eksportera():
     for i in range(len(timestamp)):
         timestamp[i] = timestamp[i].replace(' ', '_')
     print(timestamp[0])
-    o2 = data['AirSaturation']
+    print(v.get())
+    if v.get()==2:
+        o2 = data['AirSaturation']
+    elif v.get()==1:
+        o2 = data['Temperature']
     savefilnavn = filedialog.asksaveasfilename(title='Goym fíl', filetypes=(("csv Fílir", "*.csv"), ("all files", "*.*")))
     data_tosave = pd.DataFrame({'time': timestamp, 'signal': o2})
     data_tosave.to_csv(savefilnavn, index=False)
@@ -387,8 +512,6 @@ def velFilir():
     global filnavn
     filnavn = filedialog.askopenfilenames(title='Vel fílir', filetypes=(("txt Fílir", "*.txt"), ("csv Fílir", "*.csv"),
                                                                       ("all files", "*.*")))
-    print(filnavn)
-
 
 def les_kalib_kofficientar(kalib_tree):
     global kalib_filnavn
