@@ -49,6 +49,8 @@ def check_click(item, RightFrame, root):
         rbr_fyrireking(RightFrame, root)
     elif item == 'Fyrireika dat fíl':
         dat_fyrireking(RightFrame, root)
+    elif item == 'Ger strikumynd':
+        strikumynd(RightFrame, root)
 
 
 ########################################################################################################################
@@ -168,6 +170,7 @@ def rbr_rokna():
 #                                                                                                                      #
 ########################################################################################################################
 
+
 def strikumynd(frame, root2):
     global root
     root = root2
@@ -178,6 +181,85 @@ def strikumynd(frame, root2):
 
     menuFrame = Frame(frame)
     menuFrame.pack(side=TOP, fill=X, expand=False, anchor=N)
+
+    log_frame = Frame(frame, height=300)
+    log_frame.pack(fill=X, expand=False, side=TOP, anchor=W)
+    gerlog(log_frame, root)
+    plot_frame = Frame(frame)
+    plot_frame.pack(fill=BOTH, expand=True, side=BOTTOM, anchor=W)
+    global fig
+    global ax
+    fig = Figure(figsize=(8, 12), dpi=100)
+    canvas = FigureCanvasTkAgg(fig, master=plot_frame)
+    fig.clf()
+    ax = fig.add_subplot(111)
+
+    Button(menuFrame, text='Vel datafílir', command=lambda: velFilir()).pack(side=LEFT)
+    Button(menuFrame, text='Tekna', command=lambda: tekna_strikumynd(canvas, float(fra_entry.get()),
+                                                                     float(til_entry.get()))).pack(side=LEFT)
+    fra_entry = Entry(menuFrame, width=3)
+    fra_entry.pack(side=LEFT)
+    fra_entry.insert(0, '0')
+    Label(menuFrame, text='til').pack(side=LEFT)
+    til_entry = Entry(menuFrame, width=3)
+    til_entry.pack(side=LEFT)
+    til_entry.insert(0, '100')
+
+    Button(menuFrame, text='Goym mynd', command=lambda: goymmynd(fig)).pack(side=RIGHT)
+    Button(menuFrame, text='CLF', command=lambda: clear_figur(canvas)).pack(side=RIGHT)
+
+
+def tekna_strikumynd(canvas, d_til, d_fra):
+    log_b()
+    global ax
+    global fig
+    global dfilnavn
+    global filnavn
+    signal = []
+    timestamp = []
+    print('Lesur datafílir')
+    for i in range(len(filnavn)):
+        print(filnavn[i])
+        data = pd.read_csv(filnavn[i])
+        signal = data['signal'].values
+        timestamp = data['time']
+        md_timestamp = []
+        md_signal = []
+        for j in range(len(signal)):
+            tmpstr = str(signal[j])
+            tmpstr = tmpstr.replace(',', '.')
+            md_signal.append(float(tmpstr))
+            try:
+                md_timestamp.append(md.date2num(datetime.strptime(timestamp[j], '%Y-%m-%d_%H:%M:%S.%f')))  # Raw seaguard data
+            except:
+                try:
+                    md_timestamp.append(md.date2num(datetime.strptime(timestamp[j], '%d.%m.%y_%H:%M:%S')))
+                except:
+                    print('Veit ikki hvat eg skal gera vit hendan timestampin ' + timestamp[j])
+        label = filnavn[i]
+        print(label)
+        label = label[len(os.path.dirname(filnavn[i]))+1::]
+        print(label)
+        label = label[:-4]
+        print(label)
+        ax.plot(md_timestamp, md_signal, label=label)
+
+    ax.set_ylim(d_til, d_fra)
+    ax.xaxis.set_major_locator(MaxNLocator(10))
+    ax.yaxis.set_major_locator(MaxNLocator(10))
+    xt = ax.get_xticks()
+    text_timestamps = []
+    for i in range(len(xt)):
+        tmp = md.num2date(float(xt[i]))
+        text_timestamps.append(tmp.strftime("%d %b"))
+
+    ax.set_xticklabels(text_timestamps)
+    ax.set_ylabel('Hiti [C]')
+    ax.legend()
+    canvas.draw()
+    canvas.get_tk_widget().pack(fill=BOTH, expand=1)
+    fig.savefig('tmp.png', figsize=(8, 12), dpi=300)
+    log_e()
 
 ########################################################################################################################
 #                                                                                                                      #
