@@ -296,7 +296,7 @@ def rokna(fra, til, punktPerPil, bins, skip):
     log_e()
 
 def init(ingestion_listbox):
-    streymmatingar_frabati = ingestion_listbox.insert("", 0, text="Streymmátingar frá báti")
+    streymmatingar_frabati = ingestion_listbox.insert("", 0, text="RDI Streymmátingar frá báti")
     ingestion_listbox.insert(streymmatingar_frabati, "end", text='Kopiera data frá feltteldu')
     ingestion_listbox.insert(streymmatingar_frabati, "end", text='Evt. Reprocessera')
     ingestion_listbox.insert(streymmatingar_frabati, "end", text='Exportera csv fílar')

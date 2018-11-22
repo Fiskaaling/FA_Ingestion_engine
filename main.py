@@ -3,6 +3,7 @@ import Processing.tekna_kort
 import tkinter.ttk as ttk
 import Ingestion.streymmatari
 import Ingestion.LV
+import Ingestion.LV_Aldumátingar
 import Strfbotni.strbotni
 import Ingestion.oxygenkeda
 
@@ -37,6 +38,8 @@ def OnDoubleClick(event, tree):
         Ingestion.streymmatari.roknaMidalstreym(RightFrame, root)
     elif item == 'Countour plot':
         Strfbotni.strbotni.botnmatPlt(RightFrame, root)
+    elif item == 'Aldumátingar':
+        Ingestion.LV_Aldumátingar.Alduplt(RightFrame, root)
     else:
         Ingestion.oxygenkeda.check_click(item, RightFrame, root)
 
@@ -67,7 +70,7 @@ scrollbar.pack(side=RIGHT, fill=Y)
 ingestion_listbox.insert("", 0, text='Tekna Kort')
 LV = ingestion_listbox.insert("", 0, text='Landsverk')
 
-streymmatingar_stationert = ingestion_listbox.insert("", 0, text="Streymmátinar frá botni")
+streymmatingar_stationert = ingestion_listbox.insert("", 0, text="RDI streymmátinar frá botni")
 
 # Rudduligari máti at gera hettar uppá, ikki implementera allastaðni enn
 Ingestion.streymmatari.init(ingestion_listbox)
