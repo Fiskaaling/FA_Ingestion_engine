@@ -70,7 +70,7 @@ scrollbar.pack(side=RIGHT, fill=Y)
 ingestion_listbox.insert("", 0, text='Tekna Kort')
 LV = ingestion_listbox.insert("", 0, text='Landsverk')
 
-streymmatingar_stationert = ingestion_listbox.insert("", 0, text="Streymmátinar frá botni")
+streymmatingar_stationert = ingestion_listbox.insert("", 0, text="RDI streymmátinar frá botni")
 
 # Rudduligari máti at gera hettar uppá, ikki implementera allastaðni enn
 Ingestion.streymmatari.init(ingestion_listbox)

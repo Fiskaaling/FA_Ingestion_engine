@@ -189,7 +189,7 @@ def strikumynd(frame, root2):
     plot_frame.pack(fill=BOTH, expand=True, side=BOTTOM, anchor=W)
     global fig
     global ax
-    fig = Figure(figsize=(8, 12), dpi=100)
+    fig = Figure(figsize=(8, 12), dpi=300)
     canvas = FigureCanvasTkAgg(fig, master=plot_frame)
     fig.clf()
     ax = fig.add_subplot(111)
@@ -282,7 +282,8 @@ def termistorkeda_contourplot(frame, root2):
     Button(menuFrame, text='Vel datafílir', command=lambda: velFilir()).pack(side=LEFT)
     Button(menuFrame, text='Tekna', command=lambda: rokna_og_tekna_contour(canvas, int(fra_entry.get()),
                                                                            int(til_entry.get()), float(lfra_entry.get()),
-                                                                           float(ltil_entry.get()), clin.get())).pack(side=LEFT)
+                                                                           float(ltil_entry.get()), clin.get(),
+                                                                           int(clin_entry.get()))).pack(side=LEFT)
     Button(menuFrame, text='Goym mynd', command=lambda: goymmynd(fig)).pack(side=RIGHT)
     Button(menuFrame, text='CLF', command=lambda: clear_figur(canvas)).pack(side=RIGHT)
     Label(menuFrame, text='Dýpið frá:').pack(side=LEFT)
@@ -305,6 +306,11 @@ def termistorkeda_contourplot(frame, root2):
 
     clin = IntVar()
     Checkbutton(menuFrame, text="Linjur", variable=clin).pack(side=LEFT)
+    Label(menuFrame, text='Tal av linjum:').pack(side=LEFT)
+    clin_entry = Entry(menuFrame, width=3)
+    clin_entry.pack(side=LEFT)
+    clin_entry.insert(0, '5')
+
 
     log_frame = Frame(frame, height=300)
     log_frame.pack(fill=X, expand=False, side=TOP, anchor=W)
@@ -330,7 +336,8 @@ def clear_figur(canvas):
         global levels
         del levels
 
-def rokna_og_tekna_contour(canvas, d_fra, d_til, c_fra, c_til, clin):
+
+def rokna_og_tekna_contour(canvas, d_fra, d_til, c_fra, c_til, clin, clintal):
     log_b()
     global ax
     global fig
@@ -430,9 +437,15 @@ def rokna_og_tekna_contour(canvas, d_fra, d_til, c_fra, c_til, clin):
         fig.colorbar(c)
 
     if clin:
-        clin_fra = np.floor(c_fra)+1
-        clin_til = np.floor(c_til)-1
         crange = np.arange(c_fra, c_til)
+        step = 1
+        if 100 in crange:
+            crange = [70, 90, 110]
+            print('Setur Crange til ox virðir')
+        else:
+            while len(crange) > clintal:
+                crange = np.arange(c_fra, c_til, step)
+                step += 1
         cc = ax.contour(X, Y, f, levels=crange, colors='k')
         ax.clabel(cc, inline=1, fontsize=15, fmt='%2.0f')
 
