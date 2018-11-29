@@ -483,10 +483,25 @@ def les_og_tekna(text, fig, canvas):
                 grid_z0 = griddata((btn_x, btn_y), dypid.values, (meshgridx, meshgridy), method=btn_interpolation)
                 #grid_z0 = interpolate.interp2d(btn_x, btn_y, dypid.values, kind='cubic')
                 vmin = min(-150, min([-y for x in grid_z0 for y in x]))
-                lv = range(vmin, btn_striku_hvor, btn_striku_hvor)
+                lv = range(int(vmin), int(btn_striku_hvor), int(btn_striku_hvor))
                 if renderengine == '3D_botn':
-                    ax.plot_surface(meshgridx, meshgridy, -grid_z0, alpha=.5, rcount=50, ccount=50, vmax=0,
-                                    cmap='ocean', zorder=21000)
+                    cmap = plt.cm.viridis
+                    for i in range(250, 256):
+                        cmap.colors[i] = [0, 1, 0]
+                    ax.plot_surface(meshgridx, meshgridy, -grid_z0, alpha=.85, rcount=50, ccount=50, vmax=0,
+                                    cmap=cmap, zorder=21000)
+                    ax.set_axis_off()
+                    '''
+                    print(max(meshgridx[0]))
+                    print(meshgridx[0,0])
+                    print(max(meshgridy[:,0]))
+                    print(meshgridx[0, 0])
+                    print(max([y for x in grid_z0 for y in x]))
+                    '''
+                    scalefactor = float(scatter_farv)                   #Plz fiza meg
+                    v1 = max(max(meshgridx[0]), max(meshgridy[:, 0]))
+                    v2 = max([y for x in grid_z0 for y in x])
+                    ax.set_aspect(scalefactor * v2 / v1)
                 else:
                     c = m.contourf(meshgridx, meshgridy, -grid_z0, lv, ax=ax)  # Um kodan kiksar her broyt basemap fílin til // har feilurin peikar
                     #ax.clabel(c, inline=1, fontsize=15, fmt='%2.0f')
@@ -494,7 +509,7 @@ def les_og_tekna(text, fig, canvas):
             elif command == 'btn_contour':
                 grid_z0 = griddata((btn_x, btn_y), dypid.values, (meshgridx, meshgridy), method=btn_interpolation)
                 vmin = min(-150, min([-y for x in grid_z0 for y in x]))
-                lv = range(vmin, btn_striku_hvor, btn_striku_hvor)
+                lv = range(int(vmin), int(btn_striku_hvor), int(btn_striku_hvor))
                 #grid_z0 = interpolate.interp2d(btn_x, btn_y, dypid.values, kind='cubic')
                 #c = m.contour(meshgridx, meshgridy, -1*grid_z0, lv, ax=ax)  # Um kodan kiksar her broyt basemap fílin til // har feilurin peik
                 if renderengine == '3D_botn':
