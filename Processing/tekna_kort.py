@@ -167,6 +167,7 @@ def les_og_tekna(text, fig, canvas):
     linjuSlag = [1, 0]
     btn_striku_hvor = 5
     qskala = 0.001
+    scatter_std = 1
     lin_farv='b'
     lin_legend=''
     scatter_farv = 'b'
@@ -288,6 +289,8 @@ def les_og_tekna(text, fig, canvas):
                 else:
                     line_x, line_y = m(lineData['lon'].values, lineData['lat'].values)
                     ax.plot(line_x, line_y, lin_farv, linewidth=1, label=lin_legend)
+            elif variable == 'scatter_std':
+                scatter_std = float(command[toindex::])
             elif variable == 'scatter_fil':
                 scatterData = pd.read_csv(command[toindex::])
                 line_x, line_y = m(scatterData['lon'].values, scatterData['lat'].values)
@@ -306,30 +309,30 @@ def les_og_tekna(text, fig, canvas):
                         line_z = -scatterData['d'].values
                     if Samla:
                         ax.scatter(line_x, line_y, line_z, zorder=100
-                                   , color=scatter_farv, label=scatter_legend)
+                                   , color=scatter_farv, label=scatter_legend, s=scatter_std)
                     else:
                         lables = scatterData['legend'].values
                         for i in range(len(line_x)):
                             ax.scatter(line_x[i], line_y[i], line_z[i]
-                                       , zorder=100, label=lables[i])
+                                       , zorder=100, label=lables[i], s=scatter_std)
                             print('Funni legend :' + lables[i])
                         show_legend = True
                 else:
                     if scatter_tekst:
                         lables = scatterData['legend'].values
                         for i in range(len(line_x)):
-                            ax.scatter(line_x[i], line_y[i], zorder=100, c='k')
+                            ax.scatter(line_x[i], line_y[i], zorder=100, c='k', s=scatter_std)
                             if i==7 or i==3 or i==5 or i ==2:
                                 ax.text(line_x[i] - 350, line_y[i] + 150, lables[i], zorder=1000000)
                             else:
                                 ax.text(line_x[i]-350, line_y[i]-350, lables[i], zorder=1000000)
                     else:
                         if Samla:
-                            ax.scatter(line_x, line_y, zorder=100, color=scatter_farv, label=scatter_legend)
+                            ax.scatter(line_x, line_y, zorder=100, color=scatter_farv, label=scatter_legend, s=scatter_std)
                         else:
                             lables = scatterData['legend'].values
                             for i in range(len(line_x)):
-                                ax.scatter(line_x[i], line_y[i], zorder=100, label=lables[i])
+                                ax.scatter(line_x[i], line_y[i], zorder=100, label=lables[i], s=scatter_std)
                                 print('Funni legend :' + str(lables[i]))
                             show_legend = True
             elif variable == 'linjuSlag':
@@ -504,6 +507,8 @@ def les_og_tekna(text, fig, canvas):
                 s3 = float(command[toindex::])
             elif command == 'ncol':
                 ncol = int(command[toindex::])
+            canvas.draw()
+            canvas.get_tk_widget().pack(fill=BOTH, expand=1)
     if show_legend:
         print('Showing Legend')
         leg = ax.legend(loc='best', ncol=ncol)

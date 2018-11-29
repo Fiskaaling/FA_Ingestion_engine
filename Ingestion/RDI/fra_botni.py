@@ -31,8 +31,8 @@ def vk(frame, root2):
     menuFrame.pack(side=TOP, fill=X, expand=False, anchor=N)
     Button(menuFrame, text='Vel vindfíl', command=lambda: velFilir('.csv')).pack(side=LEFT)
     Button(menuFrame, text='Vel RDIfíl', command=lambda: vel_fil()).pack(side=LEFT)
-    Button(menuFrame, text='Rokna', command=lambda: rokna_korr(v.get(), bin_entry.get(), canvas)).pack(side=LEFT)
-
+    Button(menuFrame, text='Rokna', command=lambda: rokna_korr(v.get(), bin_entry.get(), canvas, False)).pack(side=LEFT)
+    Button(menuFrame, text='Rokna CSV', command=lambda: rokna_korr(v.get(), bin_entry.get(), canvas, True)).pack(side=LEFT)
     Label(menuFrame, text='Bin:').pack(side=LEFT)
     bin_entry = Entry(menuFrame, width=3)
     bin_entry.pack(side=LEFT)
@@ -58,65 +58,86 @@ def vk(frame, root2):
     canvas.get_tk_widget().pack(fill=BOTH, expand=1)
 
 
-def rokna_korr(aett, bin_index, canvas):
+def rokna_korr(aett, bin_index, canvas, roknaalt):
     log_b()
-    print('ok')
-    global RDI_filnavn
-    df = pd.read_csv(RDI_filnavn, skiprows=11, sep='\t', index_col=0, decimal=",")
-    print(df.columns.values)
-    streymData = df[bin_index]
-    print(streymData)
-    ar = df['YR']
-    mdr = df['MO']
-    dag = df['DA']
-    h = df['HH']
-    m = df['MM']
-    date = np.zeros((len(streymData)))
-    for i in range(len(streymData)):
-        try:
-            date[i] = md.date2num(datetime.strptime(str(ar[i]) + '.' + str(mdr[i]) + '.' + str(dag[i]) + '.' + str(h[i]) + '.' + str(m[i]), '%y.%m.%d.%H.%M'))
-        except Exception as e:
-            print('Dugi ikki ' + str(i))
-            print(e)
-    print(date)
-    print('Dato frá RDI liðugt')
-    global filnavn
-    vindDF = pd.read_csv(filnavn[0])
-    vindU = vindDF['u']
-    vindV = vindDF['v']
-    vindDate = vindDF['date']
-    vindMDdate = np.zeros((len(vindDF)))
-    for i in range(len(vindDF)):
-        vindMDdate[i] = md.date2num(datetime.strptime(vindDate[i], '%Y-%m-%d_%H:%M:%S'))
-    print('Dato frá LV liðugt')
-    print(vindMDdate)
-    # Nú byrjar tað orduliga
-    if aett == 1:
-        f = interp1d(vindMDdate, vindU)
-    else:
-        f = interp1d(vindMDdate, vindV)
-    minvinddate = np.min(vindMDdate)
-    xval = []
-    yval = []
-    for i in range(len(streymData)):
-        if date[i] != 0 and date[i] > minvinddate and not np.isnan(streymData[i]):
-            xval.append(streymData[i])
-            yval.append(f(date[i]))
-    slope, intercept, r_value, p_value, std_err = stats.linregress(xval, yval)
-    global fig
-    global ax
-    ax.scatter(xval, yval, s=0.5, alpha=0.2)
-    xval = np.array(xval)
-    print(type(xval))
-    print(type(intercept))
-    print(type(slope))
-    ax.plot(xval, intercept + slope*xval, label=str(std_err))
-    ax.legend()
-    #ax.plot(np.unique(xval), np.poly1d(np.polyfit(xval, yval, 1))(np.unique(xval)))
-
-
-    canvas.draw()
-    canvas.get_tk_widget().pack(fill=BOTH, expand=1)
+    brange = bin_index
+    if roknaalt:
+        brange = range(1, 17)
+    slope_a, intercept_a, r_value_a, p_value_a, std_err_a, brange_a = [], [], [], [], [], []
+    for bin_i in brange:
+        print('ok')
+        global RDI_filnavn
+        df = pd.read_csv(RDI_filnavn, skiprows=11, sep='\t', index_col=0, decimal=",")
+        print(df.columns.values)
+        if roknaalt:
+            try:
+                streymData = df[str(brange[bin_i])]
+            except:
+                break
+        else:
+            streymData = df[bin_index]
+        print(streymData)
+        ar = df['YR']
+        mdr = df['MO']
+        dag = df['DA']
+        h = df['HH']
+        m = df['MM']
+        date = np.zeros((len(streymData)))
+        for i in range(len(streymData)):
+            try:
+                date[i] = md.date2num(datetime.strptime(str(ar[i]) + '.' + str(mdr[i]) + '.' + str(dag[i]) + '.' + str(h[i]) + '.' + str(m[i]), '%y.%m.%d.%H.%M'))
+            except Exception as e:
+                print('Dugi ikki ' + str(i))
+                print(e)
+        print(date)
+        print('Dato frá RDI liðugt')
+        global filnavn
+        vindDF = pd.read_csv(filnavn[0])
+        vindU = vindDF['u']
+        vindV = vindDF['v']
+        vindDate = vindDF['date']
+        vindMDdate = np.zeros((len(vindDF)))
+        for i in range(len(vindDF)):
+            vindMDdate[i] = md.date2num(datetime.strptime(vindDate[i], '%Y-%m-%d_%H:%M:%S'))
+        print('Dato frá LV liðugt')
+        print(vindMDdate)
+        # Nú byrjar tað orduliga
+        if aett == 1:
+            f = interp1d(vindMDdate, vindU)
+        else:
+            f = interp1d(vindMDdate, vindV)
+        minvinddate = np.min(vindMDdate)
+        maxvinddate = np.max(vindMDdate)
+        xval = []
+        yval = []
+        for i in range(len(streymData)):
+            if date[i] != 0 and date[i] > minvinddate and date[i] < maxvinddate and not np.isnan(streymData[i]):
+                xval.append(streymData[i])
+                yval.append(f(date[i]))
+        slope, intercept, r_value, p_value, std_err = stats.linregress(xval, yval)
+        slope_a.append(slope)
+        intercept_a.append(intercept)
+        r_value_a.append(r_value)
+        p_value_a.append(p_value)
+        std_err_a.append(std_err)
+        brange_a.append(bin_i)
+        global fig
+        global ax
+        ax.scatter(xval, yval, s=0.5, alpha=0.2)
+        xval = np.array(xval)
+        print(type(xval))
+        print(type(intercept))
+        print(type(slope))
+        ax.plot(xval, intercept + slope*xval, label=str(bin_i))
+        ax.legend()
+        #ax.plot(np.unique(xval), np.poly1d(np.polyfit(xval, yval, 1))(np.unique(xval)))
+        canvas.draw()
+        canvas.get_tk_widget().pack(fill=BOTH, expand=1)
+    if roknaalt:
+        fn = filedialog.asksaveasfile(title='Goym data', filetypes=(("csv Fílir", "*.csv"), ("all files", "*.*")))
+        punktirAtGoyma = pd.DataFrame({'bin': brange_a, 'slope': slope_a, 'intercept': intercept_a, 'r_value': r_value_a,
+                                        'p_value': p_value_a, 'std_err': std_err_a})
+        punktirAtGoyma.to_csv(fn, index=False)
     log_e()
 
 def velFilir(typa='std'):
@@ -128,7 +149,6 @@ def velFilir(typa='std'):
                                                                             ("all files", "*.*")))
     else:
         filnavn = filedialog.askopenfilenames(title='Vel ' + typa + ' fílir', filetypes=((typa + " Fílir", "*" + typa),
-
                                                                                                 ("all files", "*.*")))
 def vel_fil():
     global RDI_filnavn

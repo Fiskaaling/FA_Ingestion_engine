@@ -7,6 +7,7 @@ import Ingestion.LV_Aldumátingar
 import Strfbotni.strbotni
 import Ingestion.oxygenkeda
 import Ingestion.RDI.fra_botni
+import Ingestion.Botnkort.tilCsv
 
 class Window(Frame):
     def __init__(self, master=None):
@@ -44,7 +45,7 @@ def OnDoubleClick(event, tree):
     else:
         Ingestion.oxygenkeda.check_click(item, RightFrame, root)
         Ingestion.RDI.fra_botni.check_click(item, RightFrame, root)
-
+        Ingestion.Botnkort.tilCsv.check_click(item, RightFrame, root)
 global root
 # Teknar main gui
 root = Tk()
@@ -76,6 +77,7 @@ LV = ingestion_listbox.insert("", 0, text='Landsverk')
 Ingestion.streymmatari.init(ingestion_listbox)
 Ingestion.RDI.fra_botni.init(ingestion_listbox)
 Ingestion.oxygenkeda.init(ingestion_listbox)
+Ingestion.Botnkort.tilCsv.init(ingestion_listbox)
 
 ctd = ingestion_listbox.insert("", 0, text='CTD')
 alduboya = ingestion_listbox.insert("", 0, text='Alduboya')
