@@ -48,12 +48,12 @@ def teknakort():
     top.withdraw()
     top.protocol('WM_DELETE_WINDOW', top.withdraw)
 
-    menu_frame = Frame(app, borderwidth=1, highlightbackground="green", highlightcolor="green", highlightthickness=1)
+    menu_frame = Frame(app)
     menu_frame.pack(fill=X, expand=False, anchor=N)
-    content_frame = Frame(app, borderwidth=1, highlightbackground="green", highlightcolor="green", highlightthickness=1)
+    content_frame = Frame(app)
     content_frame.pack(fill=BOTH, expand=True, anchor=N)
 
-    map_frame = Frame(content_frame, borderwidth=1, highlightbackground="green", highlightcolor="green", highlightthickness=1)
+    map_frame = Frame(content_frame)
     map_frame.pack(fill=BOTH, expand=True, side=LEFT, anchor=N)
 
 
@@ -61,15 +61,21 @@ def teknakort():
 
 
 
-    list_frame = Frame(content_frame, borderwidth=1, highlightbackground="green", highlightcolor="green", highlightthickness=1)
+    list_frame = Frame(content_frame)
     list_frame.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
     text_list = Text(list_frame)
     text_list.pack(fill=BOTH, expand=True)
 
-    CommandEntry = Entry(content_frame, width=80)
+    CommandEntry = Entry(content_frame, width=100)
     CommandEntry.pack(side=TOP, anchor=W)
 
-    log_frame = Frame(content_frame, height=300, borderwidth=1, highlightbackground="green", highlightcolor="green", highlightthickness=1)
+    lowframe = Frame(content_frame, height=300)
+    lowframe.pack(fill=X, expand=False, side=TOP, anchor=W)
+
+    controls_frame = Frame(lowframe)
+    controls_frame.pack(side=LEFT, anchor=W)
+
+    log_frame = Frame(lowframe)
     log_frame.pack(fill=X, expand=False, side=TOP, anchor=W)
     gerlog(log_frame, root)
 
@@ -130,15 +136,20 @@ def teknakort():
     save_btn = Button(menu_frame, text='Goym uppsetan', command=lambda: goymuppsetan(text_list)).pack(side=LEFT)
     nytt_kort = Button(menu_frame, text='Nýtt Kort', command=lambda: nyttkort(text_list, root)).pack(side=LEFT)
     tekna_btn = Button(menu_frame, text='Tekna Kort', command=lambda: les_og_tekna(text_list.get("1.0", END), fig, canvas)).pack(side=LEFT)
-    zoomin_btn = Button(menu_frame, text='+', command=lambda: zoom(0.01, text_list)).pack(side=LEFT)
-    zoomout_btn = Button(menu_frame, text='-', command=lambda: zoom(-0.01, text_list)).pack(side=LEFT)
     teknaLinjur_btn = Button(menu_frame, text='Tekna Linjur', command=lambda: teknaLinjur(text_list, root)).pack(side=LEFT)
     teknaPrikkar_btn = Button(menu_frame, text='Tekna Prikkar', command=lambda: teknaPrikkar(text_list, root)).pack(side=LEFT)
     goymmynd_btn = Button(menu_frame, text='Goym Mynd', command=lambda: goymmynd(fig, canvas)).pack(side=LEFT)
-    pan_vinstra = Button(menu_frame, text='←', font='Helvetica', command=lambda: pan(-0.1, 0, canvas, True)).pack(side=LEFT)
-    pan_høgra = Button(menu_frame, text='→', font='Helvetica', command=lambda: pan(0.1, 0, canvas, True)).pack(side=LEFT)
-    pan_upp = Button(menu_frame, text='↑', font='Helvetica', command=lambda: pan(0, 0.1, canvas, True)).pack(side=LEFT)
-    pan_niður = Button(menu_frame, text='↓', font='Helvetica', command=lambda: pan(0, -0.1, canvas, True)).pack(side=LEFT)
+
+    pan_upp = Button(controls_frame, text='↑', font='Helvetica', command=lambda: pan(0, 0.1, canvas, True)).pack(side=TOP)
+    controlsLR_frame = Frame(controls_frame)
+    controlsLR_frame.pack(side=TOP, anchor=W)
+    pan_vinstra = Button(controlsLR_frame, text='←', font='Helvetica', command=lambda: pan(-0.1, 0, canvas, True)).pack(side=LEFT)
+    pan_høgra = Button(controlsLR_frame, text='→', font='Helvetica', command=lambda: pan(0.1, 0, canvas, True)).pack(side=LEFT)
+    pan_niður = Button(controls_frame, text='↓', font='Helvetica', command=lambda: pan(0, -0.1, canvas, True)).pack(side=TOP)
+    Label(controls_frame, text=' ').pack(side=TOP)
+    zoomin_btn = Button(controls_frame, text='+', command=lambda: zoom(0.01, text_list)).pack(side=TOP)
+    zoomout_btn = Button(controls_frame, text='-', command=lambda: zoom(-0.01, text_list)).pack(side=TOP)
+
 
 def innsetPan(text_list, fig, canvas):
     print('Innsetur nýggj pan virðir')
@@ -170,7 +181,7 @@ def innsetPan(text_list, fig, canvas):
     les_og_tekna(text_list.get("1.0", END), fig, canvas)
 
 
-def pan(x, y, canvas, relative):
+def pan(x, y, canvas, relative=False):
     global ax
     xlim = ax.get_xlim()
     ylim = ax.get_ylim()
@@ -257,6 +268,7 @@ def zoom(mongd, textbox):
     textbox.insert(INSERT, raw_text)
 
 def les_og_tekna(text, fig, canvas):
+    log_clear()
     log_b()
     global ax
     global m
@@ -681,13 +693,36 @@ def les_og_tekna(text, fig, canvas):
     canvas.draw()
     canvas.get_tk_widget().pack(fill=BOTH, expand=1)
     log_e()
+    global ispressed
+    ispressed = False
+
+
     def onclick(event):
-        global m
+        global m, ispressed, zoom_x_fra, zoom_y_fra
+        ispressed = True
+        zoom_x_fra, zoom_y_fra = event.xdata, event.ydata
         lat, lon = m(event.xdata, event.ydata, inverse=True)
         print('%s click: lon=%f, lat=%f' %
               ('double' if event.dblclick else 'single', lat, lon))
 
+
+    def onmove(event):
+        global ispressed, zoom_x_fra, zoom_y_fra
+        if ispressed:
+            lat, lon = m(event.xdata, event.ydata, inverse=True)
+            #print(lat)
+            pan(zoom_x_fra-event.xdata, zoom_y_fra-event.ydata, canvas)
+
+
+    def release(event):
+        global ispressed
+        ispressed = False
+
+
+    bid = fig.canvas.mpl_connect('motion_notify_event', onmove)
     cid = fig.canvas.mpl_connect('button_press_event', onclick)
+
+    fig.canvas.mpl_connect('button_release_event', release)
 
 
 def nyttkort(text, root):
