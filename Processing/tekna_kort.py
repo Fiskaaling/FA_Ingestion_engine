@@ -217,6 +217,8 @@ def les_og_tekna(text, fig, canvas):
     scatter_tekst = False
     clabel = False
     fontsize = 15
+    tekstx = 0
+    teksty = 0
     for command in text:
         print(command)
         if "=" in command:
@@ -502,6 +504,13 @@ def les_og_tekna(text, fig, canvas):
                     clabel = False
             elif variable == 'fontsize':
                 fontsize = command[toindex::]
+            elif variable == 'tekst':
+                ax.text(tekstx, teksty, open(command[toindex::]).read(), fontsize=fontsize, zorder=11)
+            elif variable == 'tekstxy':
+                temp = command[toindex::].split()
+                tekstx, teksty = m(np.float(temp[0]), np.float(temp[1]))
+                print(str(np.float(temp[0])) + ',' + str(np.float(temp[1])))
+                print(str(tekstx) + ',' + str(teksty))
             else:
                 if '#' not in variable and command != '':
                     log_w('Ókend kommando ' + variable)
