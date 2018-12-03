@@ -62,6 +62,9 @@ def teknakort():
     text_list = Text(list_frame)
     text_list.pack(fill=BOTH, expand=True)
 
+    CommandEntry = Entry(content_frame, width=80)
+    CommandEntry.pack(side=TOP, anchor=W)
+
     log_frame = Frame(content_frame, height=300, borderwidth=1, highlightbackground="green", highlightcolor="green", highlightthickness=1)
     log_frame.pack(fill=X, expand=False, side=TOP, anchor=W)
     gerlog(log_frame, root)
@@ -76,7 +79,12 @@ def teknakort():
             text_list.mark_set(INSERT, "1.0")
             text_list.see(INSERT)
         elif event.keysym == 'Return':
-            les_og_tekna(text_list.get("1.0", END), fig, canvas)
+            command = CommandEntry.get()
+            if ctrl:
+                les_og_tekna(text_list.get("1.0", END), fig, canvas)
+            elif command != '':
+                eval(command)
+                CommandEntry.delete(0, 'end')
 
     def control_key(state, event=None):
         global ctrl
