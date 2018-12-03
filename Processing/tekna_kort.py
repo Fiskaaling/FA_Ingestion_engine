@@ -116,7 +116,8 @@ def goymmynd(fig, canvas):
     log_b()
     filnavn = filedialog.asksaveasfilename(parent=root, title="Goym mynd",  filetypes=(("png Fílur", "*.png"), ("jpg Fílur", "*.jpg")))
     print('Goymir mynd')
-    fig.savefig(filnavn, dpi=1200, bbox_inches='tight')
+    global dpi
+    fig.savefig(filnavn, dpi=dpi, bbox_inches='tight')
     print('Liðugt')
     log_e()
 
@@ -156,6 +157,7 @@ def zoom(mongd, textbox):
 def les_og_tekna(text, fig, canvas):
     log_b()
     text = text.split('\n')
+    global dpi
     dpi = 400
     dybdarlinjur = False
     filnavn = 'test'
@@ -179,6 +181,8 @@ def les_og_tekna(text, fig, canvas):
     s3 = 1 #z scale
     ncol =1
     scatter_tekst = False
+    clabel = False
+    fontsize = 15
     for command in text:
         print(command)
         if "=" in command:
@@ -200,7 +204,7 @@ def les_og_tekna(text, fig, canvas):
                 ax.set_title(command[toindex::])
                 filnavn = command[toindex::]
             elif variable == 'dpi':
-                dpi = command[toindex::]
+                dpi = float(command[toindex::])
             elif variable == 'dybdarlinjur':
                 if command[toindex::] != 'False' or renderengine == '3D_botn':
                     dybdarlinjur = command[toindex::]
@@ -457,6 +461,13 @@ def les_og_tekna(text, fig, canvas):
                     scatter_tekst = True
                 else:
                     scatter_tekst = False
+            elif variable == 'clabel':
+                if command[toindex::] == 'True':
+                    clabel = True
+                else:
+                    clabel = False
+            elif variable == 'fontsize':
+                fontsize = command[toindex::]
         else:
 
             if command == 'clf':
@@ -483,7 +494,7 @@ def les_og_tekna(text, fig, canvas):
                 grid_z0 = griddata((btn_x, btn_y), dypid.values, (meshgridx, meshgridy), method=btn_interpolation)
                 #grid_z0 = interpolate.interp2d(btn_x, btn_y, dypid.values, kind='cubic')
                 vmin = min(-150, min([-y for x in grid_z0 for y in x]))
-                lv = range(int(vmin), int(btn_striku_hvor), int(btn_striku_hvor))
+                lv = range(int(vmin/btn_striku_hvor)*btn_striku_hvor, int(btn_striku_hvor), int(btn_striku_hvor))
                 if renderengine == '3D_botn':
                     cmap = plt.cm.viridis
                     for i in range(250, 256):
@@ -505,11 +516,17 @@ def les_og_tekna(text, fig, canvas):
                 else:
                     c = m.contourf(meshgridx, meshgridy, -grid_z0, lv, ax=ax)  # Um kodan kiksar her broyt basemap fílin til // har feilurin peikar
                     #ax.clabel(c, inline=1, fontsize=15, fmt='%2.0f')
-                    fig.colorbar(c)
+                    #fig.colorbar(c)
+                    if vmin >= -150:
+                        confti=list(range(int(vmin/10)*10, int(10), int(10)))
+                    else:
+                        confti = list(range(int(vmin / 20) * 20, int(20), int(20)))
+                    fig.colorbar(c, orientation='horizontal', ax=ax, ticks=confti, shrink=float(scatter_farv), pad=0.02)
             elif command == 'btn_contour':
                 grid_z0 = griddata((btn_x, btn_y), dypid.values, (meshgridx, meshgridy), method=btn_interpolation)
                 vmin = min(-150, min([-y for x in grid_z0 for y in x]))
-                lv = range(int(vmin), int(btn_striku_hvor), int(btn_striku_hvor))
+                temp=btn_striku_hvor
+                lv = range(int(vmin/temp)*temp, int(btn_striku_hvor), int(btn_striku_hvor))
                 #grid_z0 = interpolate.interp2d(btn_x, btn_y, dypid.values, kind='cubic')
                 #c = m.contour(meshgridx, meshgridy, -1*grid_z0, lv, ax=ax)  # Um kodan kiksar her broyt basemap fílin til // har feilurin peik
                 if renderengine == '3D_botn':
@@ -517,7 +534,8 @@ def les_og_tekna(text, fig, canvas):
                                  colors='k',vmax=0 , linestyles='solid')
                 else:
                     c = m.contour(meshgridx, meshgridy, -1 * grid_z0, lv, ax=ax, colors='black', linestyles='solid', linewidths=0.2)
-                    #ax.clabel(c, inline=1, fontsize=15, fmt='%2.0f')
+                    if clabel:
+                        ax.clabel(c, inline=1, fontsize=fontsize, fmt='%2.0f', manual=True)
             elif command == 's3':
                 s3 = float(command[toindex::])
             elif command == 'ncol':
