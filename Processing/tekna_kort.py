@@ -36,6 +36,8 @@ class Window(Frame):
 
 def teknakort():
     fig = Figure(figsize=(8, 12), dpi=100)
+    global ax
+    ax = fig.add_subplot(111)
     global root
     root = Tk()
     root.geometry("1200x800")
@@ -72,9 +74,12 @@ def teknakort():
     gerlog(log_frame, root)
 
     global ctrl
+    global shift
+    shift = False
     ctrl = False
 
     def key(event):
+        print(event.keysym)
         if event.keysym == 'a' and ctrl:
             print('Markera alt ')
             text_list.tag_add(SEL, "1.0", END)
@@ -90,12 +95,29 @@ def teknakort():
                     CommandEntry.delete(0, 'end')
                 except Exception as e:
                     log_w(e)
+        elif shift:
+            if event.keysym == 'Left':
+                pan(-0.1, 0, canvas, True)
+            elif event.keysym == 'Right':
+                pan(0.1, 0, canvas, True)
+            elif event.keysym == 'Up':
+                pan(0, 0.1, canvas, True)
+            elif event.keysym == 'Down':
+                pan(0, -0.1, canvas, True)
 
 
     def control_key(state, event=None):
         global ctrl
         ctrl = state
 
+    def shift_key(state, event=None):
+        global shift
+        shift = state
+
+    root.event_add('<<ShiftOn>>', '<KeyPress-Shift_L>', '<KeyPress-Shift_R>')
+    root.event_add('<<ShiftOff>>', '<KeyRelease-Shift_L>', '<KeyRelease-Shift_R>')
+    root.bind('<<ShiftOn>>', lambda e: shift_key(True))
+    root.bind('<<ShiftOff>>', lambda e: shift_key(False))
     root.event_add('<<ControlOn>>', '<KeyPress-Control_L>', '<KeyPress-Control_R>')
     root.event_add('<<ControlOff>>', '<KeyRelease-Control_L>', '<KeyRelease-Control_R>')
     root.bind('<<ControlOn>>', lambda e: control_key(True))
@@ -111,10 +133,26 @@ def teknakort():
     teknaLinjur_btn = Button(menu_frame, text='Tekna Linjur', command=lambda: teknaLinjur(text_list, root)).pack(side=LEFT)
     teknaPrikkar_btn = Button(menu_frame, text='Tekna Prikkar', command=lambda: teknaPrikkar(text_list, root)).pack(side=LEFT)
     goymmynd_btn = Button(menu_frame, text='Goym Mynd', command=lambda: goymmynd(fig, canvas)).pack(side=LEFT)
-    pan_vinstra = Button(menu_frame, text='←', font='Helvetica').pack(side=LEFT)
-    pan_høgra = Button(menu_frame, text='→', font='Helvetica').pack(side=LEFT)
-    pan_upp = Button(menu_frame, text='↑', font='Helvetica').pack(side=LEFT)
-    pan_niður = Button(menu_frame, text='↓', font='Helvetica').pack(side=LEFT)
+    pan_vinstra = Button(menu_frame, text='←', font='Helvetica', command=lambda: pan(-0.1, 0, canvas, True)).pack(side=LEFT)
+    pan_høgra = Button(menu_frame, text='→', font='Helvetica', command=lambda: pan(0.1, 0, canvas, True)).pack(side=LEFT)
+    pan_upp = Button(menu_frame, text='↑', font='Helvetica', command=lambda: pan(0, 0.1, canvas, True)).pack(side=LEFT)
+    pan_niður = Button(menu_frame, text='↓', font='Helvetica', command=lambda: pan(0, -0.1, canvas, True)).pack(side=LEFT)
+
+
+def pan(x, y, canvas, relative):
+    global ax
+    xlim = ax.get_xlim()
+    ylim = ax.get_ylim()
+    if relative:
+        xdiff = abs(xlim[0]-xlim[1])
+        ydiff = abs(ylim[0] - ylim[1])
+        ax.set_xlim([xlim[0] + xdiff*x, xlim[1] + xdiff*x])
+        ax.set_ylim([ylim[0] + ydiff*y, ylim[1] + ydiff*y])
+    else:
+        ax.set_xlim([xlim[0] + x, xlim[1] + x])
+        ax.set_ylim([ylim[0] + y, ylim[1] + y])
+    canvas.draw()
+    print('pan')
 
 def goymuppsetan(text):
     filnavn = filedialog.asksaveasfilename(parent=root, title='Goym uppsetan',
@@ -190,6 +228,7 @@ def zoom(mongd, textbox):
 
 def les_og_tekna(text, fig, canvas):
     log_b()
+    global ax
     text = text.split('\n')
     global dpi
     dpi = 400
