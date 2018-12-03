@@ -79,21 +79,14 @@ def teknakort():
     ctrl = False
 
     def key(event):
-        if event.keysym == 'a' and ctrl:
-            print('Markera alt ')
-            text_list.tag_add(SEL, "1.0", END)
-            text_list.mark_set(INSERT, "1.0")
-            text_list.see(INSERT)
-        elif event.keysym == 'Return':
-            command = CommandEntry.get()
-            if ctrl:
+        if ctrl:
+            if event.keysym == 'a':
+                print('Markera alt ')
+                text_list.tag_add(SEL, "1.0", END)
+                text_list.mark_set(INSERT, "1.0")
+                text_list.see(INSERT)
+            elif event.keysym == 'Return':
                 les_og_tekna(text_list.get("1.0", END), fig, canvas)
-            elif command != '':
-                try:
-                    eval(command)
-                    CommandEntry.delete(0, 'end')
-                except Exception as e:
-                    log_w(e)
         elif shift:
             if event.keysym == 'Left':
                 pan(-0.1, 0, canvas, True)
@@ -103,6 +96,16 @@ def teknakort():
                 pan(0, 0.1, canvas, True)
             elif event.keysym == 'Down':
                 pan(0, -0.1, canvas, True)
+            elif event.keysym == 'Return':
+                innsetPan(text_list, fig, canvas)
+        elif event.keysym == 'Return':
+            command = CommandEntry.get()
+            if command != '':
+                try:
+                    eval(command)
+                    CommandEntry.delete(0, 'end')
+                except Exception as e:
+                    log_w(e)
 
 
     def control_key(state, event=None):
@@ -136,6 +139,35 @@ def teknakort():
     pan_høgra = Button(menu_frame, text='→', font='Helvetica', command=lambda: pan(0.1, 0, canvas, True)).pack(side=LEFT)
     pan_upp = Button(menu_frame, text='↑', font='Helvetica', command=lambda: pan(0, 0.1, canvas, True)).pack(side=LEFT)
     pan_niður = Button(menu_frame, text='↓', font='Helvetica', command=lambda: pan(0, -0.1, canvas, True)).pack(side=LEFT)
+
+def innsetPan(text_list, fig, canvas):
+    print('Innsetur nýggj pan virðir')
+    global ax
+    global m
+    xlim = ax.get_xlim()
+    ylim = ax.get_ylim()
+    lon, lat = m(xlim, ylim, inverse=True)
+    raw_text = str(text_list.get("1.0", END))
+    text = raw_text.split('\n')
+    for command in text:
+        if '=' in command:
+            toindex = command.find('=') + 1
+            variable = command[0:toindex - 1]
+            if variable == 'latmax':
+                latmax = float(command[toindex::])
+                raw_text = raw_text.replace(command, "latmax=" + str(lat[1]))
+            elif variable == 'latmin':
+                latmin = float(command[toindex::])
+                raw_text = raw_text.replace(command, "latmin=" + str(lat[0]))
+            elif variable == 'lonmin':
+                lonmin = float(command[toindex::])
+                raw_text = raw_text.replace(command, "lonmin=" + str(lon[0]))
+            elif variable == 'lonmax':
+                lonmax = float(command[toindex::])
+                raw_text = raw_text.replace(command, "lonmax=" + str(lon[1]))
+    text_list.delete(1.0, END)
+    text_list.insert(INSERT, raw_text)
+    les_og_tekna(text_list.get("1.0", END), fig, canvas)
 
 
 def pan(x, y, canvas, relative):
@@ -227,6 +259,7 @@ def zoom(mongd, textbox):
 def les_og_tekna(text, fig, canvas):
     log_b()
     global ax
+    global m
     text = text.split('\n')
     global dpi
     dpi = 400
@@ -550,7 +583,7 @@ def les_og_tekna(text, fig, canvas):
                 print(str(tekstx) + ',' + str(teksty))
             else:
                 if '#' not in variable and command != '':
-                    log_w('Ókend kommando ' + variable)
+                    log_w('Ókend stýriboð ' + variable)
         else:
 
             if command == 'clf':
@@ -627,7 +660,7 @@ def les_og_tekna(text, fig, canvas):
                 ncol = int(command[toindex::])
             else:
                 if '#' not in command and command != '':
-                    log_w('Ókend kommando ' + command)
+                    log_w('Ókend stýriboð ' + command)
             canvas.draw()
             canvas.get_tk_widget().pack(fill=BOTH, expand=1)
     if show_legend:
@@ -649,7 +682,7 @@ def les_og_tekna(text, fig, canvas):
     canvas.get_tk_widget().pack(fill=BOTH, expand=1)
     log_e()
     def onclick(event):
-        nonlocal m
+        global m
         lat, lon = m(event.xdata, event.ydata, inverse=True)
         print('%s click: lon=%f, lat=%f' %
               ('double' if event.dblclick else 'single', lat, lon))
