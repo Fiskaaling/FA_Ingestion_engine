@@ -73,7 +73,7 @@ def teknakort():
     ctrl = False
 
     def key(event):
-        if event.keysym == 'a':
+        if event.keysym == 'a' and ctrl:
             print('Markera alt ')
             text_list.tag_add(SEL, "1.0", END)
             text_list.mark_set(INSERT, "1.0")
