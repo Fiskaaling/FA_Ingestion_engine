@@ -64,9 +64,43 @@ def teknakort():
     text_list = Text(list_frame)
     text_list.pack(fill=BOTH, expand=True)
 
+    CommandEntry = Entry(content_frame, width=80)
+    CommandEntry.pack(side=TOP, anchor=W)
+
     log_frame = Frame(content_frame, height=300, borderwidth=1, highlightbackground="green", highlightcolor="green", highlightthickness=1)
     log_frame.pack(fill=X, expand=False, side=TOP, anchor=W)
     gerlog(log_frame, root)
+
+    global ctrl
+    ctrl = False
+
+    def key(event):
+        if event.keysym == 'a' and ctrl:
+            print('Markera alt ')
+            text_list.tag_add(SEL, "1.0", END)
+            text_list.mark_set(INSERT, "1.0")
+            text_list.see(INSERT)
+        elif event.keysym == 'Return':
+            command = CommandEntry.get()
+            if ctrl:
+                les_og_tekna(text_list.get("1.0", END), fig, canvas)
+            elif command != '':
+                try:
+                    eval(command)
+                    CommandEntry.delete(0, 'end')
+                except Exception as e:
+                    log_w(e)
+
+
+    def control_key(state, event=None):
+        global ctrl
+        ctrl = state
+
+    root.event_add('<<ControlOn>>', '<KeyPress-Control_L>', '<KeyPress-Control_R>')
+    root.event_add('<<ControlOff>>', '<KeyRelease-Control_L>', '<KeyRelease-Control_R>')
+    root.bind('<<ControlOn>>', lambda e: control_key(True))
+    root.bind('<<ControlOff>>', lambda e: control_key(False))
+    root.bind('<Key>', key)
 
     load_btn = Button(menu_frame, text='Les inn uppsetan', command=lambda: innlesFil(text_list)).pack(side=LEFT)
     save_btn = Button(menu_frame, text='Goym uppsetan', command=lambda: goymuppsetan(text_list)).pack(side=LEFT)
@@ -468,11 +502,16 @@ def les_og_tekna(text, fig, canvas):
                     clabel = False
             elif variable == 'fontsize':
                 fontsize = command[toindex::]
+            else:
+                if '#' not in variable and command != '':
+                    log_w('Ókend kommando ' + variable)
         else:
 
             if command == 'clf':
                 fig.clf()
                 ax = fig.add_subplot(111)
+            elif command == 'break':
+                break
             elif command == 'Tekna kort':
 
                 if renderengine == '3D_botn':
@@ -540,6 +579,9 @@ def les_og_tekna(text, fig, canvas):
                 s3 = float(command[toindex::])
             elif command == 'ncol':
                 ncol = int(command[toindex::])
+            else:
+                if '#' not in command and command != '':
+                    log_w('Ókend kommando ' + command)
             canvas.draw()
             canvas.get_tk_widget().pack(fill=BOTH, expand=1)
     if show_legend:
