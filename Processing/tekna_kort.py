@@ -79,7 +79,6 @@ def teknakort():
     ctrl = False
 
     def key(event):
-        print(event.keysym)
         if event.keysym == 'a' and ctrl:
             print('Markera alt ')
             text_list.tag_add(SEL, "1.0", END)
@@ -152,7 +151,6 @@ def pan(x, y, canvas, relative):
         ax.set_xlim([xlim[0] + x, xlim[1] + x])
         ax.set_ylim([ylim[0] + y, ylim[1] + y])
     canvas.draw()
-    print('pan')
 
 def goymuppsetan(text):
     filnavn = filedialog.asksaveasfilename(parent=root, title='Goym uppsetan',
