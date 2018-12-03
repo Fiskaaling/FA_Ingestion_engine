@@ -57,8 +57,6 @@ def teknakort():
 
     canvas = FigureCanvasTkAgg(fig, master=map_frame)
 
-
-
     list_frame = Frame(content_frame, borderwidth=1, highlightbackground="green", highlightcolor="green", highlightthickness=1)
     list_frame.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
     text_list = Text(list_frame)
@@ -67,6 +65,28 @@ def teknakort():
     log_frame = Frame(content_frame, height=300, borderwidth=1, highlightbackground="green", highlightcolor="green", highlightthickness=1)
     log_frame.pack(fill=X, expand=False, side=TOP, anchor=W)
     gerlog(log_frame, root)
+
+    global ctrl
+    ctrl = False
+
+    def key(event):
+        if event.keysym == 'a':
+            print('Markera alt ')
+            text_list.tag_add(SEL, "1.0", END)
+            text_list.mark_set(INSERT, "1.0")
+            text_list.see(INSERT)
+        elif event.keysym == 'Return':
+            les_og_tekna(text_list.get("1.0", END), fig, canvas)
+
+    def control_key(state, event=None):
+        global ctrl
+        ctrl = state
+
+    root.event_add('<<ControlOn>>', '<KeyPress-Control_L>', '<KeyPress-Control_R>')
+    root.event_add('<<ControlOff>>', '<KeyRelease-Control_L>', '<KeyRelease-Control_R>')
+    root.bind('<<ControlOn>>', lambda e: control_key(True))
+    root.bind('<<ControlOff>>', lambda e: control_key(False))
+    root.bind('<Key>', key)
 
     load_btn = Button(menu_frame, text='Les inn uppsetan', command=lambda: innlesFil(text_list)).pack(side=LEFT)
     save_btn = Button(menu_frame, text='Goym uppsetan', command=lambda: goymuppsetan(text_list)).pack(side=LEFT)
