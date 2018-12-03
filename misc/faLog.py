@@ -3,6 +3,8 @@ from tkinter import *
 def gerlog(log_frame, root2):
     global log
     global root
+    global nw
+    nw = 2.0
     root = root2
     log = Text(log_frame, bg='#888888')
     log.pack(fill=X, expand=True)
@@ -15,9 +17,27 @@ def print(text, nl=True):
     global root
     log.config(state=NORMAL)
     if nl:
-        log.insert(2.0, str(text) + '\n')
+        log.insert(nw, str(text) + '\n')
     else:
-        log.insert(2.0, str(text))
+        log.insert(nw, str(text))
+    log.config(state=DISABLED)
+    root.update()
+
+
+def log_w(text):
+    global root
+    global nw
+    log.config(state=NORMAL)
+    log.insert(nw, str(text) + '\n')
+    nw += 1
+    log.tag_add('fystaWlinja', '2.0', str(nw))
+    log.tag_config('fystaWlinja', foreground='black', background='darkorange')
+    root.update()
+
+def log_clear():
+    global root
+    log.config(state=NORMAL)
+    log.delete(0.0, END)
     log.config(state=DISABLED)
     root.update()
 

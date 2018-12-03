@@ -83,8 +83,12 @@ def teknakort():
             if ctrl:
                 les_og_tekna(text_list.get("1.0", END), fig, canvas)
             elif command != '':
-                eval(command)
-                CommandEntry.delete(0, 'end')
+                try:
+                    eval(command)
+                    CommandEntry.delete(0, 'end')
+                except Exception as e:
+                    log_w(e)
+
 
     def control_key(state, event=None):
         global ctrl
@@ -485,11 +489,16 @@ def les_og_tekna(text, fig, canvas):
                     scatter_tekst = True
                 else:
                     scatter_tekst = False
+            else:
+                if '#' not in variable and command != '':
+                    log_w('Ókend kommando ' + variable)
         else:
 
             if command == 'clf':
                 fig.clf()
                 ax = fig.add_subplot(111)
+            elif command == 'break':
+                break
             elif command == 'Tekna kort':
 
                 if renderengine == '3D_botn':
@@ -550,6 +559,9 @@ def les_og_tekna(text, fig, canvas):
                 s3 = float(command[toindex::])
             elif command == 'ncol':
                 ncol = int(command[toindex::])
+            else:
+                if '#' not in command and command != '':
+                    log_w('Ókend kommando ' + command)
             canvas.draw()
             canvas.get_tk_widget().pack(fill=BOTH, expand=1)
     if show_legend:
