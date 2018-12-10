@@ -544,7 +544,7 @@ def les_og_tekna(text, fig, canvas):
                                  labelpos='W')
                 else:
                     ax.quiverkey(q, 0.8, 0.95, float(command[toindex::]*qskala), label=command[toindex::] + ' m/s', labelpos='W')
-            elif variable == 'lin_farv':
+            elif variable == 'lin_farv' or variable == 'linfarv':
                 lin_farv = command[toindex::]
             elif variable == 'lin_legend':
                 lin_legend = command[toindex::]
@@ -699,11 +699,14 @@ def les_og_tekna(text, fig, canvas):
 
     def onclick(event):
         global m, ispressed, zoom_x_fra, zoom_y_fra
+        global a
+        global b
+        a, b = event.xdata, event.ydata
         ispressed = True
         zoom_x_fra, zoom_y_fra = event.xdata, event.ydata
-        lat, lon = m(event.xdata, event.ydata, inverse=True)
-        print('%s click: lon=%f, lat=%f' %
-              ('double' if event.dblclick else 'single', lat, lon))
+        lon, lat = m(event.xdata, event.ydata, inverse=True)
+        print('%s click: lon=%f, lat=%f, x=%f, y=%f' %
+              ('double' if event.dblclick else 'single', lon, lat, event.xdata, event.ydata))
 
 
     def onmove(event):
