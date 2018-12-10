@@ -369,9 +369,9 @@ def les_og_tekna(text, fig, canvas):
                 #ax.scatter(meshgridx, meshgridy, s=1)
                 if btn_track:
                     if renderengine == '3D_botn':
-                        ax.scatter(btn_x, btn_y, -dypid, s=0.1, zorder=100)
+                        ax.scatter(btn_x, btn_y, -dypid, s=scatter_std, zorder=100)
                     else:
-                        ax.scatter(btn_x, btn_y, s=0.1, zorder=100, c=dypid)
+                        ax.scatter(btn_x, btn_y, s=scatter_std, zorder=100, c=dypid)
                 #grid_x, grid_y = np.mgrid[np.linspace(latmin, latmax, num=7312), np.linspace(lonmin, lonmax, num=7312)]
                 #grid_x, grid_y = np.meshgrid(np.linspace(latmin, latmax, num=7312), np.linspace(lonmin, lonmax, num=7312))
                 #grid_z0 = griddata((btn_x, btn_y), dypid.values, (meshgridx, meshgridy), method='linear')
