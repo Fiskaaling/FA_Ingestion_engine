@@ -301,6 +301,7 @@ def les_og_tekna(text, fig, canvas):
     fontsize = 15
     tekstx = 0
     teksty = 0
+    tekna_land = 1
     for command in text:
         print(command)
         if "=" in command:
@@ -323,6 +324,8 @@ def les_og_tekna(text, fig, canvas):
                 filnavn = command[toindex::]
             elif variable == 'dpi':
                 dpi = float(command[toindex::])
+            elif variable == 'tekna_land':
+                tekna_land = bo
             elif variable == 'dybdarlinjur':
                 if command[toindex::] != 'False' or renderengine == '3D_botn':
                     dybdarlinjur = command[toindex::]
