@@ -301,7 +301,7 @@ def les_og_tekna(text, fig, canvas):
     fontsize = 15
     tekstx = 0
     teksty = 0
-    tekna_land = 1
+    tekna_land = True
     for command in text:
         print(command)
         if "=" in command:
@@ -325,7 +325,11 @@ def les_og_tekna(text, fig, canvas):
             elif variable == 'dpi':
                 dpi = float(command[toindex::])
             elif variable == 'tekna_land':
-                tekna_land = bo
+                if command[toindex::] == 'False':
+                    tekna_land = False
+                elif command[toindex::] == 'True':
+                    tekna_land = True
+
             elif variable == 'dybdarlinjur':
                 if command[toindex::] != 'False' or renderengine == '3D_botn':
                     dybdarlinjur = command[toindex::]
@@ -617,11 +621,12 @@ def les_og_tekna(text, fig, canvas):
                     m = Basemap(projection='merc', resolution=None,
                                 llcrnrlat=latmin, urcrnrlat=latmax,
                                 llcrnrlon=lonmin, urcrnrlon=lonmax, ax=ax, suppress_ticks=suppress_ticks)
-                    for island in os.listdir('Kort_Data/Coasts'):
-                        lo, aa, la = np.genfromtxt('Kort_Data/Coasts/' + island, delimiter=' ').T
-                        xpt, ypt = m(lo, la)
-                        plt.plot(xpt, ypt, 'k', linewidth=1)
-                        ax.fill(xpt, ypt, landlitur, zorder=10)
+                    if tekna_land:
+                        for island in os.listdir('Kort_Data/Coasts'):
+                            lo, aa, la = np.genfromtxt('Kort_Data/Coasts/' + island, delimiter=' ').T
+                            xpt, ypt = m(lo, la)
+                            plt.plot(xpt, ypt, 'k', linewidth=1)
+                            ax.fill(xpt, ypt, landlitur, zorder=10)
 
             elif command == 'btn_contourf':
                 grid_z0 = griddata((btn_x, btn_y), dypid.values, (meshgridx, meshgridy), method=btn_interpolation)
