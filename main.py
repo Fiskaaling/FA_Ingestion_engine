@@ -8,6 +8,7 @@ import Strfbotni.strbotni
 import Ingestion.oxygenkeda
 import Ingestion.RDI.fra_botni
 import Ingestion.Botnkort.tilCsv
+import vatnstoduanalysa.vatnstoduanalysa
 
 class Window(Frame):
     def __init__(self, master=None):
@@ -42,6 +43,8 @@ def OnDoubleClick(event, tree):
         Strfbotni.strbotni.botnmatPlt(RightFrame, root)
     elif item == 'Aldumátingar':
         Ingestion.LV_Aldumátingar.Alduplt(RightFrame, root)
+    elif item == 'Vatnstoduanalysa':
+        vatnstoduanalysa.vatnstoduanalysa.load(RightFrame, root)
     else:
         Ingestion.oxygenkeda.check_click(item, RightFrame, root)
         Ingestion.RDI.fra_botni.check_click(item, RightFrame, root)
@@ -70,6 +73,7 @@ scrollbar.pack(side=RIGHT, fill=Y)
 # Byrjar at fylla ting inní listan
 
 ingestion_listbox.insert("", 0, text='Tekna Kort')
+ingestion_listbox.insert("", 0, text='Vatnstoduanalysa')
 LV = ingestion_listbox.insert("", 0, text='Landsverk')
 
 
