@@ -9,6 +9,7 @@ import Ingestion.oxygenkeda
 import Ingestion.RDI.fra_botni
 import Ingestion.Botnkort.tilCsv
 import vatnstoduanalysa.vatnstoduanalysa
+import Ingestion.seaguard.seaguard as seaguard
 
 class Window(Frame):
     def __init__(self, master=None):
@@ -45,6 +46,8 @@ def OnDoubleClick(event, tree):
         Ingestion.LV_Aldumátingar.Alduplt(RightFrame, root)
     elif item == 'Vatnstoduanalysa':
         vatnstoduanalysa.vatnstoduanalysa.load(RightFrame, root)
+    elif item == 'seaguard':
+        seaguard.load(RightFrame, root)
     else:
         Ingestion.oxygenkeda.check_click(item, RightFrame, root)
         Ingestion.RDI.fra_botni.check_click(item, RightFrame, root)
@@ -74,6 +77,7 @@ scrollbar.pack(side=RIGHT, fill=Y)
 
 ingestion_listbox.insert("", 0, text='Tekna Kort')
 ingestion_listbox.insert("", 0, text='Vatnstoduanalysa')
+ingestion_listbox.insert("", 0, text='seaguard')
 LV = ingestion_listbox.insert("", 0, text='Landsverk')
 
 
