@@ -48,12 +48,12 @@ def teknakort():
     top.withdraw()
     top.protocol('WM_DELETE_WINDOW', top.withdraw)
 
-    menu_frame = Frame(app, borderwidth=1, highlightbackground="green", highlightcolor="green", highlightthickness=1)
+    menu_frame = Frame(app)
     menu_frame.pack(fill=X, expand=False, anchor=N)
-    content_frame = Frame(app, borderwidth=1, highlightbackground="green", highlightcolor="green", highlightthickness=1)
+    content_frame = Frame(app)
     content_frame.pack(fill=BOTH, expand=True, anchor=N)
 
-    map_frame = Frame(content_frame, borderwidth=1, highlightbackground="green", highlightcolor="green", highlightthickness=1)
+    map_frame = Frame(content_frame)
     map_frame.pack(fill=BOTH, expand=True, side=LEFT, anchor=N)
 
 
@@ -61,15 +61,21 @@ def teknakort():
 
 
 
-    list_frame = Frame(content_frame, borderwidth=1, highlightbackground="green", highlightcolor="green", highlightthickness=1)
+    list_frame = Frame(content_frame)
     list_frame.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
     text_list = Text(list_frame)
     text_list.pack(fill=BOTH, expand=True)
 
-    CommandEntry = Entry(content_frame, width=80)
+    CommandEntry = Entry(content_frame, width=100)
     CommandEntry.pack(side=TOP, anchor=W)
 
-    log_frame = Frame(content_frame, height=300, borderwidth=1, highlightbackground="green", highlightcolor="green", highlightthickness=1)
+    lowframe = Frame(content_frame, height=300)
+    lowframe.pack(fill=X, expand=False, side=TOP, anchor=W)
+
+    controls_frame = Frame(lowframe)
+    controls_frame.pack(side=LEFT, anchor=W)
+
+    log_frame = Frame(lowframe)
     log_frame.pack(fill=X, expand=False, side=TOP, anchor=W)
     gerlog(log_frame, root)
 
@@ -79,21 +85,14 @@ def teknakort():
     ctrl = False
 
     def key(event):
-        if event.keysym == 'a' and ctrl:
-            print('Markera alt ')
-            text_list.tag_add(SEL, "1.0", END)
-            text_list.mark_set(INSERT, "1.0")
-            text_list.see(INSERT)
-        elif event.keysym == 'Return':
-            command = CommandEntry.get()
-            if ctrl:
+        if ctrl:
+            if event.keysym == 'a':
+                print('Markera alt ')
+                text_list.tag_add(SEL, "1.0", END)
+                text_list.mark_set(INSERT, "1.0")
+                text_list.see(INSERT)
+            elif event.keysym == 'Return':
                 les_og_tekna(text_list.get("1.0", END), fig, canvas)
-            elif command != '':
-                try:
-                    eval(command)
-                    CommandEntry.delete(0, 'end')
-                except Exception as e:
-                    log_w(e)
         elif shift:
             if event.keysym == 'Left':
                 pan(-0.1, 0, canvas, True)
@@ -103,6 +102,16 @@ def teknakort():
                 pan(0, 0.1, canvas, True)
             elif event.keysym == 'Down':
                 pan(0, -0.1, canvas, True)
+            elif event.keysym == 'Return':
+                innsetPan(text_list, fig, canvas)
+        elif event.keysym == 'Return':
+            command = CommandEntry.get()
+            if command != '':
+                try:
+                    eval(command)
+                    CommandEntry.delete(0, 'end')
+                except Exception as e:
+                    log_w(e)
 
 
     def control_key(state, event=None):
@@ -127,18 +136,52 @@ def teknakort():
     save_btn = Button(menu_frame, text='Goym uppsetan', command=lambda: goymuppsetan(text_list)).pack(side=LEFT)
     nytt_kort = Button(menu_frame, text='Nýtt Kort', command=lambda: nyttkort(text_list, root)).pack(side=LEFT)
     tekna_btn = Button(menu_frame, text='Tekna Kort', command=lambda: les_og_tekna(text_list.get("1.0", END), fig, canvas)).pack(side=LEFT)
-    zoomin_btn = Button(menu_frame, text='+', command=lambda: zoom(0.01, text_list)).pack(side=LEFT)
-    zoomout_btn = Button(menu_frame, text='-', command=lambda: zoom(-0.01, text_list)).pack(side=LEFT)
     teknaLinjur_btn = Button(menu_frame, text='Tekna Linjur', command=lambda: teknaLinjur(text_list, root)).pack(side=LEFT)
     teknaPrikkar_btn = Button(menu_frame, text='Tekna Prikkar', command=lambda: teknaPrikkar(text_list, root)).pack(side=LEFT)
     goymmynd_btn = Button(menu_frame, text='Goym Mynd', command=lambda: goymmynd(fig, canvas)).pack(side=LEFT)
-    pan_vinstra = Button(menu_frame, text='←', font='Helvetica', command=lambda: pan(-0.1, 0, canvas, True)).pack(side=LEFT)
-    pan_høgra = Button(menu_frame, text='→', font='Helvetica', command=lambda: pan(0.1, 0, canvas, True)).pack(side=LEFT)
-    pan_upp = Button(menu_frame, text='↑', font='Helvetica', command=lambda: pan(0, 0.1, canvas, True)).pack(side=LEFT)
-    pan_niður = Button(menu_frame, text='↓', font='Helvetica', command=lambda: pan(0, -0.1, canvas, True)).pack(side=LEFT)
+
+    pan_upp = Button(controls_frame, text='↑', font='Helvetica', command=lambda: pan(0, 0.1, canvas, True)).pack(side=TOP)
+    controlsLR_frame = Frame(controls_frame)
+    controlsLR_frame.pack(side=TOP, anchor=W)
+    pan_vinstra = Button(controlsLR_frame, text='←', font='Helvetica', command=lambda: pan(-0.1, 0, canvas, True)).pack(side=LEFT)
+    pan_høgra = Button(controlsLR_frame, text='→', font='Helvetica', command=lambda: pan(0.1, 0, canvas, True)).pack(side=LEFT)
+    pan_niður = Button(controls_frame, text='↓', font='Helvetica', command=lambda: pan(0, -0.1, canvas, True)).pack(side=TOP)
+    Label(controls_frame, text=' ').pack(side=TOP)
+    zoomin_btn = Button(controls_frame, text='+', command=lambda: zoom(0.01, text_list)).pack(side=TOP)
+    zoomout_btn = Button(controls_frame, text='-', command=lambda: zoom(-0.01, text_list)).pack(side=TOP)
 
 
-def pan(x, y, canvas, relative):
+def innsetPan(text_list, fig, canvas):
+    print('Innsetur nýggj pan virðir')
+    global ax
+    global m
+    xlim = ax.get_xlim()
+    ylim = ax.get_ylim()
+    lon, lat = m(xlim, ylim, inverse=True)
+    raw_text = str(text_list.get("1.0", END))
+    text = raw_text.split('\n')
+    for command in text:
+        if '=' in command:
+            toindex = command.find('=') + 1
+            variable = command[0:toindex - 1]
+            if variable == 'latmax':
+                latmax = float(command[toindex::])
+                raw_text = raw_text.replace(command, "latmax=" + str(lat[1]))
+            elif variable == 'latmin':
+                latmin = float(command[toindex::])
+                raw_text = raw_text.replace(command, "latmin=" + str(lat[0]))
+            elif variable == 'lonmin':
+                lonmin = float(command[toindex::])
+                raw_text = raw_text.replace(command, "lonmin=" + str(lon[0]))
+            elif variable == 'lonmax':
+                lonmax = float(command[toindex::])
+                raw_text = raw_text.replace(command, "lonmax=" + str(lon[1]))
+    text_list.delete(1.0, END)
+    text_list.insert(INSERT, raw_text)
+    les_og_tekna(text_list.get("1.0", END), fig, canvas)
+
+
+def pan(x, y, canvas, relative=False):
     global ax
     xlim = ax.get_xlim()
     ylim = ax.get_ylim()
@@ -225,8 +268,10 @@ def zoom(mongd, textbox):
     textbox.insert(INSERT, raw_text)
 
 def les_og_tekna(text, fig, canvas):
+    log_clear()
     log_b()
     global ax
+    global m
     text = text.split('\n')
     global dpi
     dpi = 400
@@ -256,6 +301,7 @@ def les_og_tekna(text, fig, canvas):
     fontsize = 15
     tekstx = 0
     teksty = 0
+    tekna_land = True
     for command in text:
         print(command)
         if "=" in command:
@@ -278,6 +324,12 @@ def les_og_tekna(text, fig, canvas):
                 filnavn = command[toindex::]
             elif variable == 'dpi':
                 dpi = float(command[toindex::])
+            elif variable == 'tekna_land':
+                if command[toindex::] == 'False':
+                    tekna_land = False
+                elif command[toindex::] == 'True':
+                    tekna_land = True
+
             elif variable == 'dybdarlinjur':
                 if command[toindex::] != 'False' or renderengine == '3D_botn':
                     dybdarlinjur = command[toindex::]
@@ -324,9 +376,9 @@ def les_og_tekna(text, fig, canvas):
                 #ax.scatter(meshgridx, meshgridy, s=1)
                 if btn_track:
                     if renderengine == '3D_botn':
-                        ax.scatter(btn_x, btn_y, -dypid, s=0.1, zorder=100)
+                        ax.scatter(btn_x, btn_y, -dypid, s=scatter_std, zorder=100)
                     else:
-                        ax.scatter(btn_x, btn_y, s=0.1, zorder=100, c=dypid)
+                        ax.scatter(btn_x, btn_y, s=scatter_std, zorder=100, c=dypid)
                 #grid_x, grid_y = np.mgrid[np.linspace(latmin, latmax, num=7312), np.linspace(lonmin, lonmax, num=7312)]
                 #grid_x, grid_y = np.meshgrid(np.linspace(latmin, latmax, num=7312), np.linspace(lonmin, lonmax, num=7312))
                 #grid_z0 = griddata((btn_x, btn_y), dypid.values, (meshgridx, meshgridy), method='linear')
@@ -499,7 +551,7 @@ def les_og_tekna(text, fig, canvas):
                                  labelpos='W')
                 else:
                     ax.quiverkey(q, 0.8, 0.95, float(command[toindex::]*qskala), label=command[toindex::] + ' m/s', labelpos='W')
-            elif variable == 'lin_farv':
+            elif variable == 'lin_farv' or variable == 'linfarv':
                 lin_farv = command[toindex::]
             elif variable == 'lin_legend':
                 lin_legend = command[toindex::]
@@ -550,7 +602,7 @@ def les_og_tekna(text, fig, canvas):
                 print(str(tekstx) + ',' + str(teksty))
             else:
                 if '#' not in variable and command != '':
-                    log_w('Ókend kommando ' + variable)
+                    log_w('Ókend stýriboð ' + variable)
         else:
 
             if command == 'clf':
@@ -569,11 +621,12 @@ def les_og_tekna(text, fig, canvas):
                     m = Basemap(projection='merc', resolution=None,
                                 llcrnrlat=latmin, urcrnrlat=latmax,
                                 llcrnrlon=lonmin, urcrnrlon=lonmax, ax=ax, suppress_ticks=suppress_ticks)
-                    for island in os.listdir('Kort_Data/Coasts'):
-                        lo, aa, la = np.genfromtxt('Kort_Data/Coasts/' + island, delimiter=' ').T
-                        xpt, ypt = m(lo, la)
-                        plt.plot(xpt, ypt, 'k', linewidth=1)
-                        ax.fill(xpt, ypt, landlitur, zorder=10)
+                    if tekna_land:
+                        for island in os.listdir('Kort_Data/Coasts'):
+                            lo, aa, la = np.genfromtxt('Kort_Data/Coasts/' + island, delimiter=' ').T
+                            xpt, ypt = m(lo, la)
+                            plt.plot(xpt, ypt, 'k', linewidth=1)
+                            ax.fill(xpt, ypt, landlitur, zorder=10)
 
             elif command == 'btn_contourf':
                 grid_z0 = griddata((btn_x, btn_y), dypid.values, (meshgridx, meshgridy), method=btn_interpolation)
@@ -627,7 +680,7 @@ def les_og_tekna(text, fig, canvas):
                 ncol = int(command[toindex::])
             else:
                 if '#' not in command and command != '':
-                    log_w('Ókend kommando ' + command)
+                    log_w('Ókend stýriboð ' + command)
             canvas.draw()
             canvas.get_tk_widget().pack(fill=BOTH, expand=1)
     if show_legend:
@@ -648,13 +701,39 @@ def les_og_tekna(text, fig, canvas):
     canvas.draw()
     canvas.get_tk_widget().pack(fill=BOTH, expand=1)
     log_e()
-    def onclick(event):
-        nonlocal m
-        lat, lon = m(event.xdata, event.ydata, inverse=True)
-        print('%s click: lon=%f, lat=%f' %
-              ('double' if event.dblclick else 'single', lat, lon))
+    global ispressed
+    ispressed = False
 
+
+    def onclick(event):
+        global m, ispressed, zoom_x_fra, zoom_y_fra
+        global a
+        global b
+        a, b = event.xdata, event.ydata
+        ispressed = True
+        zoom_x_fra, zoom_y_fra = event.xdata, event.ydata
+        lon, lat = m(event.xdata, event.ydata, inverse=True)
+        print('%s click: lon=%f, lat=%f, x=%f, y=%f' %
+              ('double' if event.dblclick else 'single', lon, lat, event.xdata, event.ydata))
+
+
+    def onmove(event):
+        global ispressed, zoom_x_fra, zoom_y_fra
+        if ispressed:
+            lat, lon = m(event.xdata, event.ydata, inverse=True)
+            #print(lat)
+            pan(zoom_x_fra-event.xdata, zoom_y_fra-event.ydata, canvas)
+
+
+    def release(event):
+        global ispressed
+        ispressed = False
+
+
+    bid = fig.canvas.mpl_connect('motion_notify_event', onmove)
     cid = fig.canvas.mpl_connect('button_press_event', onclick)
+
+    fig.canvas.mpl_connect('button_release_event', release)
 
 
 def nyttkort(text, root):

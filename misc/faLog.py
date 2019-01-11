@@ -36,6 +36,8 @@ def log_w(text):
 
 def log_clear():
     global root
+    global nw
+    nw = 2.0
     log.config(state=NORMAL)
     log.delete(0.0, END)
     log.config(state=DISABLED)

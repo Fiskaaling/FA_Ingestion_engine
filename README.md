@@ -25,3 +25,5 @@ Til innlesing og processering av data frá ymskum instrumentum
 <LI> Ger Contour plot
 </UL>
 </OL>
+
+[![CodeFactor](https://www.codefactor.io/repository/github/fiskaaling/fa_ingestion_engine/badge/development)](https://www.codefactor.io/repository/github/fiskaaling/fa_ingestion_engine/overview/development)
