@@ -267,7 +267,7 @@ def zoom(mongd, textbox):
     textbox.delete(1.0, END)
     textbox.insert(INSERT, raw_text)
 
-def les_og_tekna(text, fig, canvas):
+def les_og_tekna(text, fig, canvas, windowed=False):
     log_clear()
     log_b()
     global ax
@@ -276,6 +276,10 @@ def les_og_tekna(text, fig, canvas):
     global dpi
     dpi = 400
     dybdarlinjur = False
+    latmax = 62.4
+    lonmax = -6.2
+    latmin = 61.35
+    lonmin = -7.7
     filnavn = 'test'
     landlitur = 'lightgray'
     btn_interpolation = 'nearest'
@@ -682,7 +686,8 @@ def les_og_tekna(text, fig, canvas):
                 if '#' not in command and command != '':
                     log_w('Ókend stýriboð ' + command)
             canvas.draw()
-            canvas.get_tk_widget().pack(fill=BOTH, expand=1)
+            if not windowed:
+                canvas.get_tk_widget().pack(fill=BOTH, expand=1)
     if show_legend:
         print('Showing Legend')
         leg = ax.legend(loc='best', ncol=ncol)
@@ -699,7 +704,10 @@ def les_og_tekna(text, fig, canvas):
         print('hello')
 
     canvas.draw()
-    canvas.get_tk_widget().pack(fill=BOTH, expand=1)
+    if not windowed:
+        canvas.get_tk_widget().pack(fill=BOTH, expand=1)
+    else:
+        canvas.get_tk_widget().pack()
     log_e()
     global ispressed
     ispressed = False
