@@ -10,6 +10,7 @@ import Ingestion.RDI.fra_botni
 import Ingestion.Botnkort.tilCsv
 import vatnstoduanalysa.vatnstoduanalysa
 import Ingestion.seaguard.seaguard as seaguard
+import FA_DB_Interface.init
 
 class Window(Frame):
     def __init__(self, master=None):
@@ -52,7 +53,7 @@ def OnDoubleClick(event, tree):
         Ingestion.oxygenkeda.check_click(item, RightFrame, root)
         Ingestion.RDI.fra_botni.check_click(item, RightFrame, root)
         Ingestion.Botnkort.tilCsv.check_click(item, RightFrame, root)
-global root
+        FA_DB_Interface.init.check_click(item, RightFrame, root)
 # Teknar main gui
 root = Tk()
 root.geometry("1200x800")
@@ -86,6 +87,7 @@ Ingestion.streymmatari.init(ingestion_listbox)
 Ingestion.RDI.fra_botni.init(ingestion_listbox)
 Ingestion.oxygenkeda.init(ingestion_listbox)
 Ingestion.Botnkort.tilCsv.init(ingestion_listbox)
+FA_DB_Interface.init.init(ingestion_listbox)
 
 ctd = ingestion_listbox.insert("", 0, text='CTD')
 alduboya = ingestion_listbox.insert("", 0, text='Alduboya')
