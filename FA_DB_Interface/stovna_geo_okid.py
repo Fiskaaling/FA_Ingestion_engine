@@ -29,7 +29,7 @@ def stovna_geo_okid(frame, root2, db_host, db_user, db_password):
     cursor.execute("SELECT * FROM WL_Geografisk_okir")
     result = cursor.fetchall()
 
-
+    db_connection.disconnect()
 
     print(cursor.column_names)
     print(result)
