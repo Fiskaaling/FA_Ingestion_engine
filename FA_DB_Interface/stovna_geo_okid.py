@@ -34,7 +34,7 @@ def stovna_geo_okid(frame, root2, db_host, db_user, db_password):
                                                                            lonminEntry.get(), lonmaxEntry.get()))
     teknaButton.pack(side=LEFT, anchor=N)
 
-    stovnaButton = Button(buttonsFrame, text='Stovna Økið')
+    stovnaButton = Button(buttonsFrame, text='Stovna Økið', command=lambda: innset(navnEntry.get(), styttingEntry.get(), latminEntry.get(), latmaxEntry.get(), lonminEntry.get(), lonmaxEntry.get(), db_user, db_password, db_host))
     stovnaButton.pack(side=RIGHT, anchor=N)
 
     strikaButton = Button(buttonsFrame, text='Strika Økið')
@@ -80,8 +80,9 @@ def stovna_geo_okid(frame, root2, db_host, db_user, db_password):
 
     kortFrame = Frame(lframe)
     kortFrame.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
-
+    global punktir
     punktir = ttk.Treeview(rframe)
+    punktir.bind("<Double-1>", lambda event, arg=punktir: OnDoubleClick(event, arg, navnEntry, latminEntry, latmaxEntry, lonminEntry, lonmaxEntry))
     scrollbar = Scrollbar(rframe, orient=VERTICAL)
     scrollbar.config(command=punktir.yview)
     scrollbar.pack(side=RIGHT, fill=Y)
@@ -94,20 +95,20 @@ def stovna_geo_okid(frame, root2, db_host, db_user, db_password):
     db_connection = db.connect(user=db_user, password=db_password, database='fa_db', host=db_host)
     cursor = db_connection.cursor()
 
-    cursor.execute("SELECT * FROM WL_Geografisk_okir")
-    result = cursor.fetchall()
-    kolonnir = cursor.column_names
-    punktir["columns"] = kolonnir
-    for i in range(len(kolonnir)):
-        punktir.heading(kolonnir[i], text=kolonnir[i])
-        punktir.column("#" + str(i), width=100)
-    punktir.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
-
-
-
     log_frame = Frame(frame, height=300)
     log_frame.pack(fill=X, expand=False, side=BOTTOM, anchor=W)
     gerlog(log_frame, root)
+
+    cursor.execute("SELECT * FROM WL_Geografisk_okir")
+    result = cursor.fetchall()
+    kolonnir = cursor.column_names
+    punktir["columns"] = kolonnir[1::]
+    punktir.column("#0", width=100)
+    for i in range(1, len(kolonnir)):
+        punktir.heading(kolonnir[i], text=kolonnir[i])
+        punktir.column("#" + str(i), width=100)
+
+    dagfor_tree(result)
 
     tekstur = """
 clf
@@ -123,6 +124,18 @@ breiddarlinjur=6
     print(cursor.column_names)
     print(result)
 
+def innset(Navn, Stytting, Latmin, Latmax, Lonmin, Lonmax, db_user, db_password, db_host):
+    db_connection = db.connect(user=db_user, password=db_password, database='fa_db', host=db_host)
+    cursor = db_connection.cursor()
+    cursor.execute("INSERT INTO WL_Geografisk_okir (Navn, Stytting, Latmin, Latmax, Lonmin, Lonmax) VALUES (%s, %s, %s, %s, %s, %s)", (Navn, Stytting, Latmin, Latmax, Lonmin, Lonmax))
+    db_connection.commit()
+    cursor.execute("SELECT * FROM WL_Geografisk_okir")
+    result = cursor.fetchall()
+    dagfor_tree(result)
+    db_connection.close()
+    print('Liðugt')
+
+
 def tekna(fig, canvas, Latmin, Latmax, Lonmin, Lonmax):
     tekstur = """
 clf\n
@@ -136,3 +149,20 @@ longdarlinjur=5
 breiddarlinjur=6
 """
     Processing.tekna_kort.les_og_tekna(tekstur, fig, canvas, True)
+
+def dagfor_tree(result):
+    global punktir
+    punktir.delete(*punktir.get_children())
+    for i in range(len(result)):
+        rekkja = result[i]
+        punktir.insert("", 0, text=rekkja[0], values=rekkja[1::])
+    punktir.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
+
+
+def OnDoubleClick(event, tree, navnEntry, latminEntry, latmaxEntry, lonminEntry, lonmaxEntry):
+    item = tree.identify('item', event.x, event.y)
+    item = tree.item(item, "text")
+    navnEntry.delete(0, END)
+    navnEntry.insert(0, item)
+
+    global punktir
