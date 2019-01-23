@@ -83,7 +83,7 @@ def stovna_geo_okid(frame, root2, db_host, db_user, db_password):
     kortFrame.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
     global punktir
     punktir = ttk.Treeview(rframe)
-    punktir.bind("<Double-1>", lambda event, arg=punktir: OnDoubleClick(event, arg, navnEntry, styttingEntry, latminEntry, latmaxEntry, lonminEntry, lonmaxEntry, db_host, db_user, db_password))
+    punktir.bind("<Double-1>", lambda event, arg=punktir: OnDoubleClick(event, arg, navnEntry, styttingEntry, latminEntry, latmaxEntry, lonminEntry, lonmaxEntry, db_host, db_user, db_password, fig, canvas))
     scrollbar = Scrollbar(rframe, orient=VERTICAL)
     scrollbar.config(command=punktir.yview)
     scrollbar.pack(side=RIGHT, fill=Y)
@@ -128,7 +128,7 @@ breiddarlinjur=6
     print(result)
 
 def strika(Navn, db_user, db_password, db_host):
-    sletta = tkinter.messagebox.askquestion("Strika", "Ert tú sikkur?", icon='warning')
+    sletta = tkinter.messagebox.askquestion("Strika " + Navn, "Ert tú sikkur?", icon='warning')
     if sletta == 'yes':
         db_connection = db.connect(user=db_user, password=db_password, database='fa_db', host=db_host)
         cursor = db_connection.cursor()
@@ -182,7 +182,7 @@ def dagfor_tree(result):
     punktir.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
 
 
-def OnDoubleClick(event, tree, navnEntry, styttingEntry, latminEntry, latmaxEntry, lonminEntry, lonmaxEntry, db_host, db_user, db_password):
+def OnDoubleClick(event, tree, navnEntry, styttingEntry, latminEntry, latmaxEntry, lonminEntry, lonmaxEntry, db_host, db_user, db_password, fig, canvas):
     item = tree.identify('item', event.x, event.y)
     item = tree.item(item, "text")
     navnEntry.delete(0, END)
@@ -203,4 +203,4 @@ def OnDoubleClick(event, tree, navnEntry, styttingEntry, latminEntry, latmaxEntr
     lonminEntry.insert(0, result[4])
     lonmaxEntry.delete(0, END)
     lonmaxEntry.insert(0, result[5])
-    global punktir
+    tekna(fig, canvas, result[2], result[3], result[4], result[5])
