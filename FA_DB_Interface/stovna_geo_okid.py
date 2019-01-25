@@ -1,11 +1,11 @@
-from tkinter import filedialog
-from misc.faLog import *
 import tkinter.messagebox
-import mysql.connector as db
 import tkinter.ttk as ttk
-import Processing.tekna_kort
-from matplotlib.figure import Figure
+
+import mysql.connector as db
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.figure import Figure
+
+import Processing.tekna_kort
 from misc.faLog import *
 
 
@@ -140,23 +140,26 @@ def strika(Navn, db_user, db_password, db_host):
         db_connection.close()
 
 def innset(Navn, Stytting, Latmin, Latmax, Lonmin, Lonmax, db_user, db_password, db_host):
-    db_connection = db.connect(user=db_user, password=db_password, database='fa_db', host=db_host)
-    cursor = db_connection.cursor()
-    db_connection.commit()
+    if Navn == '' or Stytting == '':
+        tkinter.messagebox.showerror('Feilur', 'Navn ella stytting manglar')
+    else:
+        db_connection = db.connect(user=db_user, password=db_password, database='fa_db', host=db_host)
+        cursor = db_connection.cursor()
+        db_connection.commit()
 
-    cursor.execute("SELECT * FROM WL_Geografisk_okir WHERE Navn=\'" + Navn + "\'")
-    result = cursor.fetchall()
-    if result:
-        cursor.execute("DELETE FROM WL_Geografisk_okir WHERE Navn = \'" + Navn + "\'",)
-    cursor.execute(
-        "INSERT INTO WL_Geografisk_okir (Navn, Stytting, Latmin, Latmax, Lonmin, Lonmax) VALUES (%s, %s, %s, %s, %s, %s)",
-        (Navn, Stytting, Latmin, Latmax, Lonmin, Lonmax))
-    db_connection.commit()
-    cursor.execute("SELECT * FROM WL_Geografisk_okir")
-    result = cursor.fetchall()
-    dagfor_tree(result)
-    db_connection.close()
-    print('Liðugt')
+        cursor.execute("SELECT * FROM WL_Geografisk_okir WHERE Navn=\'" + Navn + "\'")
+        result = cursor.fetchall()
+        if result:
+            cursor.execute("DELETE FROM WL_Geografisk_okir WHERE Navn = \'" + Navn + "\'",)
+        cursor.execute(
+            "INSERT INTO WL_Geografisk_okir (Navn, Stytting, Latmin, Latmax, Lonmin, Lonmax) VALUES (%s, %s, %s, %s, %s, %s)",
+            (Navn, Stytting, Latmin, Latmax, Lonmin, Lonmax))
+        db_connection.commit()
+        cursor.execute("SELECT * FROM WL_Geografisk_okir")
+        result = cursor.fetchall()
+        dagfor_tree(result)
+        db_connection.close()
+        print('Liðugt')
 
 
 def tekna(fig, canvas, Latmin, Latmax, Lonmin, Lonmax):
