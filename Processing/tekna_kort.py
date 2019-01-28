@@ -267,7 +267,7 @@ def zoom(mongd, textbox):
     textbox.delete(1.0, END)
     textbox.insert(INSERT, raw_text)
 
-def les_og_tekna(text, fig, canvas, windowed=False):
+def les_og_tekna(text, fig, canvas, silent=False):
     log_clear()
     log_b()
     global ax
@@ -307,7 +307,8 @@ def les_og_tekna(text, fig, canvas, windowed=False):
     teksty = 0
     tekna_land = True
     for command in text:
-        print(command)
+        if not silent:
+            print(command)
         if "=" in command:
             toindex = command.find('=')+1
             variable = command[0:toindex-1]
@@ -686,8 +687,7 @@ def les_og_tekna(text, fig, canvas, windowed=False):
                 if '#' not in command and command != '':
                     log_w('Ókend stýriboð ' + command)
             canvas.draw()
-            if not windowed:
-                canvas.get_tk_widget().pack(fill=BOTH, expand=1)
+            canvas.get_tk_widget().pack(fill=BOTH, expand=1)
     if show_legend:
         print('Showing Legend')
         leg = ax.legend(loc='best', ncol=ncol)
@@ -704,10 +704,7 @@ def les_og_tekna(text, fig, canvas, windowed=False):
         print('hello')
 
     canvas.draw()
-    if not windowed:
-        canvas.get_tk_widget().pack(fill=BOTH, expand=1)
-    else:
-        canvas.get_tk_widget().pack()
+    canvas.get_tk_widget().pack(fill=BOTH, expand=1)
     log_e()
     global ispressed
     ispressed = False

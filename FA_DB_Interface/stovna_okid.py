@@ -9,12 +9,12 @@ import Processing.tekna_kort
 from misc.faLog import *
 
 
-def stovna_geo_okid(frame, root2, db_host, db_user, db_password):
+def stovna_okid(frame, root2, db_host, db_user, db_password):
     global root
     root = root2
     for widget in frame.winfo_children():
         widget.destroy()
-    Label(frame, text='Stovna nýtt Geografiskt økið', font='Helvetica 18 bold').pack(side=TOP)
+    Label(frame, text='Stovna nýtt økið', font='Helvetica 18 bold').pack(side=TOP)
 
     mainFrame = Frame(frame)
     mainFrame.pack(side=TOP, fill=BOTH, expand=TRUE, anchor=N)
@@ -41,40 +41,48 @@ def stovna_geo_okid(frame, root2, db_host, db_user, db_password):
     strikaButton = Button(buttonsFrame, text='Strika Økið', command=lambda: strika(navnEntry.get(), db_user, db_password, db_host))
     strikaButton.pack(side=RIGHT, anchor=N)
 
-    navnFrame = Frame(controlsFrame)
-    navnFrame.pack(side=TOP, anchor=W)
-    Label(navnFrame, text='Navn:').pack(side=LEFT)
-    navnEntry = Entry(navnFrame, width=50)
-    navnEntry.pack(side=LEFT)
 
-    styttingFrame = Frame(controlsFrame)
-    styttingFrame.pack(side=TOP, anchor=W)
-    Label(styttingFrame, text='Stytting:').pack(side=LEFT)
-    styttingEntry = Entry(styttingFrame, width=10)
-    styttingEntry.pack(side=LEFT)
+    # Hettar ger eina dropdown lista av møguligum Geografiskum økum --- TODO Møguliga broyt hettar til eina Combo box
+    geookidFrame = Frame(controlsFrame)
+    geookidFrame.pack(side=TOP, anchor=W)
+    Label(geookidFrame, text='Økið:').pack(side=LEFT)
+    db_connection = db.connect(user=db_user, password=db_password, database='fa_db', host=db_host)
+    cursor = db_connection.cursor()
+    cursor.execute("SELECT * FROM WL_Geografisk_okir")
+    result = cursor.fetchall()
+    GeoOkir = []
+    for row in result:
+        GeoOkir.append(row[0])
+    Okidvariable = StringVar(geookidFrame)
+    w = OptionMenu(geookidFrame, Okidvariable, *GeoOkir)
+    Okidvariable.set("Føroyar")  # default value
+    w.pack(side=LEFT)
+    Okidvariable.trace('w', lambda: change_dropdown())
 
-    latFrame = Frame(controlsFrame)
-    latFrame.pack(side=TOP, anchor=W)
-    Label(latFrame, text='Latmin:').pack(side=LEFT)
-    latminEntry = Entry(latFrame,width=10)
-    latminEntry.pack(side=LEFT)
-    latminEntry.insert(0, "61.35")
-    Label(latFrame, text='Latmax:').pack(side=LEFT)
-    latmaxEntry = Entry(latFrame,width=10)
-    latmaxEntry.pack(side=LEFT)
-    latmaxEntry.insert(0, "62.4")
+    Label(controlsFrame, text=" ").pack(side=TOP)
 
-    lonFrame = Frame(controlsFrame)
-    lonFrame.pack(side=TOP, anchor=W)
-    Label(lonFrame, text='Lonmin:').pack(side=LEFT)
-    lonminEntry = Entry(lonFrame,width=10)
-    lonminEntry.pack(side=LEFT)
-    lonminEntry.insert(0, "-7.7")
 
-    Label(lonFrame, text='Lonmax:').pack(side=LEFT)
-    lonmaxEntry = Entry(lonFrame,width=10)
-    lonmaxEntry.pack(side=LEFT)
-    lonmaxEntry.insert(0, "-6.2")
+    koordinatframe = Frame(controlsFrame)
+    koordinatframe.pack(side=TOP, anchor=W)
+    Label(koordinatframe, text='Lat:').pack(side=LEFT)
+    latEntry = Entry(koordinatframe, width=10)
+    latEntry.pack(side=LEFT)
+    latEntry.insert(0, "62")
+    Label(koordinatframe, text='Lon:').pack(side=LEFT)
+    lonEntry = Entry(koordinatframe, width=10)
+    lonEntry.pack(side=LEFT)
+    lonEntry.insert(0, "-7")
+
+    settings_frame = Frame(controlsFrame)
+    settings_frame.pack(side=TOP, anchor=W)
+    Label(settings_frame, text='Waypoint:').pack(side=LEFT)
+    waypointEntry = Entry(settings_frame,width=5)
+    waypointEntry.pack(side=LEFT)
+
+    Label(settings_frame, text='Dýpið:').pack(side=LEFT)
+    dypidEntry = Entry(settings_frame, width=7)
+    dypidEntry.pack(side=LEFT)
+    dypidEntry.insert(0, " ")
 
 
 
@@ -121,11 +129,14 @@ longdarlinjur=5
 breiddarlinjur=6
 """
 
-    Processing.tekna_kort.les_og_tekna(tekstur, fig, canvas, False)
+    Processing.tekna_kort.les_og_tekna(tekstur, fig, canvas, True)
 
     db_connection.disconnect()
     print(cursor.column_names)
     print(result)
+
+def change_dropdown():
+    print('test')
 
 def strika(Navn, db_user, db_password, db_host):
     sletta = tkinter.messagebox.askquestion("Strika " + Navn, "Ert tú sikkur?", icon='warning')
@@ -145,8 +156,6 @@ def innset(Navn, Stytting, Latmin, Latmax, Lonmin, Lonmax, db_user, db_password,
     else:
         db_connection = db.connect(user=db_user, password=db_password, database='fa_db', host=db_host)
         cursor = db_connection.cursor()
-        db_connection.commit()
-
         cursor.execute("SELECT * FROM WL_Geografisk_okir WHERE Navn=\'" + Navn + "\'")
         result = cursor.fetchall()
         if result:
