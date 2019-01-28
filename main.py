@@ -54,6 +54,7 @@ def OnDoubleClick(event, tree):
         Ingestion.RDI.fra_botni.check_click(item, RightFrame, root)
         Ingestion.Botnkort.tilCsv.check_click(item, RightFrame, root)
         FA_DB_Interface.init.check_click(item, RightFrame, root)
+
 # Teknar main gui
 root = Tk()
 root.geometry("1200x800")
