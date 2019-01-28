@@ -8,6 +8,7 @@ import Strfbotni.strbotni
 import Ingestion.oxygenkeda
 import Ingestion.RDI.fra_botni
 import Ingestion.Botnkort.tilCsv
+import Ingestion.CTD.init
 import vatnstoduanalysa.vatnstoduanalysa
 import Ingestion.seaguard.seaguard as seaguard
 import FA_DB_Interface.init
@@ -53,7 +54,9 @@ def OnDoubleClick(event, tree):
         Ingestion.oxygenkeda.check_click(item, RightFrame, root)
         Ingestion.RDI.fra_botni.check_click(item, RightFrame, root)
         Ingestion.Botnkort.tilCsv.check_click(item, RightFrame, root)
+        Ingestion.CTD.init.check_click(item, RightFrame, root)
         FA_DB_Interface.init.check_click(item, RightFrame, root)
+
 
 # Teknar main gui
 root = Tk()
@@ -88,12 +91,11 @@ Ingestion.streymmatari.init(ingestion_listbox)
 Ingestion.RDI.fra_botni.init(ingestion_listbox)
 Ingestion.oxygenkeda.init(ingestion_listbox)
 Ingestion.Botnkort.tilCsv.init(ingestion_listbox)
+Ingestion.CTD.init.init(ingestion_listbox)
 FA_DB_Interface.init.init(ingestion_listbox)
 
-ctd = ingestion_listbox.insert("", 0, text='CTD')
 alduboya = ingestion_listbox.insert("", 0, text='Alduboya')
 
-ingestion_listbox.insert(ctd, "end", text='Les data frá CTD')
 ingestion_listbox.bind("<Double-1>", lambda event, arg=ingestion_listbox: OnDoubleClick(event, arg))
 
 ingestion_listbox.insert(LV, "end", text='Veðurstøðir')
