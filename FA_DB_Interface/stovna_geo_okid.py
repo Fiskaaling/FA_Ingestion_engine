@@ -117,6 +117,7 @@ def stovna_geo_okid(frame, root2, db_host, db_user, db_password):
 
     tekstur = """
 clf
+landlitur=green
 Tekna kort
 linjuSlag=eingin
 longdarlinjur=5
@@ -171,6 +172,7 @@ latmax=""" + Latmax + """
 latmin=""" + Latmin + """
 lonmin=""" + Lonmin + """
 lonmax=""" + Lonmax + """
+landlitur=green
 Tekna kort
 linjuSlag=eingin
 longdarlinjur=5
