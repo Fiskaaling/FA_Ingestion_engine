@@ -52,8 +52,8 @@ def inset_matingar(frame, db_host='192.168.43.94', db_user='trondur', db_passwor
     filetree_frame = Frame(setup_frame)
 
     menuFrame.pack(side=TOP, fill=X, expand=False, anchor=N)
-    mode_frame.pack(side=TOP, fill=X, anchor=N)
     treeView_frame.pack(fill=Y, expand=False, side=LEFT, anchor=N)
+    mode_frame.pack(side=TOP, fill=X, anchor=N)
     setup_frame.pack(side=LEFT, fill=BOTH, expand=True, anchor=N)
     Date_frame.grid(row=0, column=1, sticky=W + N + S)
     uppsetan_frame.grid(row=1, column=1, sticky=W + N + S)
