@@ -34,7 +34,7 @@ def load(frame, root2):
 
     Label(menuFrame, text='lat:').pack(side=LEFT)
 
-    latEntry = Entry(menuFrame, width =3)
+    latEntry = Entry(menuFrame, width=3)
     latEntry.pack(side=LEFT)
     latEntry.delete(0, END)
     latEntry.insert(0, 62)

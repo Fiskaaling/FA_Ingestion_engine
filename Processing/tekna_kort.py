@@ -267,7 +267,7 @@ def zoom(mongd, textbox):
     textbox.delete(1.0, END)
     textbox.insert(INSERT, raw_text)
 
-def les_og_tekna(text, fig, canvas):
+def les_og_tekna(text, fig, canvas, silent=False):
     log_clear()
     log_b()
     global ax
@@ -276,6 +276,10 @@ def les_og_tekna(text, fig, canvas):
     global dpi
     dpi = 400
     dybdarlinjur = False
+    latmax = 62.4
+    lonmax = -6.2
+    latmin = 61.35
+    lonmin = -7.7
     filnavn = 'test'
     landlitur = 'lightgray'
     btn_interpolation = 'nearest'
@@ -303,7 +307,8 @@ def les_og_tekna(text, fig, canvas):
     teksty = 0
     tekna_land = True
     for command in text:
-        print(command)
+        if not silent:
+            print(command)
         if "=" in command:
             toindex = command.find('=')+1
             variable = command[0:toindex-1]

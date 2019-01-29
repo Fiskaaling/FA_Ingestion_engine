@@ -4,7 +4,7 @@
     <inspection_tool class="PyPackageRequirementsInspection" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="ignoredPackages">
         <value>
-          <list size="88">
+          <list size="89">
             <item index="0" class="java.lang.String" itemvalue="pytest-astropy" />
             <item index="1" class="java.lang.String" itemvalue="numba" />
             <item index="2" class="java.lang.String" itemvalue="greenlet" />
@@ -93,6 +93,7 @@
             <item index="85" class="java.lang.String" itemvalue="openpyxl" />
             <item index="86" class="java.lang.String" itemvalue="Pillow" />
             <item index="87" class="java.lang.String" itemvalue="certifi" />
+            <item index="88" class="java.lang.String" itemvalue="conda" />
           </list>
         </value>
       </option>
