@@ -1,3 +1,5 @@
+from tkinter import filedialog
+from misc.faLog import *
 import tkinter.messagebox
 import tkinter.ttk as ttk
 
