@@ -65,13 +65,14 @@ def OnDoubleClick(event, tree):
 root = Tk()
 root.geometry("1200x800")
 
-if subprocess.check_output('whoami') == b'johannus\n': # 4K bullshit, Alt er forbanna lítið. Umskylda
+if subprocess.check_output('whoami') == b'johannus\n': # 4K bullshit, Alt er forbanna lítið
     root.geometry("3000x1600")
-    print(root.tk.call('tk', 'scaling', 4))
-    f = font.Font(size=12)
+    print(root.tk.call('tk', 'scaling', 3))
+    f = font.Font(size=10)
     root.option_add("*Font", f)
     style = ttk.Style(root)
     style.configure('Treeview', rowheight=45)
+    style.configure('Treeview.Heading', font=f)
     style.configure(".", font=f, foreground="white")
 
 
