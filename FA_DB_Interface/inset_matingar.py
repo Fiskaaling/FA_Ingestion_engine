@@ -17,24 +17,15 @@ def inset_matingar(frame, db_host='192.168.43.94', db_user='trondur', db_passwor
                   'Instroment': '',
                   'filenames': [],
                   'mappir': []}
-    '''
-    #innsamla data
-    for _ in [0]:
-        # hettar verður ikki brúkt hettar er bara fyri at testa
-        Instromentir = [('toskur', 'Upptikin', 'fiskur'), ('laksur', 'Upptikin', 'fiskur'),
-                        ('hýsa', 'ikki tøkur', 'fiskur'),
-                        ('lundi', 'Upptikin', 'fuglur')]
-
-        #(mogulig_uppseting_id (int11), Instrument_Navn (varchar100), Uppseting_navn (varchar100))
-        Møguligar_uppsetingar = [('1', 'toskur', 'dýbd'), ('2', 'toskur', 'farva'), ('3', 'lundi', 'hædd')]
-    '''
 
     #insamla Instromentir
     for _ in [0]:
         db_connection, cursor = fadblogin(setup_dict['login'])
         #TODO where stadment skal sikkurt breitast
-        cursor.execute("SELECT * FROM Instumentir WHERE status='Tøkur' OR status='Upptikin';")
+        cursor.execute("SELECT * FROM Instumentir WHERE status='Upptikin';")
         Instromentir = cursor.fetchall()
+        cursor.execute("SELECT Status FROM WL_Status")
+        choices_status = ['alt'] + [x[0] for x in cursor.fetchall()]
         db_connection.disconnect()
         Sløg = []
         for x in Instromentir:
@@ -44,14 +35,23 @@ def inset_matingar(frame, db_host='192.168.43.94', db_user='trondur', db_passwor
 
     Label(frame, text='Inset mátingar', font='Helvetica 18 bold').pack(side=TOP)
 
+    tk_status = StringVar(frame)
+    if 'Upptikin' in choices_status:
+        tk_status.set('Upptikin')
+    else:
+        tk_status.set(choices_status[0])
+    pprint.pprint(choices_status)
+
     menuFrame = Frame(frame)
     treeView_frame = Frame(frame)
+    mode_frame = Frame(treeView_frame)
     setup_frame = Frame(frame, bg='green')
     Date_frame = Frame(setup_frame)
     uppsetan_frame = Frame(setup_frame)
     filetree_frame = Frame(setup_frame)
 
     menuFrame.pack(side=TOP, fill=X, expand=False, anchor=N)
+    mode_frame.pack(side=TOP, fill=X, anchor=N)
     treeView_frame.pack(fill=Y, expand=False, side=LEFT, anchor=N)
     setup_frame.pack(side=LEFT, fill=BOTH, expand=True, anchor=N)
     Date_frame.grid(row=0, column=1, sticky=W + N + S)
@@ -59,6 +59,10 @@ def inset_matingar(frame, db_host='192.168.43.94', db_user='trondur', db_passwor
     filetree_frame.grid(row=0, column=0, rowspan=3, sticky=W)
 
     instromentir_list = ttk.Treeview(treeView_frame)
+
+    status_pop = OptionMenu(mode_frame, tk_status, *choices_status,
+                            command=lambda status: update_treeView(status, instromentir_list, setup_dict))
+    status_pop.pack()
 
     setup_dict['filetree'] = ttk.Treeview(filetree_frame)
     setup_dict['filetree'].column('#0', width=200)
@@ -68,8 +72,8 @@ def inset_matingar(frame, db_host='192.168.43.94', db_user='trondur', db_passwor
     Button(menuFrame, text='Vel fil', command=lambda: velfilir(setup_dict)).pack(side=LEFT)
     Button(menuFrame, text='Vel Mappu', command=lambda: velmappu(setup_dict)).pack(side=LEFT)
     Button(menuFrame, text='koyr inn í DB', command=lambda: koyrmatingi_db(setup_dict, dato)).pack(side=LEFT)
-    instromentir_list.bind("<Double-1>", lambda event, arg=instromentir_list: Doubletree(event, arg, setup_dict, uppsetan_frame))
-
+    instromentir_list.bind("<Double-1>", lambda event, arg=instromentir_list: Doubletree(event, arg,
+                                                                                         setup_dict, uppsetan_frame))
     #fill inn í instromentr_list
     for _ in [1]:
         scrollbar = Scrollbar(treeView_frame, orient=VERTICAL)
@@ -78,11 +82,7 @@ def inset_matingar(frame, db_host='192.168.43.94', db_user='trondur', db_passwor
         instromentir_list.column('#0', width=100)
         instromentir_list.heading("#0", text="Instromentir")
         instromentir_list.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
-        for i in Sløg:
-            instromentir_list.insert('', 'end', i, text=i)
-        for i in Instromentir:
-            instromentir_list.insert(i[2], 'end', text=i[0])
-
+        insert_instromentir_list(instromentir_list, Sløg, Instromentir)
 
     #populate Date
     for _ in [0]:
@@ -291,3 +291,29 @@ def velmappu(setup_dict):
         for x in os.listdir(temp):
             setup_dict['filetree'].insert(temp, 'end', x, text=x.split('/')[-1])
 
+def update_treeView(status, tree, setup_dict):
+    db_connection, cursor = fadblogin(setup_dict['login'])
+    if status == 'alt':
+        cursor.execute("SELECT * FROM Instumentir")
+    else:
+        cursor.execute("SELECT * FROM Instumentir WHERE status=%s", (status,))
+    Instromentir = cursor.fetchall()
+    db_connection.disconnect()
+    for x in tree.get_children():
+        tree.delete(x)
+    Sløg = []
+
+    for x in Instromentir:
+        if x[2] not in Sløg:
+            Sløg.append(x[2])
+    Sløg.sort()
+
+    insert_instromentir_list(tree, Sløg, Instromentir)
+
+    '''uppdatera trere'''
+
+def insert_instromentir_list(tree,Sløg, Instromentir):
+    for i in Sløg:
+        tree.insert('', 'end', i, text=i)
+    for i in Instromentir:
+        tree.insert(i[2], 'end', text=i[0])
