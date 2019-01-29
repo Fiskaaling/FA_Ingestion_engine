@@ -10,9 +10,9 @@ from matplotlib.figure import Figure
 import Processing.tekna_kort
 from misc.faLog import *
 
+global root
 
 def stovna_geo_okid(frame, root2, db_host, db_user, db_password):
-    global root
     root = root2
     for widget in frame.winfo_children():
         widget.destroy()
@@ -135,7 +135,7 @@ def strika(Navn, db_user, db_password, db_host):
     if sletta == 'yes':
         db_connection = db.connect(user=db_user, password=db_password, database='fa_db', host=db_host)
         cursor = db_connection.cursor()
-        cursor.execute("DELETE FROM WL_Geografisk_okir WHERE Navn = \'" + Navn + "\'", )
+        cursor.execute("DELETE FROM WL_Geografisk_okir WHERE Navn = %s", (Navn, ))
         db_connection.commit()
         cursor.execute("SELECT * FROM WL_Geografisk_okir")
         result = cursor.fetchall()
@@ -149,11 +149,10 @@ def innset(Navn, Stytting, Latmin, Latmax, Lonmin, Lonmax, db_user, db_password,
         db_connection = db.connect(user=db_user, password=db_password, database='fa_db', host=db_host)
         cursor = db_connection.cursor()
         db_connection.commit()
-        sqlNavn = (Navn, )
-        cursor.execute("SELECT * FROM WL_Geografisk_okir WHERE Navn=%s", sqlNavn)
+        cursor.execute("SELECT * FROM WL_Geografisk_okir WHERE Navn=%s", (Navn, ))
         result = cursor.fetchall()
         if result:
-            cursor.execute("DELETE FROM WL_Geografisk_okir WHERE Navn = \'" + Navn + "\'",)
+            cursor.execute("DELETE FROM WL_Geografisk_okir WHERE Navn =%s", (Navn, ))
         cursor.execute(
             "INSERT INTO WL_Geografisk_okir (Navn, Stytting, Latmin, Latmax, Lonmin, Lonmax) VALUES (%s, %s, %s, %s, %s, %s)",
             (Navn, Stytting, Latmin, Latmax, Lonmin, Lonmax))
@@ -196,7 +195,7 @@ def OnDoubleClick(event, tree, navnEntry, styttingEntry, latminEntry, latmaxEntr
     navnEntry.insert(0, item)
     db_connection = db.connect(user=db_user, password=db_password, database='fa_db', host=db_host)
     cursor = db_connection.cursor()
-    cursor.execute("SELECT * FROM WL_Geografisk_okir WHERE Navn=\'" + item + "\'")
+    cursor.execute("SELECT * FROM WL_Geografisk_okir WHERE Navn=%s", (item, ))
     result = cursor.fetchall()
     db_connection.close()
     result = result[0]
