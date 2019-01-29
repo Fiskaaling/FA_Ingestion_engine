@@ -149,8 +149,8 @@ def innset(Navn, Stytting, Latmin, Latmax, Lonmin, Lonmax, db_user, db_password,
         db_connection = db.connect(user=db_user, password=db_password, database='fa_db', host=db_host)
         cursor = db_connection.cursor()
         db_connection.commit()
-
-        cursor.execute("SELECT * FROM WL_Geografisk_okir WHERE Navn=\'" + Navn + "\'")
+        sqlNavn = (Navn, )
+        cursor.execute("SELECT * FROM WL_Geografisk_okir WHERE Navn=\'%s\'", sqlNavn)
         result = cursor.fetchall()
         if result:
             cursor.execute("DELETE FROM WL_Geografisk_okir WHERE Navn = \'" + Navn + "\'",)

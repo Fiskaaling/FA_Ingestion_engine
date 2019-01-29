@@ -1,4 +1,4 @@
-import Ingestion.CTD.plotAsci
+import Ingestion.CTD.plotAscii
 
 def init(ingestion_listbox):
     ctd = ingestion_listbox.insert("", 0, text='Seabird SBE 25 CTD')
@@ -7,4 +7,4 @@ def init(ingestion_listbox):
 
 def check_click(item, RightFrame, root):
     if item == 'Tekna Ascii fíl':
-        Ingestion.CTD.plotAsci.asciiPlt(RightFrame, root)
+        Ingestion.CTD.plotAscii.asciiPlt(RightFrame, root)
