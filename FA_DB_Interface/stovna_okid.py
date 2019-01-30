@@ -9,7 +9,7 @@ import Processing.tekna_kort
 from misc.faLog import *
 
 
-def stovna_okid(frame, root2, db_host, db_user, db_password):
+def stovna_okid(frame, root2, db_info):
     global root
     root = root2
     for widget in frame.winfo_children():
@@ -35,10 +35,10 @@ def stovna_okid(frame, root2, db_host, db_user, db_password):
                                                                            lonminEntry.get(), lonmaxEntry.get()))
     teknaButton.pack(side=LEFT, anchor=N)
 
-    stovnaButton = Button(buttonsFrame, text='Stovna Økið', command=lambda: innset(navnEntry.get(), styttingEntry.get(), latminEntry.get(), latmaxEntry.get(), lonminEntry.get(), lonmaxEntry.get(), db_user, db_password, db_host))
+    stovnaButton = Button(buttonsFrame, text='Stovna Punkt', command=lambda: innset(Okidvariable.get(), latEntry.get(), lonEntry.get(), waypointEntry.get(), dypidEntry.get(), db_info))
     stovnaButton.pack(side=RIGHT, anchor=N)
 
-    strikaButton = Button(buttonsFrame, text='Strika Økið', command=lambda: strika(navnEntry.get(), db_user, db_password, db_host))
+    strikaButton = Button(buttonsFrame, text='Strika Punkt', command=lambda: strika(navnEntry.get(), db_user, db_password, db_host))
     strikaButton.pack(side=RIGHT, anchor=N)
 
 
@@ -46,7 +46,7 @@ def stovna_okid(frame, root2, db_host, db_user, db_password):
     geookidFrame = Frame(controlsFrame)
     geookidFrame.pack(side=TOP, anchor=W)
     Label(geookidFrame, text='Økið:').pack(side=LEFT)
-    db_connection = db.connect(user=db_user, password=db_password, database='fa_db', host=db_host)
+    db_connection = db.connect(**db_info)
     cursor = db_connection.cursor()
     cursor.execute("SELECT * FROM WL_Geografisk_okir")
     result = cursor.fetchall()
@@ -57,7 +57,19 @@ def stovna_okid(frame, root2, db_host, db_user, db_password):
     w = OptionMenu(geookidFrame, Okidvariable, *GeoOkir)
     Okidvariable.set("Føroyar")  # default value
     w.pack(side=LEFT)
-    Okidvariable.trace('w', lambda: change_dropdown())
+
+    def change_dropdown(*args):
+        print(Okidvariable.get())
+        db_connection = db.connect(**db_info)
+        cursor = db_connection.cursor()
+        cursor.execute("SELECT * FROM WL_Geografisk_okir WHERE Navn=%s", (Okidvariable.get(), ))
+        result = cursor.fetchall()
+        result = result[0]
+        tekna(fig, canvas, result[2], result[3], result[4], result[5])
+        db_connection.disconnect()
+
+
+    Okidvariable.trace('w', change_dropdown)
 
     Label(controlsFrame, text=" ").pack(side=TOP)
 
@@ -103,14 +115,14 @@ def stovna_okid(frame, root2, db_host, db_user, db_password):
     ax = fig.add_subplot(111)
     canvas = FigureCanvasTkAgg(fig, master=kortFrame)
 
-    db_connection = db.connect(user=db_user, password=db_password, database='fa_db', host=db_host)
+    db_connection = db.connect(**db_info)
     cursor = db_connection.cursor()
 
     log_frame = Frame(frame, height=300)
     log_frame.pack(fill=X, expand=False, side=BOTTOM, anchor=W)
     gerlog(log_frame, root)
 
-    cursor.execute("SELECT * FROM WL_Geografisk_okir")
+    cursor.execute("SELECT * FROM Økir")
     result = cursor.fetchall()
     kolonnir = cursor.column_names
     punktir["columns"] = kolonnir[1::]
@@ -135,8 +147,7 @@ breiddarlinjur=6
     print(cursor.column_names)
     print(result)
 
-def change_dropdown():
-    print('test')
+
 
 def strika(Navn, db_user, db_password, db_host):
     sletta = tkinter.messagebox.askquestion("Strika " + Navn, "Ert tú sikkur?", icon='warning')
@@ -150,11 +161,11 @@ def strika(Navn, db_user, db_password, db_host):
         dagfor_tree(result)
         db_connection.close()
 
-def innset(Navn, Stytting, Latmin, Latmax, Lonmin, Lonmax, db_user, db_password, db_host):
-    if Navn == '' or Stytting == '':
-        tkinter.messagebox.showerror('Feilur', 'Navn ella stytting manglar')
+def innset(Okidvariable, latEntry, lonEntry, waypointEntry, dypidEntry, db_info):
+    if latEntry == '' or lonEntry == '':
+        tkinter.messagebox.showerror('Feilur', 'lat ella lon virði manglar')
     else:
-        db_connection = db.connect(user=db_user, password=db_password, database='fa_db', host=db_host)
+        db_connection = db.connect(**db_info)
         cursor = db_connection.cursor()
         cursor.execute("SELECT * FROM WL_Geografisk_okir WHERE Navn=\'" + Navn + "\'")
         result = cursor.fetchall()
@@ -183,7 +194,7 @@ linjuSlag=eingin
 longdarlinjur=5
 breiddarlinjur=6
 """
-    Processing.tekna_kort.les_og_tekna(tekstur, fig, canvas, False)
+    Processing.tekna_kort.les_og_tekna(tekstur, fig, canvas, True)
 
 def dagfor_tree(result):
     global punktir
@@ -194,12 +205,12 @@ def dagfor_tree(result):
     punktir.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
 
 
-def OnDoubleClick(event, tree, navnEntry, styttingEntry, latminEntry, latmaxEntry, lonminEntry, lonmaxEntry, db_host, db_user, db_password, fig, canvas):
+def OnDoubleClick(event, tree, navnEntry, styttingEntry, latminEntry, latmaxEntry, lonminEntry, lonmaxEntry, db_info, fig, canvas):
     item = tree.identify('item', event.x, event.y)
     item = tree.item(item, "text")
     navnEntry.delete(0, END)
     navnEntry.insert(0, item)
-    db_connection = db.connect(user=db_user, password=db_password, database='fa_db', host=db_host)
+    db_connection = db.connect(**db_info)
     cursor = db_connection.cursor()
     cursor.execute("SELECT * FROM WL_Geografisk_okir WHERE Navn=\'" + item + "\'")
     result = cursor.fetchall()
