@@ -73,7 +73,7 @@ if subprocess.check_output('whoami') == b'johannus\n': # 4K bullshit, Alt er for
     style = ttk.Style(root)
     style.configure('Treeview', rowheight=45)
     style.configure('Treeview.Heading', font=f)
-    style.configure(".", font=f, foreground="white")
+    style.configure(".", font=f)
 
 
 app = Window(root)

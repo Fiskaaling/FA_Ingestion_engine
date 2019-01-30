@@ -80,21 +80,14 @@ def stovna_okid(frame, root2, db_info, mating_id=1):
     idEntry.pack(side=RIGHT)
     idEntry.insert(0, str(mating_id))
 
+    idLabel_var = StringVar(value="")
+    idLabel = Label(controlsFrame, textvariable=idLabel_var)
+    idLabel.pack(side=TOP, anchor=W)
+
 
     def change_dropdown(*args):
-            print(Okidvariable.get())
-            db_connection = db.connect(**db_info)
-            cursor = db_connection.cursor()
-            cursor.execute("SELECT * FROM WL_Geografisk_okir WHERE Navn=%s", (Okidvariable.get(), ))
-            result = cursor.fetchall()
-            geookid = result[0]
-            cursor.execute("SELECT * FROM Økir WHERE Máting_ID = %s", (idEntry.get(), ))
-            result = cursor.fetchall()
-            db_connection.disconnect()
-            scatter_string = '\n'
-            for item in result:
-                scatter_string = scatter_string + 'scatter=' + item[3] + ',' + item[4] + '\n'
-            tekna(fig, canvas, geookid[2], geookid[3], geookid[4], geookid[5], scatter_string)
+        pass
+
 
 
     Okidvariable.trace('w', change_dropdown)
@@ -120,7 +113,7 @@ def stovna_okid(frame, root2, db_info, mating_id=1):
     waypointEntry.pack(side=LEFT)
 
     Label(settings_frame, text='Dýpið:').pack(side=LEFT)
-    dypidEntry = Entry(settings_frame, width=7)
+    dypidEntry = Entry(settings_frame, width=8)
     dypidEntry.pack(side=LEFT)
 
 
@@ -130,7 +123,7 @@ def stovna_okid(frame, root2, db_info, mating_id=1):
     kortFrame.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
     global punktir
     punktir = ttk.Treeview(rframe)
-    punktir.bind("<Double-1>", lambda event, arg=punktir: OnDoubleClick(event, arg, navnEntry, styttingEntry, latminEntry, latmaxEntry, lonminEntry, lonmaxEntry, db_host, db_user, db_password, fig, canvas))
+    punktir.bind("<Double-1>", lambda event, arg=punktir: OnDoubleClick(event, arg, idLabel_var, idEntry, CRSvariable, Okidvariable, latEntry, lonEntry, waypointEntry, dypidEntry, punktir, fig, canvas, db_info))
     scrollbar = Scrollbar(rframe, orient=VERTICAL)
     scrollbar.config(command=punktir.yview)
     scrollbar.pack(side=RIGHT, fill=Y)
@@ -149,7 +142,7 @@ def stovna_okid(frame, root2, db_info, mating_id=1):
     log_frame.pack(fill=X, expand=False, side=BOTTOM, anchor=W)
     gerlog(log_frame, root)
 
-    cursor.execute("SELECT * FROM Økir WHERE Máting_ID = %s", (idEntry.get(), ))
+    cursor.execute("SELECT * FROM Økir")
     result = cursor.fetchall()
     kolonnir = cursor.column_names
     punktir["columns"] = kolonnir[1::]
@@ -189,7 +182,7 @@ def strika(Navn, db_user, db_password, db_host):
         db_connection.close()
 
 
-def innset(id, Okidvariable, latEntry, lonEntry, waypointEntry, dypidEntry, CRSvariable, db_info):
+def innset(id_string, Okidvariable, latEntry, lonEntry, waypointEntry, dypidEntry, CRSvariable, db_info):
     if latEntry == '' or lonEntry == '':
         tkinter.messagebox.showerror('Feilur', 'lat ella lon virði manglar')
     else:
@@ -198,19 +191,19 @@ def innset(id, Okidvariable, latEntry, lonEntry, waypointEntry, dypidEntry, CRSv
         if dypidEntry == '' and waypointEntry == '':
             cursor.execute(
                 "INSERT INTO Økir (Máting_ID, Økið, Lat, Lon, Coordinate_Reference_System) VALUES (%s, %s, %s, %s, %s)",
-                (id, Okidvariable, latEntry, lonEntry, CRSvariable))
+                (id_string, Okidvariable, latEntry, lonEntry, CRSvariable))
         elif dypidEntry == '' and waypointEntry != '':
             cursor.execute(
                 "INSERT INTO Økir (Máting_ID, Økið, Lat, Lon, Waypoint, Coordinate_Reference_System) VALUES (%s, %s, %s, %s, %s, %s)",
-                (id, Okidvariable, latEntry, lonEntry, waypointEntry, CRSvariable))
+                (id_string, Okidvariable, latEntry, lonEntry, waypointEntry, CRSvariable))
         elif dypidEntry != '' and waypointEntry == '':
             cursor.execute(
                 "INSERT INTO Økir (Máting_ID, Økið, Lat, Lon, Dýpið, Coordinate_Reference_System) VALUES (%s, %s, %s, %s, %s, %s)",
-                (id, Okidvariable, latEntry, lonEntry, dypidEntry, CRSvariable))
+                (id_string, Okidvariable, latEntry, lonEntry, dypidEntry, CRSvariable))
         else:
             cursor.execute(
                 "INSERT INTO Økir (Máting_ID, Økið, Lat, Lon, Waypoint, Dýpið, Coordinate_Reference_System) VALUES (%s, %s, %s, %s, %s, %s, %s)",
-                (id, Okidvariable, latEntry, lonEntry, waypointEntry, dypidEntry, CRSvariable))
+                (id_string, Okidvariable, latEntry, lonEntry, waypointEntry, dypidEntry, CRSvariable))
 
 
         db_connection.commit()
@@ -246,25 +239,43 @@ def dagfor_tree(result):
     punktir.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
 
 
-def OnDoubleClick(event, tree, navnEntry, styttingEntry, latminEntry, latmaxEntry, lonminEntry, lonmaxEntry, db_info, fig, canvas):
+def OnDoubleClick(event, arg, idLabel_var, idEntry, CRSvariable, Okidvariable, latEntry, lonEntry, waypointEntry, dypidEntry, tree, fig, canvas, db_info):
     item = tree.identify('item', event.x, event.y)
     item = tree.item(item, "text")
-    navnEntry.delete(0, END)
-    navnEntry.insert(0, item)
+    idLabel_var.set(item)
+    print(item)
     db_connection = db.connect(**db_info)
     cursor = db_connection.cursor()
-    cursor.execute("SELECT * FROM WL_Geografisk_okir WHERE Navn=\'" + item + "\'")
+    cursor.execute("SELECT * FROM Økir WHERE ID= %s", (item, ))
     result = cursor.fetchall()
-    db_connection.close()
     result = result[0]
-    styttingEntry.delete(0, END)
-    styttingEntry.insert(0, result[1])
-    latminEntry.delete(0, END)
-    latminEntry.insert(0, result[2])
-    latmaxEntry.delete(0, END)
-    latmaxEntry.insert(0, result[3])
-    lonminEntry.delete(0, END)
-    lonminEntry.insert(0, result[4])
-    lonmaxEntry.delete(0, END)
-    lonmaxEntry.insert(0, result[5])
-    tekna(fig, canvas, result[2], result[3], result[4], result[5])
+    print(result)
+    latEntry.delete(0, END)
+    latEntry.insert(0, result[3])
+    lonEntry.delete(0, END)
+    lonEntry.insert(0, result[4])
+    idEntry.delete(0, END)
+    idEntry.insert(0, result[1])
+    waypointEntry.delete(0, END)
+    dypidEntry.delete(0, END)
+    if result[5]:
+        waypointEntry.insert(0, result[5])
+    if result[6]:
+        waypointEntry.insert(0, result[6])
+    CRSvariable.set(result[7])
+    if Okidvariable.get() != result[2]:
+        Okidvariable.set(result[2])
+
+    print(Okidvariable.get())
+    cursor = db_connection.cursor()
+    cursor.execute("SELECT * FROM WL_Geografisk_okir WHERE Navn=%s", (Okidvariable.get(),))
+    geo_result = cursor.fetchall()
+    geookid = geo_result[0]
+    cursor.execute("SELECT * FROM Økir WHERE Máting_ID = %s", (idEntry.get(),))
+    geo_result = cursor.fetchall()
+    db_connection.disconnect()
+    scatter_string = '\n'
+    for item in geo_result:
+        scatter_string = scatter_string + 'scatter=' + item[3] + ',' + item[4] + '\n'
+    scatter_string = scatter_string + 'scatter_farv=red\nscatter=' + result[3] + ',' + result[4] + '\nscatter_farv=blue'
+    tekna(fig, canvas, geookid[2], geookid[3], geookid[4], geookid[5], scatter_string)
