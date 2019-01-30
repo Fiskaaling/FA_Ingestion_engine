@@ -607,7 +607,6 @@ def les_og_tekna(text, fig, canvas, silent=False):
                 print(str(tekstx) + ',' + str(teksty))
             elif variable == 'scatter':
                 pos = command[toindex::].split(',')
-                print(pos)
                 lat = float(pos[0])
                 lon = float(pos[1])
                 scatter_x, scatter_y = m(lon, lat)

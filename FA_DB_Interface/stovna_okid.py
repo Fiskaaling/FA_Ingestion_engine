@@ -1,6 +1,6 @@
 import tkinter.messagebox
 import tkinter.ttk as ttk
-
+import numpy as np
 import mysql.connector as db
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
@@ -9,7 +9,7 @@ import Processing.tekna_kort
 from misc.faLog import *
 
 
-def stovna_okid(frame, root2, db_info):
+def stovna_okid(frame, root2, db_info, mating_id=1):
     global root
     root = root2
     for widget in frame.winfo_children():
@@ -31,11 +31,11 @@ def stovna_okid(frame, root2, db_info):
     buttonsFrame = Frame(controlsFrame)
     buttonsFrame.pack(side=TOP, fill=X)
 
-    teknaButton = Button(buttonsFrame, text='Tekna', command=lambda: tekna(fig, canvas, latminEntry.get(), latmaxEntry.get(),
-                                                                           lonminEntry.get(), lonmaxEntry.get()))
+    teknaButton = Button(buttonsFrame, text='Tekna', command=lambda: tekna(fig, canvas, latEntry.get(), lonEntry.get(),
+                                                                           db_info, idEntry.get()))
     teknaButton.pack(side=LEFT, anchor=N)
 
-    stovnaButton = Button(buttonsFrame, text='Stovna Punkt', command=lambda: innset(Okidvariable.get(), latEntry.get(), lonEntry.get(), waypointEntry.get(), dypidEntry.get(), db_info))
+    stovnaButton = Button(buttonsFrame, text='Stovna Punkt', command=lambda: innset(idEntry.get(), Okidvariable.get(), latEntry.get(), lonEntry.get(), waypointEntry.get(), dypidEntry.get(), CRSvariable.get(), db_info))
     stovnaButton.pack(side=RIGHT, anchor=N)
 
     strikaButton = Button(buttonsFrame, text='Strika Punkt', command=lambda: strika(navnEntry.get(), db_user, db_password, db_host))
@@ -72,6 +72,14 @@ def stovna_okid(frame, root2, db_info):
     CRSvariable.set("WGS 84 (GPS)")  # default value
     w2.pack(side=RIGHT)
 
+    # ID entry -- Todo ger read only
+    idFrame = Frame(controlsFrame)
+    idFrame.pack(side=TOP, anchor=W, fill=X)
+    Label(idFrame, text='Máting ID:').pack(side=LEFT)
+    idEntry = Entry(idFrame, width=10)
+    idEntry.pack(side=RIGHT)
+    idEntry.insert(0, str(mating_id))
+
 
     def change_dropdown(*args):
             print(Okidvariable.get())
@@ -79,9 +87,14 @@ def stovna_okid(frame, root2, db_info):
             cursor = db_connection.cursor()
             cursor.execute("SELECT * FROM WL_Geografisk_okir WHERE Navn=%s", (Okidvariable.get(), ))
             result = cursor.fetchall()
-            result = result[0]
-            tekna(fig, canvas, result[2], result[3], result[4], result[5])
+            geookid = result[0]
+            cursor.execute("SELECT * FROM Økir WHERE Máting_ID = %s", (idEntry.get(), ))
+            result = cursor.fetchall()
             db_connection.disconnect()
+            scatter_string = '\n'
+            for item in result:
+                scatter_string = scatter_string + 'scatter=' + item[3] + ',' + item[4] + '\n'
+            tekna(fig, canvas, geookid[2], geookid[3], geookid[4], geookid[5], scatter_string)
 
 
     Okidvariable.trace('w', change_dropdown)
@@ -94,11 +107,11 @@ def stovna_okid(frame, root2, db_info):
     Label(koordinatframe, text='Lat:').pack(side=LEFT)
     latEntry = Entry(koordinatframe, width=10)
     latEntry.pack(side=LEFT)
-    latEntry.insert(0, "62")
+    latEntry.insert(0, str(62 + np.random.randn()*0.1))
     Label(koordinatframe, text='Lon:').pack(side=LEFT)
     lonEntry = Entry(koordinatframe, width=10)
     lonEntry.pack(side=LEFT)
-    lonEntry.insert(0, "-7")
+    lonEntry.insert(0, str(-7 + np.random.randn()*0.1))
 
     settings_frame = Frame(controlsFrame)
     settings_frame.pack(side=TOP, anchor=W)
@@ -109,7 +122,6 @@ def stovna_okid(frame, root2, db_info):
     Label(settings_frame, text='Dýpið:').pack(side=LEFT)
     dypidEntry = Entry(settings_frame, width=7)
     dypidEntry.pack(side=LEFT)
-    dypidEntry.insert(0, " ")
 
 
 
@@ -137,7 +149,7 @@ def stovna_okid(frame, root2, db_info):
     log_frame.pack(fill=X, expand=False, side=BOTTOM, anchor=W)
     gerlog(log_frame, root)
 
-    cursor.execute("SELECT * FROM Økir")
+    cursor.execute("SELECT * FROM Økir WHERE Máting_ID = %s", (idEntry.get(), ))
     result = cursor.fetchall()
     kolonnir = cursor.column_names
     punktir["columns"] = kolonnir[1::]
@@ -145,7 +157,9 @@ def stovna_okid(frame, root2, db_info):
     for i in range(1, len(kolonnir)):
         punktir.heading(kolonnir[i], text=kolonnir[i])
         #punktir.column("#" + str(i), width=100)
-
+    scatter_string = '\n'
+    for item in result:
+        scatter_string = scatter_string + 'scatter=' + item[3] + ',' + item[4] + '\n'
     dagfor_tree(result)
 
     tekstur = """
@@ -154,13 +168,11 @@ Tekna kort
 linjuSlag=eingin
 longdarlinjur=5
 breiddarlinjur=6
-"""
+scatter_std=100""" + scatter_string
 
-    Processing.tekna_kort.les_og_tekna(tekstur, fig, canvas, True)
+    Processing.tekna_kort.les_og_tekna(tekstur, fig, canvas, False)
 
     db_connection.disconnect()
-    print(cursor.column_names)
-    print(result)
 
 
 
@@ -176,28 +188,41 @@ def strika(Navn, db_user, db_password, db_host):
         dagfor_tree(result)
         db_connection.close()
 
-def innset(Okidvariable, latEntry, lonEntry, waypointEntry, dypidEntry, db_info):
+
+def innset(id, Okidvariable, latEntry, lonEntry, waypointEntry, dypidEntry, CRSvariable, db_info):
     if latEntry == '' or lonEntry == '':
         tkinter.messagebox.showerror('Feilur', 'lat ella lon virði manglar')
     else:
         db_connection = db.connect(**db_info)
         cursor = db_connection.cursor()
-        cursor.execute("SELECT * FROM WL_Geografisk_okir WHERE Navn=\'" + Navn + "\'")
-        result = cursor.fetchall()
-        if result:
-            cursor.execute("DELETE FROM WL_Geografisk_okir WHERE Navn = \'" + Navn + "\'",)
-        cursor.execute(
-            "INSERT INTO WL_Geografisk_okir (Navn, Stytting, Latmin, Latmax, Lonmin, Lonmax) VALUES (%s, %s, %s, %s, %s, %s)",
-            (Navn, Stytting, Latmin, Latmax, Lonmin, Lonmax))
+        if dypidEntry == '' and waypointEntry == '':
+            cursor.execute(
+                "INSERT INTO Økir (Máting_ID, Økið, Lat, Lon, Coordinate_Reference_System) VALUES (%s, %s, %s, %s, %s)",
+                (id, Okidvariable, latEntry, lonEntry, CRSvariable))
+        elif dypidEntry == '' and waypointEntry != '':
+            cursor.execute(
+                "INSERT INTO Økir (Máting_ID, Økið, Lat, Lon, Waypoint, Coordinate_Reference_System) VALUES (%s, %s, %s, %s, %s, %s)",
+                (id, Okidvariable, latEntry, lonEntry, waypointEntry, CRSvariable))
+        elif dypidEntry != '' and waypointEntry == '':
+            cursor.execute(
+                "INSERT INTO Økir (Máting_ID, Økið, Lat, Lon, Dýpið, Coordinate_Reference_System) VALUES (%s, %s, %s, %s, %s, %s)",
+                (id, Okidvariable, latEntry, lonEntry, dypidEntry, CRSvariable))
+        else:
+            cursor.execute(
+                "INSERT INTO Økir (Máting_ID, Økið, Lat, Lon, Waypoint, Dýpið, Coordinate_Reference_System) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+                (id, Okidvariable, latEntry, lonEntry, waypointEntry, dypidEntry, CRSvariable))
+
+
         db_connection.commit()
-        cursor.execute("SELECT * FROM WL_Geografisk_okir")
+        cursor.execute("SELECT * FROM Økir")
         result = cursor.fetchall()
         dagfor_tree(result)
         db_connection.close()
-        print('Liðugt')
 
 
-def tekna(fig, canvas, Latmin, Latmax, Lonmin, Lonmax):
+
+
+def tekna(fig, canvas, Latmin, Latmax, Lonmin, Lonmax, Additional_commands):
     tekstur = """
 clf\n
 latmax=""" + Latmax + """
@@ -208,7 +233,8 @@ Tekna kort
 linjuSlag=eingin
 longdarlinjur=5
 breiddarlinjur=6
-"""
+scatter_std=100
+""" + Additional_commands
     Processing.tekna_kort.les_og_tekna(tekstur, fig, canvas, True)
 
 def dagfor_tree(result):
