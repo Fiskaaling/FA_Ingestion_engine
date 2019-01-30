@@ -44,7 +44,7 @@ def stovna_okid(frame, root2, db_info):
 
     # Hettar ger eina dropdown lista av møguligum Geografiskum økum --- TODO Møguliga broyt hettar til eina Combo box
     geookidFrame = Frame(controlsFrame)
-    geookidFrame.pack(side=TOP, anchor=W)
+    geookidFrame.pack(side=TOP, anchor=W, fill=X)
     Label(geookidFrame, text='Økið:').pack(side=LEFT)
     db_connection = db.connect(**db_info)
     cursor = db_connection.cursor()
@@ -56,17 +56,32 @@ def stovna_okid(frame, root2, db_info):
     Okidvariable = StringVar(geookidFrame)
     w = OptionMenu(geookidFrame, Okidvariable, *GeoOkir)
     Okidvariable.set("Føroyar")  # default value
-    w.pack(side=LEFT)
+    w.pack(side=RIGHT)
+
+    # Hettar ger eina dropdown lista av møguligum CRS
+    crsFrame = Frame(controlsFrame)
+    crsFrame.pack(side=TOP, anchor=W, fill=X)
+    Label(crsFrame, text='Coordinate Reference System:').pack(side=LEFT)
+    cursor.execute("SELECT * FROM wl_coordinate_reference_systems")
+    result = cursor.fetchall()
+    CRS = []
+    for row in result:
+        CRS.append(row[0])
+    CRSvariable = StringVar(crsFrame)
+    w2 = OptionMenu(crsFrame, CRSvariable, *CRS)
+    CRSvariable.set("WGS 84 (GPS)")  # default value
+    w2.pack(side=RIGHT)
+
 
     def change_dropdown(*args):
-        print(Okidvariable.get())
-        db_connection = db.connect(**db_info)
-        cursor = db_connection.cursor()
-        cursor.execute("SELECT * FROM WL_Geografisk_okir WHERE Navn=%s", (Okidvariable.get(), ))
-        result = cursor.fetchall()
-        result = result[0]
-        tekna(fig, canvas, result[2], result[3], result[4], result[5])
-        db_connection.disconnect()
+            print(Okidvariable.get())
+            db_connection = db.connect(**db_info)
+            cursor = db_connection.cursor()
+            cursor.execute("SELECT * FROM WL_Geografisk_okir WHERE Navn=%s", (Okidvariable.get(), ))
+            result = cursor.fetchall()
+            result = result[0]
+            tekna(fig, canvas, result[2], result[3], result[4], result[5])
+            db_connection.disconnect()
 
 
     Okidvariable.trace('w', change_dropdown)
