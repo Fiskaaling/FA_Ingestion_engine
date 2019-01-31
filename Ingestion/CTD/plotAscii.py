@@ -27,20 +27,16 @@ def asciiPlt(frame, root2):
     velMappuBtn = Button(menuFrame, text='Vel Fíl', command=lambda: velFil())
     velMappuBtn.pack(side=LEFT)
 
-    teknaPltBtn = Button(menuFrame, text='Tekna Plot', command=lambda: tekna(fig, canvas, markeraTidvar.get(),
-                                                                             fraEntry.get(), tilEntry.get()))
+    teknaPltBtn = Button(menuFrame, text='Tekna Plot', command=lambda: tekna(fig, canvas, indexEntry.get()))
     teknaPltBtn.pack(side=LEFT)
     markeraTidvar = IntVar()
     markeraTid = Checkbutton(menuFrame, text='Markera tíðarinterval', variable=markeraTidvar)
     markeraTid.pack(side=LEFT)
 
-    Label(menuFrame, text='Frá:').pack(side=LEFT)
+    Label(menuFrame, text='Index:').pack(side=LEFT)
 
-    fraEntry = Entry(menuFrame, width =3)
-    fraEntry.pack(side=LEFT)
-    Label(menuFrame, text='Til:').pack(side=LEFT)
-    tilEntry = Entry(menuFrame, width=3)
-    tilEntry.pack(side=LEFT)
+    indexEntry = Entry(menuFrame, width =3)
+    indexEntry.pack(side=LEFT)
 
     goymmynd_btn = Button(menuFrame, text='Goym Mynd', command=lambda: goymmynd(fig, canvas)).pack(side=LEFT)
 
@@ -55,19 +51,28 @@ def velFil():
     filnavn = filedialog.askopenfile(title='Vel fíl', filetypes = (("csv Fílir", "*.csv"), ("all files", "*.*"))).name
     print(filnavn)
 
-def tekna(fig, canvas, tekna, fra, til):
+def tekna(fig, canvas, index):
     fig.clf()
-    ax = fig.add_subplot(111)
-    data = pd.read_csv(filnavn)
-    for i in range(len(data.columns)):
-        ax.plot(data[data.columns[i]])
-    ax.set_ylim(0, 5)
+    ax = fig.subplots()
+    a = int(index)
+    #ax = fig.add_subplot(111)
+    plt.subplot()
+    data = pd.read_csv(filnavn, encoding='latin-1')
+    ax.plot(-data[data.columns[0]], 'k')
+    ax.set_xlabel('Tíð [?]')
+    ax.set_ylabel('Dýpið', color='k')
+    ax2 = ax.twinx()
+    ax2.plot(data[data.columns[a]], 'b')
+    ax2.tick_params('y', colors='b')
+    ax2.set_ylabel(data.columns[a], color='b')
+    #for i in range(len(data.columns)):
+    #ax.set_ylim(0, 5)
     canvas.draw()
     canvas.get_tk_widget().pack(fill=BOTH, expand=1)
     print('done')
 
 def goymmynd(fig, canvas):
-    filnavn = filedialog.asksaveasfilename(parent=root, title="Goym mynd",  filetypes=(("png Fílur", "*.png"), ("jpg Fílur", "*.jpg")))
+    filnavn = filedialog.asksaveasfilename(parent=root, title="Goym mynd",  filetypes=(("pdf Fílur", "*.pdf"), ("png Fílur", "*.png")))
     print('Goymir mynd')
-    fig.savefig(filnavn, dpi=1200, bbox_inches='tight')
+    fig.savefig(filnavn, dpi=600, bbox_inches='tight')
     print('Liðugt')
