@@ -605,6 +605,12 @@ def les_og_tekna(text, fig, canvas, silent=False):
                 tekstx, teksty = m(np.float(temp[0]), np.float(temp[1]))
                 print(str(np.float(temp[0])) + ',' + str(np.float(temp[1])))
                 print(str(tekstx) + ',' + str(teksty))
+            elif variable == 'scatter':
+                pos = command[toindex::].split(',')
+                lat = float(pos[0])
+                lon = float(pos[1])
+                scatter_x, scatter_y = m(lon, lat)
+                ax.scatter(scatter_x, scatter_y, zorder=100, color=scatter_farv, label=scatter_legend, s=scatter_std)
             else:
                 if '#' not in variable and command != '':
                     log_w('Ókend stýriboð ' + variable)
@@ -683,7 +689,7 @@ def les_og_tekna(text, fig, canvas, silent=False):
                 s3 = float(command[toindex::])
             elif command == 'ncol':
                 ncol = int(command[toindex::])
-            else:
+            else: # Ókend kommando!
                 if '#' not in command and command != '':
                     log_w('Ókend stýriboð ' + command)
             canvas.draw()

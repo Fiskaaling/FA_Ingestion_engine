@@ -1,4 +1,5 @@
 from tkinter import *
+from tkinter import font
 import Processing.tekna_kort
 import tkinter.ttk as ttk
 import Ingestion.streymmatari
@@ -12,6 +13,8 @@ import Ingestion.CTD.init
 import vatnstoduanalysa.vatnstoduanalysa
 import Ingestion.seaguard.seaguard as seaguard
 import FA_DB_Interface.init
+import subprocess
+
 
 class Window(Frame):
     def __init__(self, master=None):
@@ -61,6 +64,18 @@ def OnDoubleClick(event, tree):
 # Teknar main gui
 root = Tk()
 root.geometry("1200x800")
+
+if subprocess.check_output('whoami') == b'johannus\n': # 4K bullshit, Alt er forbanna lítið
+    root.geometry("3000x1600")
+    print(root.tk.call('tk', 'scaling', 3))
+    f = font.Font(size=10)
+    root.option_add("*Font", f)
+    style = ttk.Style(root)
+    style.configure('Treeview', rowheight=45)
+    style.configure('Treeview.Heading', font=f)
+    style.configure(".", font=f)
+
+
 app = Window(root)
 # Teknar vinstru frame (har instrumentini eru)
 Ingestion_frame = Frame(app)
