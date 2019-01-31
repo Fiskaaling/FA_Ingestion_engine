@@ -1,11 +1,22 @@
 from tkinter import *
 import tkinter.ttk as ttk
+from pprint import pprint
+import FA_DB_Interface.miscMatingar.init_fun as fun
+import FA_DB_Interface.miscMatingar.Inset_fun as in_fun
 
 def setupmenuframe(frame, setup_dict):
     tk_fun = StringVar(frame, setup_dict['main_frame'])
     tk_fun.set('Inset')
-    fun_pop = OptionMenu(frame, tk_fun, 'Inset', 'Dagfør', command=print)
+    fun_pop = OptionMenu(frame, tk_fun, 'Inset', 'Dagfør', command=print) #skift setup_dict['fun']
     fun_pop.pack(side=LEFT)
+    setup_dict['fun'] = tk_fun.get()
+
+    Button(frame, text='Vel filr', command=lambda: fun.velfilir(setup_dict)).pack(side=LEFT)
+    Button(frame, text='Vel mappu', command=lambda: fun.velmappu(setup_dict)).pack(side=LEFT)
+    Button(frame, text='Vel mappu', command=lambda: fun.velmappu(setup_dict)).pack(side=LEFT)
+    Button(frame, text='koyr inn í DB', command=lambda: fun.update_db(setup_dict)).pack(side=LEFT)
+    Button(frame, text='print', command=lambda: pprint(setup_dict)).pack(side=LEFT)
+
 
 def setuplefttree(frame, setup_dict):
     tree = ttk.Treeview(frame)
@@ -19,6 +30,7 @@ def setuplefttree(frame, setup_dict):
     tree.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
 
     setup_dict['lefttree'] = tree
+    tree.bind("<Double-1>", lambda event: fun.Doublelefttree(event, setup_dict))
 
 def setuprighttree(frame, setup_dict):
     tree = ttk.Treeview(frame)
@@ -72,4 +84,3 @@ def setupdato(frame, setup_dict):
     dato[list(dato.keys())[1]]['D'] = Entry(frame, width=2)
     dato[list(dato.keys())[1]]['D'].grid(row=i, column=j)
     setup_dict['dato'] = dato
-

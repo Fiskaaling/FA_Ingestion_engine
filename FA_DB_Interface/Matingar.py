@@ -18,8 +18,10 @@ def inset_matingar(frame, db_host='192.168.43.94', db_user='trondur', db_passwor
                   'main_frame': frame,
                   'Path_to_RawData': 'Rawdata',
                   'Instroment': '',
-                  'filenames': [],
-                  'mappir': []}
+                  'innsettirfilir': [],
+                  'innsettarmappir': [],
+                  'inniliggjandifilir': [],
+                  'inniliggjandimappir': []}
 
     Label(frame, text='Inset mátingar', font='Helvetica 18 bold').pack(side=TOP)
 
