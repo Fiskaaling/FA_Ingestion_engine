@@ -1,9 +1,9 @@
 from tkinter import *
 import os
 import shutil
-import FA_DB_Interface.miscMatingar.db_ting as db
-import FA_DB_Interface.miscMatingar.init_fun as fun
-import FA_DB_Interface.Matingar as Matingar
+from FA_DB_Interface.miscMatingar import db_ting as db
+from FA_DB_Interface.miscMatingar import init_fun as fun
+from FA_DB_Interface import Matingar
 
 def doublelefttree(item, setup_dict):
     try:
@@ -21,7 +21,6 @@ def velinstroment(Navn, setup_dict):
     for widget in frame.winfo_children():
         widget.destroy()
     setup_dict['Instroment'] = Navn
-
     temp = db.getuppsetanir(Navn, setup_dict)
     setup_dict['uppsetwid'] = dict([(x[0], x[1]) for x in temp])
     temp = dict([(x[0], x[2]) for x in temp])
