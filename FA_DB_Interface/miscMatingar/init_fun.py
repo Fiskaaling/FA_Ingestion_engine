@@ -9,7 +9,7 @@ import FA_DB_Interface.miscMatingar.Inset_fun as Insert_fun
 def inset(frame, setup_dict):
     rudda(frame, setup_dict)
     tk_status = StringVar(frame, setup_dict['main_frame'])
-    choices_status = ['alt'] +  db.status(setup_dict)
+    choices_status = ['alt'] + db.status(setup_dict)
 
     if 'Upptikin' in choices_status:
         tk_status.set('Upptikin')
@@ -32,7 +32,15 @@ def insetlefttree(staus, setup_dict):
         lefttree.insert(x[2], 'end', text=x[0])
 
 def rudda(frame, setup_dict):
-    pass
+    for widget in frame.winfo_children():
+        widget.destroy()
+    for widget in setup_dict['uppsetan_frame'].winfo_children():
+        widget.destroy()
+    setup_dict['lefttree'].delete(*setup_dict['lefttree'].get_children())
+    setup_dict['righttree'].delete(*setup_dict['righttree'].get_children())
+    for x in setup_dict['dato'].values():
+        for y in x.values():
+            y.delete(0, END)
 
 def Doublelefttree(event, setup_dict):
     item = setup_dict['lefttree'].identify('item', event.x, event.y)
