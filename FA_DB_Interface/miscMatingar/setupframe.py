@@ -13,7 +13,6 @@ def setupmenuframe(frame, setup_dict):
 
     Button(frame, text='Vel filr', command=lambda: fun.velfilir(setup_dict)).pack(side=LEFT)
     Button(frame, text='Vel mappu', command=lambda: fun.velmappu(setup_dict)).pack(side=LEFT)
-    Button(frame, text='Vel mappu', command=lambda: fun.velmappu(setup_dict)).pack(side=LEFT)
     Button(frame, text='koyr inn í DB', command=lambda: fun.update_db(setup_dict)).pack(side=LEFT)
     Button(frame, text='print', command=lambda: pprint(setup_dict)).pack(side=LEFT)
 

@@ -10,9 +10,9 @@ from matplotlib.figure import Figure
 import Processing.tekna_kort
 from misc.faLog import *
 
+global root
 
-def stovna_geo_okid(frame, root2, db_host, db_user, db_password):
-    global root
+def stovna_geo_okid(frame, root2, db_info):
     root = root2
     for widget in frame.winfo_children():
         widget.destroy()
@@ -37,10 +37,10 @@ def stovna_geo_okid(frame, root2, db_host, db_user, db_password):
                                                                            lonminEntry.get(), lonmaxEntry.get()))
     teknaButton.pack(side=LEFT, anchor=N)
 
-    stovnaButton = Button(buttonsFrame, text='Stovna Økið', command=lambda: innset(navnEntry.get(), styttingEntry.get(), latminEntry.get(), latmaxEntry.get(), lonminEntry.get(), lonmaxEntry.get(), db_user, db_password, db_host))
+    stovnaButton = Button(buttonsFrame, text='Stovna Økið', command=lambda: innset(navnEntry.get(), styttingEntry.get(), latminEntry.get(), latmaxEntry.get(), lonminEntry.get(), lonmaxEntry.get(), db_info))
     stovnaButton.pack(side=RIGHT, anchor=N)
 
-    strikaButton = Button(buttonsFrame, text='Strika Økið', command=lambda: strika(navnEntry.get(), db_user, db_password, db_host))
+    strikaButton = Button(buttonsFrame, text='Strika Økið', command=lambda: strika(navnEntry.get(), db_info))
     strikaButton.pack(side=RIGHT, anchor=N)
 
     navnFrame = Frame(controlsFrame)
@@ -85,7 +85,7 @@ def stovna_geo_okid(frame, root2, db_host, db_user, db_password):
     kortFrame.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
     global punktir
     punktir = ttk.Treeview(rframe)
-    punktir.bind("<Double-1>", lambda event, arg=punktir: OnDoubleClick(event, arg, navnEntry, styttingEntry, latminEntry, latmaxEntry, lonminEntry, lonmaxEntry, db_host, db_user, db_password, fig, canvas))
+    punktir.bind("<Double-1>", lambda event, arg=punktir: OnDoubleClick(event, arg, navnEntry, styttingEntry, latminEntry, latmaxEntry, lonminEntry, lonmaxEntry, db_info, fig, canvas))
     scrollbar = Scrollbar(rframe, orient=VERTICAL)
     scrollbar.config(command=punktir.yview)
     scrollbar.pack(side=RIGHT, fill=Y)
@@ -97,7 +97,7 @@ def stovna_geo_okid(frame, root2, db_host, db_user, db_password):
     ax = fig.add_subplot(111)
     canvas = FigureCanvasTkAgg(fig, master=kortFrame)
 
-    db_connection = db.connect(user=db_user, password=db_password, database='fa_db', host=db_host)
+    db_connection = db.connect(**db_info)
     cursor = db_connection.cursor()
 
     log_frame = Frame(frame, height=300)
@@ -130,30 +130,29 @@ breiddarlinjur=6
     print(cursor.column_names)
     print(result)
 
-def strika(Navn, db_user, db_password, db_host):
+def strika(Navn, db_info):
     sletta = tkinter.messagebox.askquestion("Strika " + Navn, "Ert tú sikkur?", icon='warning')
     if sletta == 'yes':
-        db_connection = db.connect(user=db_user, password=db_password, database='fa_db', host=db_host)
+        db_connection = db.connect(**db_info)
         cursor = db_connection.cursor()
-        cursor.execute("DELETE FROM WL_Geografisk_okir WHERE Navn = \'" + Navn + "\'", )
+        cursor.execute("DELETE FROM WL_Geografisk_okir WHERE Navn = %s", (Navn, ))
         db_connection.commit()
         cursor.execute("SELECT * FROM WL_Geografisk_okir")
         result = cursor.fetchall()
         dagfor_tree(result)
         db_connection.close()
 
-def innset(Navn, Stytting, Latmin, Latmax, Lonmin, Lonmax, db_user, db_password, db_host):
+def innset(Navn, Stytting, Latmin, Latmax, Lonmin, Lonmax, db_info):
     if Navn == '' or Stytting == '':
         tkinter.messagebox.showerror('Feilur', 'Navn ella stytting manglar')
     else:
-        db_connection = db.connect(user=db_user, password=db_password, database='fa_db', host=db_host)
+        db_connection = db.connect(**db_info)
         cursor = db_connection.cursor()
         db_connection.commit()
-        sqlNavn = (Navn, )
-        cursor.execute("SELECT * FROM WL_Geografisk_okir WHERE Navn=\'%s\'", sqlNavn)
+        cursor.execute("SELECT * FROM WL_Geografisk_okir WHERE Navn=%s", (Navn, ))
         result = cursor.fetchall()
         if result:
-            cursor.execute("DELETE FROM WL_Geografisk_okir WHERE Navn = \'" + Navn + "\'",)
+            cursor.execute("DELETE FROM WL_Geografisk_okir WHERE Navn =%s", (Navn, ))
         cursor.execute(
             "INSERT INTO WL_Geografisk_okir (Navn, Stytting, Latmin, Latmax, Lonmin, Lonmax) VALUES (%s, %s, %s, %s, %s, %s)",
             (Navn, Stytting, Latmin, Latmax, Lonmin, Lonmax))
@@ -183,20 +182,20 @@ breiddarlinjur=6
 def dagfor_tree(result):
     global punktir
     punktir.delete(*punktir.get_children())
-    for i in range(len(result)):
-        rekkja = result[i]
+    for item in result:
+        rekkja = item
         punktir.insert("", 0, text=rekkja[0], values=rekkja[1::])
     punktir.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
 
 
-def OnDoubleClick(event, tree, navnEntry, styttingEntry, latminEntry, latmaxEntry, lonminEntry, lonmaxEntry, db_host, db_user, db_password, fig, canvas):
+def OnDoubleClick(event, tree, navnEntry, styttingEntry, latminEntry, latmaxEntry, lonminEntry, lonmaxEntry, db_info, fig, canvas):
     item = tree.identify('item', event.x, event.y)
     item = tree.item(item, "text")
     navnEntry.delete(0, END)
     navnEntry.insert(0, item)
-    db_connection = db.connect(user=db_user, password=db_password, database='fa_db', host=db_host)
+    db_connection = db.connect(**db_info)
     cursor = db_connection.cursor()
-    cursor.execute("SELECT * FROM WL_Geografisk_okir WHERE Navn=\'" + item + "\'")
+    cursor.execute("SELECT * FROM WL_Geografisk_okir WHERE Navn=%s", (item, ))
     result = cursor.fetchall()
     db_connection.close()
     result = result[0]
