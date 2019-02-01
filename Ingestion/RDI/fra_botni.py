@@ -36,8 +36,8 @@ def UVPlot(frame, root2):
     menuFrame = Frame(frame)
     menuFrame.pack(side=TOP, fill=X, expand=False, anchor=N)
     Button(menuFrame, text='Vel Fílir', command=lambda: velFilir('.txt')).pack(side=LEFT)
-    Button(menuFrame, text='Tekna', command=lambda: UVtekna(canvas)).pack(side=LEFT)
-    Button(menuFrame, text='CLF', command=lambda: clear_figur(canvas)).pack(side=RIGHT)
+    Button(menuFrame, text='Tekna', command=lambda: UVtekna(canvas, ax)).pack(side=LEFT)
+    Button(menuFrame, text='CLF', command=lambda: clear_figur(canvas, ax)).pack(side=RIGHT)
     Button(menuFrame, text='Goym mynd', command=lambda: goymmynd(fig)).pack(side=RIGHT)
     log_frame = Frame(frame, height=300)
     log_frame.pack(fill=X, expand=False, side=BOTTOM, anchor=W)
@@ -46,7 +46,6 @@ def UVPlot(frame, root2):
     plot_frame = Frame(frame)
     plot_frame.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
     global fig
-    global ax
     fig = Figure(figsize=(8, 16), dpi=100)
     canvas = FigureCanvasTkAgg(fig, master=plot_frame)
     fig.clf()
@@ -55,7 +54,7 @@ def UVPlot(frame, root2):
     canvas.draw()
     canvas.get_tk_widget().pack(fill=BOTH, expand=1)
 
-def UVtekna(canvas):
+def UVtekna(canvas, ax):
     print('Teknar')
     global filnavn
     if 'U' in filnavn[0] or 'u' in filnavn[0]:
@@ -77,7 +76,6 @@ def UVtekna(canvas):
     x = np.array(x)
     y = np.array(y)
     a = np.average([y[i]/x[i] for i in range(len(x)) if x[i] != 0])
-    global ax
     ax.scatter(x, y, s=0.5, alpha=0.1, zorder=10)
     ax.set_ylim(-20, 20)
     ax.set_xlim(-20, 20)
@@ -101,8 +99,8 @@ def vk(frame, root2):
     menuFrame.pack(side=TOP, fill=X, expand=False, anchor=N)
     Button(menuFrame, text='Vel vindfíl', command=lambda: velFilir('.csv')).pack(side=LEFT)
     Button(menuFrame, text='Vel RDIfíl', command=vel_fil).pack(side=LEFT)
-    Button(menuFrame, text='Rokna', command=lambda: rokna_korr(v.get(), bin_entry.get(), canvas, False)).pack(side=LEFT)
-    Button(menuFrame, text='Rokna CSV', command=lambda: rokna_korr(v.get(), bin_entry.get(), canvas, True)).pack(side=LEFT)
+    Button(menuFrame, text='Rokna', command=lambda: rokna_korr(v.get(), bin_entry.get(), canvas, False, ax)).pack(side=LEFT)
+    Button(menuFrame, text='Rokna CSV', command=lambda: rokna_korr(v.get(), bin_entry.get(), canvas, True, ax)).pack(side=LEFT)
     Label(menuFrame, text='Bin:').pack(side=LEFT)
     bin_entry = Entry(menuFrame, width=3)
     bin_entry.pack(side=LEFT)
@@ -110,7 +108,7 @@ def vk(frame, root2):
     v = IntVar()
     Radiobutton(menuFrame, text='U', variable=v, value=1).pack(side=LEFT)
     Radiobutton(menuFrame, text='V', variable=v, value=2).pack(side=LEFT)
-    Button(menuFrame, text='CLF', command=lambda: clear_figur(canvas)).pack(side=RIGHT)
+    Button(menuFrame, text='CLF', command=lambda: clear_figur(canvas, ax)).pack(side=RIGHT)
     log_frame = Frame(frame, height=300)
     log_frame.pack(fill=X, expand=False, side=BOTTOM, anchor=W)
     gerlog(log_frame, root2)
@@ -118,7 +116,6 @@ def vk(frame, root2):
     plot_frame = Frame(frame)
     plot_frame.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
     global fig
-    global ax
     fig = Figure(figsize=(8, 16), dpi=100)
     canvas = FigureCanvasTkAgg(fig, master=plot_frame)
     fig.clf()
@@ -127,7 +124,7 @@ def vk(frame, root2):
     canvas.draw()
     canvas.get_tk_widget().pack(fill=BOTH, expand=1)
 
-def rokna_korr(aett, bin_index, canvas, roknaalt):
+def rokna_korr(aett, bin_index, canvas, roknaalt, ax):
     log_b()
     brange = bin_index
     if roknaalt:
@@ -191,7 +188,6 @@ def rokna_korr(aett, bin_index, canvas, roknaalt):
         std_err_a.append(std_err)
         brange_a.append(bin_i)
         global fig
-        global ax
         ax.scatter(xval, yval, s=0.5, alpha=0.2)
         xval = np.array(xval)
         print(type(xval))
@@ -225,12 +221,11 @@ def vel_fil():
                                                                  ("all files", "*.*"))).name
 
 
-def clear_figur(canvas):
+def clear_figur(canvas, ax):
     print('Slettar mynd')
     global fig
-    global ax
     fig.clf()
-    ax = fig.add_subplot(111)
+    fig.add_subplot(111)
     canvas.draw()
     canvas.get_tk_widget().pack(fill=BOTH, expand=1)
     if 'levels' in globals():
