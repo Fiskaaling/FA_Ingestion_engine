@@ -5,11 +5,20 @@ from tkinter import messagebox
 import datetime as dt
 import FA_DB_Interface.miscMatingar.db_ting as db
 import FA_DB_Interface.miscMatingar.Inset_fun as Insert_fun
+import FA_DB_Interface.miscMatingar.Dagfør_fun as Dagfør_fun
+
+
+def chosefun(tk_fun, setup_dict):
+    setup_dict['fun'] = tk_fun
+    if tk_fun == 'inset':
+        inset(setup_dict['funFrame'], setup_dict)
+    elif tk_fun == 'Dagfør':
+        Dagfør(setup_dict['funFrame'], setup_dict)
 
 def inset(frame, setup_dict):
     rudda(frame, setup_dict)
     tk_status = StringVar(frame, setup_dict['main_frame'])
-    choices_status = ['alt'] +  db.status(setup_dict)
+    choices_status = ['alt'] + db.status(setup_dict)
 
     if 'Upptikin' in choices_status:
         tk_status.set('Upptikin')
@@ -19,6 +28,13 @@ def inset(frame, setup_dict):
     fun_pop = OptionMenu(frame, tk_status, *choices_status, command=lambda x: insetlefttree(x, setup_dict))
     fun_pop.pack(side=LEFT)
     insetlefttree(tk_status.get(), setup_dict)
+
+def Dagfør(frame, setup_dict):
+    rudda(frame, setup_dict)
+    Button(frame, text='Print meg', command=lambda: print('meg')).pack(side=LEFT)
+    for x in setup_dict['dato']['Startdato'].values():
+        x.config(state=DISABLED)
+    Dagførlefttree(setup_dict)
 
 def insetlefttree(staus, setup_dict):
     Instromentir = db.listinstrumentir(staus, setup_dict)
@@ -31,13 +47,30 @@ def insetlefttree(staus, setup_dict):
     for x in Instromentir:
         lefttree.insert(x[2], 'end', text=x[0])
 
+def Dagførlefttree(setup_dict):
+    matingar = db.stopnull(setup_dict)
+    lefttree = setup_dict['lefttree']
+    for x in matingar:
+        lefttree.insert('', 'end', x[0], text= x[2].strftime('%d/%m-%Y') + ' ' + x[1])
+
 def rudda(frame, setup_dict):
-    pass
+    for widget in frame.winfo_children():
+        widget.destroy()
+    for widget in setup_dict['uppsetan_frame'].winfo_children():
+        widget.destroy()
+    setup_dict['lefttree'].delete(*setup_dict['lefttree'].get_children())
+    setup_dict['righttree'].delete(*setup_dict['righttree'].get_children())
+    for x in setup_dict['dato'].values():
+        for y in x.values():
+            y.config(state=NORMAL)
+            y.delete(0, END)
 
 def Doublelefttree(event, setup_dict):
     item = setup_dict['lefttree'].identify('item', event.x, event.y)
-    if setup_dict['fun'] == 'Inset':
+    if setup_dict['fun'] == 'inset':
         Insert_fun.doublelefttree(item, setup_dict)
+    elif setup_dict['fun'] == 'Dagfør':
+        Dagfør_fun.doublelefttree(item, setup_dict)
 
 def velfilir(setup_dict):
     # TODO møguliga datatypan hevur okkurt við instromenti at gera
@@ -60,7 +93,7 @@ def velmappu(setup_dict):
             setup_dict['righttree'].insert(temp, 'end', x, text=x.split('/')[-1])
 
 def update_db(setup_dict):
-    if setup_dict['fun'] == 'Inset':
+    if setup_dict['fun'] == 'inset':
         Insert_fun.update_db(setup_dict)
 
 def geruppsetan(setup_dict):

@@ -57,3 +57,30 @@ def insetmating(setup_dict, id, destdir):
     db_connection.commit()
 
     db_connection.disconnect()
+
+def stopnull(setup_dict):
+    db_connection, cursor = fadblogin(setup_dict)
+    cursor.execute("SELECT id, Mátari, Start_tid FROM mátingar WHERE Stop_tid is NULL ORDER BY Start_tid")
+    out = cursor.fetchall()
+    db_connection.disconnect()
+    return out
+
+def getdatepath(id, setup_dict):
+    db_connection, cursor = fadblogin(setup_dict)
+    cursor.execute("SELECT Start_tid, Path_to_data FROM mátingar WHERE id=%s", (id,))
+    out = cursor.fetchone()
+    db_connection.disconnect()
+    return out
+
+def Dagførupp(id, setup_dict):
+    db_connection, cursor = fadblogin(setup_dict)
+
+    cursor.execute("SELECT Mátari FROM mátingar where id=%s", (id,))
+    Mátari = cursor.fetchone()[0]
+    cursor.execute("SELECT møgulig_uppseting_ID, Uppseting_Navn, std_uppseting FROM møguligar_uppsetingar"
+                   " WHERE Instrument_Navn=%s", (Mátari,))
+    Møguligarupp = cursor.fetchall()
+    cursor.execute("SELECT uppseting, virði FROM uppsetingar WHERE uppseting_id=%s", (id,))
+    upp = cursor.fetchall()
+    db_connection.disconnect()
+    return Møguligarupp, upp

@@ -6,8 +6,8 @@ import FA_DB_Interface.miscMatingar.Inset_fun as in_fun
 
 def setupmenuframe(frame, setup_dict):
     tk_fun = StringVar(frame, setup_dict['main_frame'])
-    tk_fun.set('Inset')
-    fun_pop = OptionMenu(frame, tk_fun, 'Inset', 'Dagfør', command=print) #skift setup_dict['fun']
+    tk_fun.set('inset')
+    fun_pop = OptionMenu(frame, tk_fun, 'inset', 'Dagfør', command=lambda x: fun.chosefun(x, setup_dict))
     fun_pop.pack(side=LEFT)
     setup_dict['fun'] = tk_fun.get()
 
@@ -15,7 +15,6 @@ def setupmenuframe(frame, setup_dict):
     Button(frame, text='Vel mappu', command=lambda: fun.velmappu(setup_dict)).pack(side=LEFT)
     Button(frame, text='koyr inn í DB', command=lambda: fun.update_db(setup_dict)).pack(side=LEFT)
     Button(frame, text='print', command=lambda: pprint(setup_dict)).pack(side=LEFT)
-
 
 def setuplefttree(frame, setup_dict):
     tree = ttk.Treeview(frame)

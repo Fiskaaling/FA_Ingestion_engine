@@ -52,5 +52,4 @@ def inset_matingar(frame, db_host='192.168.43.94', db_user='trondur', db_passwor
     setup_dict['uppsetan_frame'] = uppsetan_frame
 
     init_fun.inset(funFrame, setup_dict)
-
-    pprint.pprint(setup_dict)
+    setup_dict['funFrame'] = funFrame
