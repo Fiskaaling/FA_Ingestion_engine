@@ -11,8 +11,12 @@ def doublelefttree(id, setup_dict):
     setup_dict['inniliggjandifilir'] = []
     righttree = setup_dict['righttree']
     righttree.delete(*righttree.get_children())
-    print(id)
     temp = db.getdatepath(id, setup_dict)
+    uppdateraDate(temp, setup_dict)
+    uppdaterarighttree(righttree, temp, setup_dict)
+    uppdateraupp(id, setup_dict)
+
+def uppdateraDate(temp, setup_dict):
     Date = setup_dict['dato']['Startdato']
     for x in Date.values():
         x.config(state=NORMAL)
@@ -24,10 +28,10 @@ def doublelefttree(id, setup_dict):
     Date['D'].insert(0, temp[0].day)
     for x in Date.values():
         x.config(state=DISABLED)
-    print(temp)
+
+def uppdaterarighttree(righttree, temp, setup_dict):
     path = setup_dict['Path_to_RawData'] + '/' + temp[1]
     temp = os.listdir(path)
-    print(temp)
     for x in temp:
         try:
             files = os.listdir(path + '/' + x)
@@ -38,9 +42,20 @@ def doublelefttree(id, setup_dict):
         except NotADirectoryError:
             righttree.insert('', 'end', text=x)
             setup_dict['inniliggjandifilir'].append(x)
+
+def uppdateraupp(id, setup_dict):
     Møguligarupp, upp = db.Dagførupp(id, setup_dict)
-    print('\n\n')
-    print(Møguligarupp)
-    print('\n\n')
-    print(upp)
-    #TODO uppsetingar
+    frame = setup_dict['uppsetan_frame']
+    for widget in frame.winfo_children():
+        widget.destroy()
+    setup_dict['uppsetwid'] = {}
+    i = 0
+    for x in Møguligarupp:
+        Label(frame, text=x[0]).grid(row=i)
+        setup_dict['uppsetwid'][x[0]] = Entry(frame)
+        setup_dict['uppsetwid'][x[0]].insert(END, x[2])
+        setup_dict['uppsetwid'][x[0]].grid(row=i, column=1)
+        i += 1
+    for x in upp:
+        setup_dict['uppsetwid'][x[0]].delete(0, END)
+        setup_dict['uppsetwid'][x[0]].insert(END, x[1])

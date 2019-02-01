@@ -51,7 +51,7 @@ def Dagførlefttree(setup_dict):
     matingar = db.stopnull(setup_dict)
     lefttree = setup_dict['lefttree']
     for x in matingar:
-        lefttree.insert('', 'end', x[0], text= x[2].strftime('%d/%m-%Y') + ' ' + x[1])
+        lefttree.insert('', 'end', x[0], text=x[2].strftime('%d/%m-%Y') + ' ' + x[1])
 
 def rudda(frame, setup_dict):
     for widget in frame.winfo_children():
