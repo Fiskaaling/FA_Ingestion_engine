@@ -71,7 +71,7 @@ def UVtekna(canvas):
         tmp1 = np.array(udata[str(j)])
         tmp2 = np.array(vdata[str(j)])
         print(tmp1)
-        for i in range(len(tmp1)):
+        for i, item in enumerate(tmp1):
             if not np.isnan(tmp1[i]):
                 x.append(tmp1[i]/10)
                 y.append(tmp2[i]/10)
@@ -103,7 +103,7 @@ def vk(frame, root2):
     menuFrame = Frame(frame)
     menuFrame.pack(side=TOP, fill=X, expand=False, anchor=N)
     Button(menuFrame, text='Vel vindfíl', command=lambda: velFilir('.csv')).pack(side=LEFT)
-    Button(menuFrame, text='Vel RDIfíl', command=lambda: vel_fil()).pack(side=LEFT)
+    Button(menuFrame, text='Vel RDIfíl', command=vel_fil).pack(side=LEFT)
     Button(menuFrame, text='Rokna', command=lambda: rokna_korr(v.get(), bin_entry.get(), canvas, False)).pack(side=LEFT)
     Button(menuFrame, text='Rokna CSV', command=lambda: rokna_korr(v.get(), bin_entry.get(), canvas, True)).pack(side=LEFT)
     Label(menuFrame, text='Bin:').pack(side=LEFT)
@@ -144,7 +144,7 @@ def rokna_korr(aett, bin_index, canvas, roknaalt):
         if roknaalt:
             try:
                 streymData = df[str(brange[bin_i])]
-            except:
+            except IndexError:
                 break
         else:
             streymData = df[bin_index]
@@ -182,7 +182,7 @@ def rokna_korr(aett, bin_index, canvas, roknaalt):
         maxvinddate = np.max(vindMDdate)
         xval = []
         yval = []
-        for i in range(len(streymData)):
+        for i, item in enumerate(streymData):
             if date[i] != 0 and date[i] > minvinddate and date[i] < maxvinddate and not np.isnan(streymData[i]):
                 xval.append(streymData[i])
                 yval.append(f(date[i]))
