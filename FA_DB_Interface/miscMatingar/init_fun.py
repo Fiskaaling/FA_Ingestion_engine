@@ -78,23 +78,28 @@ def velfilir(setup_dict):
                                        filetypes=(("all files", "*.*"), ("txt files", "*.txt")))
     # TODO veit ikki um hettar riggar í windows also split parturin
     for x in list(temp):
-        if x not in setup_dict['innsettirfilir']:
+        if x not in setup_dict['innsettirfilir'] and x.split('/')[-1] not in setup_dict['inniliggjandifilir']:
             setup_dict['innsettirfilir'].append(x)
-            setup_dict['righttree'].insert('', 'end', x, text=x.split('/')[-1], tags=('newfile',))
-            #setup_dict['righttree'].tag_configure('ny', background='blue')
+            setup_dict['righttree'].insert('', 'end', x, text=x.split('/')[-1])
+        else:
+            messagebox.showwarning('Feilur', 'Har er ein fýla sum eitur ' + x.split('/')[-1])
 
 def velmappu(setup_dict):
     temp = filedialog.askdirectory()
     #TODO veit ikki um hettar riggar í windows also split parturin
-    if temp not in setup_dict['innsettarmappir']:
+    if temp not in setup_dict['innsettarmappir'] and temp.split('/')[-1] not in setup_dict['inniliggjandimappir']:
         setup_dict['innsettarmappir'].append(temp)
         setup_dict['righttree'].insert('', 0, temp, text=temp.split('/')[-1])
         for x in os.listdir(temp):
             setup_dict['righttree'].insert(temp, 'end', x, text=x.split('/')[-1])
+    else:
+        messagebox.showwarning('Feilur', 'Har er ein mappa sum eitur ' + temp.split('/')[-1])
 
 def update_db(setup_dict):
     if setup_dict['fun'] == 'inset':
         Insert_fun.update_db(setup_dict)
+    elif setup_dict['fun'] == 'Dagfør':
+        Dagfør_fun.update_db(setup_dict)
 
 def geruppsetan(setup_dict):
     temp = setup_dict['uppsetwid'].copy()
