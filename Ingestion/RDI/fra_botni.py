@@ -27,9 +27,8 @@ def check_click(item, RightFrame, root):
         #wrose(RightFrame, root)
         print('ok')
 
+
 def UVPlot(frame, root2):
-    global root
-    root = root2
     for widget in frame.winfo_children():
         widget.destroy()
     Label(frame, text='RDI Streymmátari', font='Helvetica 18 bold').pack(side=TOP)
@@ -42,7 +41,7 @@ def UVPlot(frame, root2):
     Button(menuFrame, text='Goym mynd', command=lambda: goymmynd(fig)).pack(side=RIGHT)
     log_frame = Frame(frame, height=300)
     log_frame.pack(fill=X, expand=False, side=BOTTOM, anchor=W)
-    gerlog(log_frame, root)
+    gerlog(log_frame, root2)
 
     plot_frame = Frame(frame)
     plot_frame.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
@@ -94,8 +93,6 @@ def UVtekna(canvas):
     canvas.draw()
 
 def vk(frame, root2):
-    global root
-    root = root2
     for widget in frame.winfo_children():
         widget.destroy()
     Label(frame, text='RDI Streymmátari', font='Helvetica 18 bold').pack(side=TOP)
@@ -116,7 +113,7 @@ def vk(frame, root2):
     Button(menuFrame, text='CLF', command=lambda: clear_figur(canvas)).pack(side=RIGHT)
     log_frame = Frame(frame, height=300)
     log_frame.pack(fill=X, expand=False, side=BOTTOM, anchor=W)
-    gerlog(log_frame, root)
+    gerlog(log_frame, root2)
 
     plot_frame = Frame(frame)
     plot_frame.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
@@ -243,7 +240,7 @@ def clear_figur(canvas):
 
 def goymmynd(fig):
     log_b()
-    filnavn = filedialog.asksaveasfilename(parent=root, title="Goym mynd",  filetypes=(("png Fílur", "*.png"), ("jpg Fílur", "*.jpg")))
+    filnavn = filedialog.asksaveasfilename(title="Goym mynd",  filetypes=(("png Fílur", "*.png"), ("jpg Fílur", "*.jpg")))
     print('Goymir mynd')
     fig.savefig(filnavn, dpi=600, bbox_inches='tight')
     print('Liðugt')
