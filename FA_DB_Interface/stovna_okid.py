@@ -38,7 +38,7 @@ def stovna_okid(frame, root2, db_info, mating_id=1):
     stovnaButton = Button(buttonsFrame, text='Stovna Punkt', command=lambda: innset(idEntry.get(), Okidvariable.get(), latEntry.get(), lonEntry.get(), waypointEntry.get(), dypidEntry.get(), CRSvariable.get(), db_info))
     stovnaButton.pack(side=RIGHT, anchor=N)
 
-    strikaButton = Button(buttonsFrame, text='Strika Punkt', command=lambda: strika(navnEntry.get(), db_user, db_password, db_host))
+    strikaButton = Button(buttonsFrame, text='Strika Punkt', command=lambda: strika(idLabel_var.get(), db_info))
     strikaButton.pack(side=RIGHT, anchor=N)
 
 
@@ -167,16 +167,14 @@ scatter_std=100""" + scatter_string
 
     db_connection.disconnect()
 
-
-
-def strika(Navn, db_user, db_password, db_host):
-    sletta = tkinter.messagebox.askquestion("Strika " + Navn, "Ert tú sikkur?", icon='warning')
+def strika(OKID_ID, db_info):
+    sletta = tkinter.messagebox.askquestion("Strika " + OKID_ID, "Ert tú sikkur?", icon='warning')
     if sletta == 'yes':
-        db_connection = db.connect(user=db_user, password=db_password, database='fa_db', host=db_host)
+        db_connection = db.connect(**db_info)
         cursor = db_connection.cursor()
-        cursor.execute("DELETE FROM WL_Geografisk_okir WHERE Navn = \'" + Navn + "\'", )
+        cursor.execute("DELETE FROM Økir WHERE ID = %s", (OKID_ID, ))
         db_connection.commit()
-        cursor.execute("SELECT * FROM WL_Geografisk_okir")
+        cursor.execute("SELECT * FROM Økir")
         result = cursor.fetchall()
         dagfor_tree(result)
         db_connection.close()
