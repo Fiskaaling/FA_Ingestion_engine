@@ -84,3 +84,16 @@ def Dagførupp(id, setup_dict):
     upp = cursor.fetchall()
     db_connection.disconnect()
     return Møguligarupp, upp
+
+def uppdatedb(setup_dict):
+    db_connection, cursor = fadblogin(setup_dict)
+
+    if setup_dict['Utfiltdato']['Enddato'] != None:
+        cursor.execute("UPDATE mátingar SET Stop_tid = %s WHERE id=%s",
+                       (setup_dict['Utfiltdato']['Enddato'], setup_dict['id']))
+    #TODO hettar kemur ikki at rigga um man setur níggjar møguligar uppsetaninr inn
+    for x in setup_dict['uppsetan'].keys():
+        cursor.execute("UPDATE uppsetingar SET virði = %s WHERE uppseting_id = %s AND uppseting = %s",
+                       (setup_dict['uppsetan'][x], setup_dict['id'], x))
+    db_connection.commit()
+    db_connection.disconnect()
