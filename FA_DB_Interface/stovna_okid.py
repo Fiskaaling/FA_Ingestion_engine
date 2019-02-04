@@ -298,8 +298,8 @@ scatter_std=100
 def dagfor_tree(result):
     global punktir
     punktir.delete(*punktir.get_children())
-    for i in range(len(result)):
-        rekkja = result[i]
+    for item in result:
+        rekkja = item
         punktir.insert("", 0, text=rekkja[0], values=rekkja[1::])
     punktir.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
 
