@@ -51,6 +51,7 @@ def velFil():
     filnavn = filedialog.askopenfile(title='Vel fíl', filetypes = (("csv Fílir", "*.csv"), ("all files", "*.*"))).name
     print(filnavn)
 
+
 def tekna(fig, canvas, index):
     fig.clf()
     ax = fig.subplots()

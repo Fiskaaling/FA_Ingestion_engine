@@ -27,9 +27,8 @@ def check_click(item, RightFrame, root):
         #wrose(RightFrame, root)
         print('ok')
 
+
 def UVPlot(frame, root2):
-    global root
-    root = root2
     for widget in frame.winfo_children():
         widget.destroy()
     Label(frame, text='RDI Streymmátari', font='Helvetica 18 bold').pack(side=TOP)
@@ -37,17 +36,16 @@ def UVPlot(frame, root2):
     menuFrame = Frame(frame)
     menuFrame.pack(side=TOP, fill=X, expand=False, anchor=N)
     Button(menuFrame, text='Vel Fílir', command=lambda: velFilir('.txt')).pack(side=LEFT)
-    Button(menuFrame, text='Tekna', command=lambda: UVtekna(canvas)).pack(side=LEFT)
+    Button(menuFrame, text='Tekna', command=lambda: UVtekna(canvas, ax)).pack(side=LEFT)
     Button(menuFrame, text='CLF', command=lambda: clear_figur(canvas)).pack(side=RIGHT)
     Button(menuFrame, text='Goym mynd', command=lambda: goymmynd(fig)).pack(side=RIGHT)
     log_frame = Frame(frame, height=300)
     log_frame.pack(fill=X, expand=False, side=BOTTOM, anchor=W)
-    gerlog(log_frame, root)
+    gerlog(log_frame, root2)
 
     plot_frame = Frame(frame)
     plot_frame.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
     global fig
-    global ax
     fig = Figure(figsize=(8, 16), dpi=100)
     canvas = FigureCanvasTkAgg(fig, master=plot_frame)
     fig.clf()
@@ -56,7 +54,7 @@ def UVPlot(frame, root2):
     canvas.draw()
     canvas.get_tk_widget().pack(fill=BOTH, expand=1)
 
-def UVtekna(canvas):
+def UVtekna(canvas, ax):
     print('Teknar')
     global filnavn
     if 'U' in filnavn[0] or 'u' in filnavn[0]:
@@ -71,14 +69,13 @@ def UVtekna(canvas):
         tmp1 = np.array(udata[str(j)])
         tmp2 = np.array(vdata[str(j)])
         print(tmp1)
-        for i in range(len(tmp1)):
+        for i, item in enumerate(tmp1):
             if not np.isnan(tmp1[i]):
                 x.append(tmp1[i]/10)
                 y.append(tmp2[i]/10)
     x = np.array(x)
     y = np.array(y)
     a = np.average([y[i]/x[i] for i in range(len(x)) if x[i] != 0])
-    global ax
     ax.scatter(x, y, s=0.5, alpha=0.1, zorder=10)
     ax.set_ylim(-20, 20)
     ax.set_xlim(-20, 20)
@@ -94,8 +91,6 @@ def UVtekna(canvas):
     canvas.draw()
 
 def vk(frame, root2):
-    global root
-    root = root2
     for widget in frame.winfo_children():
         widget.destroy()
     Label(frame, text='RDI Streymmátari', font='Helvetica 18 bold').pack(side=TOP)
@@ -103,9 +98,9 @@ def vk(frame, root2):
     menuFrame = Frame(frame)
     menuFrame.pack(side=TOP, fill=X, expand=False, anchor=N)
     Button(menuFrame, text='Vel vindfíl', command=lambda: velFilir('.csv')).pack(side=LEFT)
-    Button(menuFrame, text='Vel RDIfíl', command=lambda: vel_fil()).pack(side=LEFT)
-    Button(menuFrame, text='Rokna', command=lambda: rokna_korr(v.get(), bin_entry.get(), canvas, False)).pack(side=LEFT)
-    Button(menuFrame, text='Rokna CSV', command=lambda: rokna_korr(v.get(), bin_entry.get(), canvas, True)).pack(side=LEFT)
+    Button(menuFrame, text='Vel RDIfíl', command=vel_fil).pack(side=LEFT)
+    Button(menuFrame, text='Rokna', command=lambda: rokna_korr(v.get(), bin_entry.get(), canvas, False, ax)).pack(side=LEFT)
+    Button(menuFrame, text='Rokna CSV', command=lambda: rokna_korr(v.get(), bin_entry.get(), canvas, True, ax)).pack(side=LEFT)
     Label(menuFrame, text='Bin:').pack(side=LEFT)
     bin_entry = Entry(menuFrame, width=3)
     bin_entry.pack(side=LEFT)
@@ -116,12 +111,11 @@ def vk(frame, root2):
     Button(menuFrame, text='CLF', command=lambda: clear_figur(canvas)).pack(side=RIGHT)
     log_frame = Frame(frame, height=300)
     log_frame.pack(fill=X, expand=False, side=BOTTOM, anchor=W)
-    gerlog(log_frame, root)
+    gerlog(log_frame, root2)
 
     plot_frame = Frame(frame)
     plot_frame.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
     global fig
-    global ax
     fig = Figure(figsize=(8, 16), dpi=100)
     canvas = FigureCanvasTkAgg(fig, master=plot_frame)
     fig.clf()
@@ -130,7 +124,7 @@ def vk(frame, root2):
     canvas.draw()
     canvas.get_tk_widget().pack(fill=BOTH, expand=1)
 
-def rokna_korr(aett, bin_index, canvas, roknaalt):
+def rokna_korr(aett, bin_index, canvas, roknaalt, ax):
     log_b()
     brange = bin_index
     if roknaalt:
@@ -144,7 +138,7 @@ def rokna_korr(aett, bin_index, canvas, roknaalt):
         if roknaalt:
             try:
                 streymData = df[str(brange[bin_i])]
-            except:
+            except IndexError:
                 break
         else:
             streymData = df[bin_index]
@@ -182,7 +176,7 @@ def rokna_korr(aett, bin_index, canvas, roknaalt):
         maxvinddate = np.max(vindMDdate)
         xval = []
         yval = []
-        for i in range(len(streymData)):
+        for i, item in enumerate(streymData):
             if date[i] != 0 and date[i] > minvinddate and date[i] < maxvinddate and not np.isnan(streymData[i]):
                 xval.append(streymData[i])
                 yval.append(f(date[i]))
@@ -194,7 +188,6 @@ def rokna_korr(aett, bin_index, canvas, roknaalt):
         std_err_a.append(std_err)
         brange_a.append(bin_i)
         global fig
-        global ax
         ax.scatter(xval, yval, s=0.5, alpha=0.2)
         xval = np.array(xval)
         print(type(xval))
@@ -231,9 +224,8 @@ def vel_fil():
 def clear_figur(canvas):
     print('Slettar mynd')
     global fig
-    global ax
     fig.clf()
-    ax = fig.add_subplot(111)
+    fig.add_subplot(111)
     canvas.draw()
     canvas.get_tk_widget().pack(fill=BOTH, expand=1)
     if 'levels' in globals():
@@ -243,7 +235,7 @@ def clear_figur(canvas):
 
 def goymmynd(fig):
     log_b()
-    filnavn = filedialog.asksaveasfilename(parent=root, title="Goym mynd",  filetypes=(("png Fílur", "*.png"), ("jpg Fílur", "*.jpg")))
+    filnavn = filedialog.asksaveasfilename(title="Goym mynd",  filetypes=(("png Fílur", "*.png"), ("jpg Fílur", "*.jpg")))
     print('Goymir mynd')
     fig.savefig(filnavn, dpi=600, bbox_inches='tight')
     print('Liðugt')
