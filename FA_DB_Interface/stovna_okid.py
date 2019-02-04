@@ -1,10 +1,11 @@
 import tkinter.messagebox
 import tkinter.ttk as ttk
+from tkinter import filedialog
 import numpy as np
 import mysql.connector as db
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
-
+import pandas as pd
 import Processing.tekna_kort
 from misc.faLog import *
 
@@ -31,9 +32,11 @@ def stovna_okid(frame, root2, db_info, mating_id=1):
     buttonsFrame = Frame(controlsFrame)
     buttonsFrame.pack(side=TOP, fill=X)
 
-    teknaButton = Button(buttonsFrame, text='Tekna', command=lambda: tekna(fig, canvas, latEntry.get(), lonEntry.get(),
-                                                                           db_info, idEntry.get()))
+    teknaButton = Button(buttonsFrame, text='Tekna', command=lambda: dagfor_kort(fig, canvas, latEntry.get(), lonEntry.get()))
     teknaButton.pack(side=LEFT, anchor=N)
+
+    csvButton = Button(buttonsFrame, text='Les frá CSV', command=lambda: lesfraCSV(fig, canvas, Okidvariable, db_info, punktir))
+    csvButton.pack(side=LEFT, anchor=N)
 
     stovnaButton = Button(buttonsFrame, text='Stovna Punkt', command=lambda: innset(idEntry.get(), Okidvariable.get(), latEntry.get(), lonEntry.get(), waypointEntry.get(), dypidEntry.get(), CRSvariable.get(), db_info))
     stovnaButton.pack(side=RIGHT, anchor=N)
@@ -167,6 +170,37 @@ scatter_std=100""" + scatter_string
 
     db_connection.disconnect()
 
+def lesfraCSV(fig, canvas, Okidvariable, db_info, tree):
+    filnavn = filedialog.askopenfile(parent=root, title='Les inn csv fíl',
+                                     filetypes=(('csv fíl', '*.csv'), ('Allir fílir', '*.*')))
+    data = pd.read_csv(filnavn.name, skiprows=22)
+    endLinesToDelete = 0
+    scatter_string = '\n'
+    lonData = data['lon']
+    for i, item in enumerate(data['lat']):
+        print(item)
+        if np.isnan(float(item)):
+            break
+        else:
+            scatter_string = scatter_string + 'scatter=' + item + ',' + lonData[i] + '\n'
+            endLinesToDelete += 1
+
+    scatter_string = scatter_string + 'scatter_farv=red'
+
+    db_connection = db.connect(**db_info)
+
+    cursor = db_connection.cursor()
+    cursor.execute("SELECT * FROM WL_Geografisk_okir WHERE Navn=%s", (Okidvariable.get(),))
+    geo_result = cursor.fetchall()
+    geookid = geo_result[0]
+    db_connection.disconnect()
+    tekna(fig, canvas, geookid[2], geookid[3], geookid[4], geookid[5], scatter_string)
+
+
+
+    print(data)
+    print(data['lat'])
+
 def strika(OKID_ID, db_info):
     sletta = tkinter.messagebox.askquestion("Strika " + OKID_ID, "Ert tú sikkur?", icon='warning')
     if sletta == 'yes':
@@ -211,7 +245,22 @@ def innset(id_string, Okidvariable, latEntry, lonEntry, waypointEntry, dypidEntr
         db_connection.close()
 
 
-
+def dagfor_kort(fig, canvas, latEntry, lonEntry):
+    tekstur = """
+clf\n
+latmax=""" + str(float(latEntry)+0.2) + """
+latmin=""" + str(float(latEntry)-0.2) + """
+lonmin=""" + str(float(lonEntry)-0.2) + """
+lonmax=""" + str(float(lonEntry)+0.2) + """
+Tekna kort
+linjuSlag=eingin
+longdarlinjur=5
+breiddarlinjur=6
+scatter_std=100
+scatter=""" + latEntry + ',' + lonEntry + """
+"""
+    print(tekstur)
+    Processing.tekna_kort.les_og_tekna(tekstur, fig, canvas, True)
 
 def tekna(fig, canvas, Latmin, Latmax, Lonmin, Lonmax, Additional_commands):
     tekstur = """
@@ -263,9 +312,6 @@ def OnDoubleClick(event, arg, idLabel_var, idEntry, CRSvariable, Okidvariable, l
     CRSvariable.set(result[7])
     if Okidvariable.get() != result[2]:
         Okidvariable.set(result[2])
-
-    print(Okidvariable.get())
-    cursor = db_connection.cursor()
     cursor.execute("SELECT * FROM WL_Geografisk_okir WHERE Navn=%s", (Okidvariable.get(),))
     geo_result = cursor.fetchall()
     geookid = geo_result[0]
