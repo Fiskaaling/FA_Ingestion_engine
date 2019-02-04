@@ -11,8 +11,6 @@ from misc.faLog import *
 
 
 def stovna_okid(frame, root2, db_info, mating_id=1):
-    global root
-    root = root2
     for widget in frame.winfo_children():
         widget.destroy()
     Label(frame, text='Stovna nýtt økið', font='Helvetica 18 bold').pack(side=TOP)
@@ -38,10 +36,10 @@ def stovna_okid(frame, root2, db_info, mating_id=1):
     csvButton = Button(buttonsFrame, text='Les frá CSV', command=lambda: lesfraCSV(idEntry.get(), fig, canvas, Okidvariable, db_info, punktir, CRSvariable.get()))
     csvButton.pack(side=LEFT, anchor=N)
 
-    stovnaButton = Button(buttonsFrame, text='Stovna Punkt', command=lambda: innset(idEntry.get(), Okidvariable.get(), latEntry.get(), lonEntry.get(), waypointEntry.get(), dypidEntry.get(), CRSvariable.get(), db_info))
+    stovnaButton = Button(buttonsFrame, text='Stovna Punkt', command=lambda: innset(idEntry.get(), Okidvariable.get(), latEntry.get(), lonEntry.get(), waypointEntry.get(), dypidEntry.get(), CRSvariable.get(), db_info, punktir))
     stovnaButton.pack(side=RIGHT, anchor=N)
 
-    strikaButton = Button(buttonsFrame, text='Strika Punkt', command=lambda: strika(idLabel_var.get(), db_info))
+    strikaButton = Button(buttonsFrame, text='Strika Punkt', command=lambda: strika(idLabel_var.get(), db_info, punktir))
     strikaButton.pack(side=RIGHT, anchor=N)
 
 
@@ -124,7 +122,6 @@ def stovna_okid(frame, root2, db_info, mating_id=1):
 
     kortFrame = Frame(lframe)
     kortFrame.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
-    global punktir
     punktir = ttk.Treeview(rframe)
     punktir.bind("<Double-1>", lambda event, arg=punktir: OnDoubleClick(event, arg, idLabel_var, idEntry, CRSvariable, Okidvariable, latEntry, lonEntry, waypointEntry, dypidEntry, punktir, fig, canvas, db_info))
     scrollbar = Scrollbar(rframe, orient=VERTICAL)
@@ -133,8 +130,6 @@ def stovna_okid(frame, root2, db_info, mating_id=1):
 
     #fig = Figure(figsize=(5, 6), dpi=100)
     fig = Figure()
-
-    global ax
     ax = fig.add_subplot(111)
     canvas = FigureCanvasTkAgg(fig, master=kortFrame)
 
@@ -143,7 +138,7 @@ def stovna_okid(frame, root2, db_info, mating_id=1):
 
     log_frame = Frame(frame, height=300)
     log_frame.pack(fill=X, expand=False, side=BOTTOM, anchor=W)
-    gerlog(log_frame, root)
+    gerlog(log_frame, root2)
 
     cursor.execute("SELECT * FROM Økir")
     result = cursor.fetchall()
@@ -156,7 +151,7 @@ def stovna_okid(frame, root2, db_info, mating_id=1):
     scatter_string = '\n'
     for item in result:
         scatter_string = scatter_string + 'scatter=' + item[3] + ',' + item[4] + '\n'
-    dagfor_tree(result)
+    dagfor_tree(result, punktir)
 
     tekstur = """
 clf
@@ -219,7 +214,7 @@ def lesfraCSV(id_string, fig, canvas, Okidvariable, db_info, tree, CRSvariable):
     print(data)
     print(data['lat'])
 
-def strika(OKID_ID, db_info):
+def strika(OKID_ID, db_info, punktir):
     sletta = tkinter.messagebox.askquestion("Strika " + OKID_ID, "Ert tú sikkur?", icon='warning')
     if sletta == 'yes':
         db_connection = db.connect(**db_info)
@@ -228,11 +223,11 @@ def strika(OKID_ID, db_info):
         db_connection.commit()
         cursor.execute("SELECT * FROM Økir")
         result = cursor.fetchall()
-        dagfor_tree(result)
+        dagfor_tree(result, punktir)
         db_connection.close()
 
 
-def innset(id_string, Okidvariable, latEntry, lonEntry, waypointEntry, dypidEntry, CRSvariable, db_info):
+def innset(id_string, Okidvariable, latEntry, lonEntry, waypointEntry, dypidEntry, CRSvariable, db_info, punktir):
     if latEntry == '' or lonEntry == '':
         tkinter.messagebox.showerror('Feilur', 'lat ella lon virði manglar')
     else:
@@ -259,7 +254,7 @@ def innset(id_string, Okidvariable, latEntry, lonEntry, waypointEntry, dypidEntr
         db_connection.commit()
         cursor.execute("SELECT * FROM Økir")
         result = cursor.fetchall()
-        dagfor_tree(result)
+        dagfor_tree(result, punktir)
         db_connection.close()
 
 
@@ -295,8 +290,8 @@ scatter_std=100
 """ + Additional_commands
     Processing.tekna_kort.les_og_tekna(tekstur, fig, canvas, True)
 
-def dagfor_tree(result):
-    global punktir
+
+def dagfor_tree(result, punktir):
     punktir.delete(*punktir.get_children())
     for item in result:
         rekkja = item
