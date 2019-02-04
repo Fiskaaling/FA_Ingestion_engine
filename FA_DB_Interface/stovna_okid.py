@@ -35,7 +35,7 @@ def stovna_okid(frame, root2, db_info, mating_id=1):
     teknaButton = Button(buttonsFrame, text='Tekna', command=lambda: dagfor_kort(fig, canvas, latEntry.get(), lonEntry.get()))
     teknaButton.pack(side=LEFT, anchor=N)
 
-    csvButton = Button(buttonsFrame, text='Les frá CSV', command=lambda: lesfraCSV(fig, canvas, Okidvariable, db_info, punktir))
+    csvButton = Button(buttonsFrame, text='Les frá CSV', command=lambda: lesfraCSV(idEntry.get(), fig, canvas, Okidvariable, db_info, punktir, CRSvariable.get()))
     csvButton.pack(side=LEFT, anchor=N)
 
     stovnaButton = Button(buttonsFrame, text='Stovna Punkt', command=lambda: innset(idEntry.get(), Okidvariable.get(), latEntry.get(), lonEntry.get(), waypointEntry.get(), dypidEntry.get(), CRSvariable.get(), db_info))
@@ -170,7 +170,7 @@ scatter_std=100""" + scatter_string
 
     db_connection.disconnect()
 
-def lesfraCSV(fig, canvas, Okidvariable, db_info, tree):
+def lesfraCSV(id_string, fig, canvas, Okidvariable, db_info, tree, CRSvariable):
     filnavn = filedialog.askopenfile(parent=root, title='Les inn csv fíl',
                                      filetypes=(('csv fíl', '*.csv'), ('Allir fílir', '*.*')))
     data = pd.read_csv(filnavn.name, skiprows=22)
@@ -195,8 +195,26 @@ def lesfraCSV(fig, canvas, Okidvariable, db_info, tree):
     geookid = geo_result[0]
     db_connection.disconnect()
     tekna(fig, canvas, geookid[2], geookid[3], geookid[4], geookid[5], scatter_string)
-
-
+    innset_var = tkinter.messagebox.askquestion("Innset mátingar", "Ert tú sikkur?", icon='warning')
+    if innset_var == 'yes':
+        waypoints = data['name']
+        db_connection = db.connect(**db_info)
+        cursor = db_connection.cursor()
+        for i, item in enumerate(data['lat']):
+            if np.isnan(float(item)):
+                break
+            else:
+                print(id_string)
+                print(Okidvariable.get())
+                print(item)
+                print(lonData[i])
+                print(waypoints[i])
+                print(CRSvariable)
+                cursor.execute(
+                    "INSERT INTO Økir (Máting_ID, Økið, Lat, Lon, Waypoint, Coordinate_Reference_System) VALUES (%s, %s, %s, %s, %s, %s)",
+                    (id_string, Okidvariable.get(), item, lonData[i], waypoints[i], CRSvariable))
+        db_connection.commit()
+        db_connection.disconnect()
 
     print(data)
     print(data['lat'])
