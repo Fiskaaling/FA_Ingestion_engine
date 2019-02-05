@@ -75,10 +75,10 @@ def strika(db_info, input_ord, tabell, ordTree):
         if sletta == 'yes':
             db_connection = db.connect(**db_info)
             cursor = db_connection.cursor()
-            cursor.execute("SELECT * FROM " + scrub(tabell))
+            cursor.execute("SELECT * FROM " + tabell)
             result = cursor.fetchall()
             kolonnir = cursor.column_names
-            sqlstring = "DELETE FROM `" + scrub(tabell) + "` WHERE `" + scrub(kolonnir[0]) + "` = '" + scrub(input_ord.get()) + "'"
+            sqlstring = "DELETE FROM `" + tabell + "` WHERE `" + kolonnir[0] + "` = '" + input_ord.get() + "'"
             try:
                 cursor.execute(sqlstring)
                 db_connection.commit()
@@ -88,7 +88,8 @@ def strika(db_info, input_ord, tabell, ordTree):
 
             input_ord.delete(0, tk.END)
             ordTree.delete(*ordTree.get_children())
-            cursor.execute("SELECT * FROM " + scrub(tabell))
+            #cursor.execute("SELECT * FROM " + scrub(tabell))
+            cursor.execute('SELECT * FROM {}'.format(tabell))
             result = cursor.fetchall()
             for word in result:
                 ordTree.insert("", 0, text=word[0])
