@@ -5,6 +5,9 @@ import tkinter.ttk as ttk
 import mysql.connector as db
 import mysql
 
+def scrub(table_name):
+    return ''.join( chr for chr in table_name if chr.isalnum() )
+
 def  wl_edtitor(frame, root, db_info):
     for widget in frame.winfo_children():
         widget.destroy()
@@ -66,16 +69,16 @@ def  wl_edtitor(frame, root, db_info):
     db_connection.disconnect()
 
 
-def strika(db_info, ord, tabell, ordTree):
-    if ord.get() != '':
-        sletta = tk.messagebox.askquestion("Strika " + ord.get(), "Ert tú sikkur?", icon='warning')
+def strika(db_info, input_ord, tabell, ordTree):
+    if input_ord.get() != '':
+        sletta = tk.messagebox.askquestion("Strika " + input_ord.get(), "Ert tú sikkur?", icon='warning')
         if sletta == 'yes':
             db_connection = db.connect(**db_info)
             cursor = db_connection.cursor()
-            cursor.execute("SELECT * FROM " + tabell)
+            cursor.execute("SELECT * FROM " + scrub(tabell))
             result = cursor.fetchall()
             kolonnir = cursor.column_names
-            sqlstring = "DELETE FROM `" + tabell + "` WHERE `" + kolonnir[0] + "` = '" + ord.get() + "'"
+            sqlstring = "DELETE FROM `" + scrub(tabell) + "` WHERE `" + scrub(kolonnir[0]) + "` = '" + scrub(input_ord.get()) + "'"
             try:
                 cursor.execute(sqlstring)
                 db_connection.commit()
@@ -83,9 +86,9 @@ def strika(db_info, ord, tabell, ordTree):
                 print("Striking miseyndaðist, tað er nokk onkurt í peikar á hettar\n\n" + str(err))
                 tk.messagebox.showerror("Error", "Striking miseyndaðist, tað er nokk onkurt í peikar á hettar\n\n" + str(err))
 
-            ord.delete(0, tk.END)
+            input_ord.delete(0, tk.END)
             ordTree.delete(*ordTree.get_children())
-            cursor.execute("SELECT * FROM " + tabell)
+            cursor.execute("SELECT * FROM " + scrub(tabell))
             result = cursor.fetchall()
             for word in result:
                 ordTree.insert("", 0, text=word[0])
@@ -93,17 +96,17 @@ def strika(db_info, ord, tabell, ordTree):
             db_connection.disconnect()
 
 
-def innset(db_info, ord, tabell, ordTree):
+def innset(db_info, input_ord, tabell, ordTree):
     db_connection = db.connect(**db_info)
     cursor = db_connection.cursor()
     cursor.execute("SELECT * FROM " + tabell)
     result = cursor.fetchall()
     kolonnir = cursor.column_names
-    sqlstring = "INSERT INTO " + tabell + " (" + kolonnir[0] + ") VALUES ('" + ord.get() + "')"
+    sqlstring = "INSERT INTO " + tabell + " (" + kolonnir[0] + ") VALUES ('" + input_ord.get() + "')"
     cursor.execute(sqlstring)
     db_connection.commit()
 
-    ord.delete(0, tk.END)
+    input_ord.delete(0, tk.END)
     ordTree.delete(*ordTree.get_children())
     cursor.execute("SELECT * FROM " + tabell)
     result = cursor.fetchall()
