@@ -33,7 +33,7 @@ def stovna_okid(frame, root2, db_info, mating_id=1):
     teknaButton = Button(buttonsFrame, text='Tekna', command=lambda: dagfor_kort(fig, canvas, latEntry.get(), lonEntry.get()))
     teknaButton.pack(side=LEFT, anchor=N)
 
-    csvButton = Button(buttonsFrame, text='Les frá CSV', command=lambda: lesfraCSV(idEntry.get(), fig, canvas, Okidvariable, db_info, punktir, CRSvariable.get()))
+    csvButton = Button(buttonsFrame, text='Les frá CSV', command=lambda: lesfraCSV(root2, idEntry.get(), fig, canvas, Okidvariable, db_info, punktir, CRSvariable.get()))
     csvButton.pack(side=LEFT, anchor=N)
 
     stovnaButton = Button(buttonsFrame, text='Stovna Punkt', command=lambda: innset(idEntry.get(), Okidvariable.get(), latEntry.get(), lonEntry.get(), waypointEntry.get(), dypidEntry.get(), CRSvariable.get(), db_info, punktir))
@@ -165,7 +165,7 @@ scatter_std=100""" + scatter_string
 
     db_connection.disconnect()
 
-def lesfraCSV(id_string, fig, canvas, Okidvariable, db_info, tree, CRSvariable):
+def lesfraCSV(root, id_string, fig, canvas, Okidvariable, db_info, tree, CRSvariable):
     filnavn = filedialog.askopenfile(parent=root, title='Les inn csv fíl',
                                      filetypes=(('csv fíl', '*.csv'), ('Allir fílir', '*.*')))
     data = pd.read_csv(filnavn.name, skiprows=22)
