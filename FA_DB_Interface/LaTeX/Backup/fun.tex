@@ -1,0 +1,31 @@
+\newlength{\parm} \newlength{\val} \newlength{\rum}
+\newlength{\parme} \newlength{\vale}
+\newlength{\parmt} \newlength{\valt}
+\newlength{\spe} \newlength{\spt}
+\newlength{\logic} \newlength{\lnull}
+
+\newcommand{\tomund}[1]{\underline{\hspace{#1}}}
+
+\newcommand{\eincol}[2]{
+\setlength{\parm}{\widthof{#1}}\setlength{\val}{\widthof{#2}}
+\setlength{\rum}{\textwidth /2 - \parm /2 - \val /2 - 2.5pt}
+\ifnum \rum>0
+#1\hfill\underline{\hspace{\rum}#2\hspace{\rum}}
+\else
+#1\\ \uline{#2}
+\fi
+}
+
+\newcommand{\tveycol}[4] {
+\setlength{\parme}{\widthof{#1}}\setlength{\vale}{\widthof{#2}}
+\setlength{\parmt}{\widthof{#3}}\setlength{\valt}{\widthof{#4}}
+\setlength{\spe}{\textwidth /4 - \parme /2 - \vale /2 - 2.5pt}
+\setlength{\spt}{\textwidth /4 - \parmt /2 - \valt /2 - 2.5pt} 
+\setlength{\logic}{\minof{\spe}{\spt}}
+\ifnum \logic>\lnull
+#1\underline{\hspace{\spe}#2\hspace{\spe}} \hfill #3\underline{\hspace{\spt}#4\hspace{\spt}}
+\else
+\eincol{#1}{#2}\\
+\eincol{#3}{#4}
+\fi
+}
