@@ -4,6 +4,9 @@ import shutil
 from FA_DB_Interface.miscMatingar import db_ting as db
 from FA_DB_Interface.miscMatingar import init_fun as fun
 from FA_DB_Interface import Matingar
+from FA_DB_Interface.miscMatingar import skrivapdf
+import time
+from pprint import pprint
 
 def doublelefttree(item, setup_dict):
     try:
@@ -13,7 +16,7 @@ def doublelefttree(item, setup_dict):
             int('error')
     except ValueError:
         return
-    print('hello')
+    setup_dict['typa'] = setup_dict['lefttree'].parent(item)
     velinstroment(setup_dict['lefttree'].item(item, "text"), setup_dict)
 
 def velinstroment(Navn, setup_dict):
@@ -22,6 +25,7 @@ def velinstroment(Navn, setup_dict):
         widget.destroy()
     setup_dict['Instroment'] = Navn
     temp = db.getuppsetanir(Navn, setup_dict)
+    setup_dict['uppsetan_nøvn'] = [[x[0], x[1]] for x in temp]
     setup_dict['uppsetwid'] = dict([(x[0], x[1]) for x in temp])
     temp = dict([(x[0], x[2]) for x in temp])
     i = 0
@@ -63,6 +67,7 @@ def update_db(setup_dict):
     #TODO tjekka um filenames er tómt
     #TODO tjekka um nakar filur eitur tað sama
     destdir += '/' + datamui
+    latex(setup_dict, id, 'deployment_sheet.pdf', raw + destdir)
 
     db.insetmating(setup_dict, id, destdir)
 
@@ -76,3 +81,13 @@ def update_db(setup_dict):
     #TODO skal sikkur koyra rudda
     Matingar.inset_matingar(setup_dict['main_frame'], setup_dict['login']['host'],
                    setup_dict['login']['user'], setup_dict['login']['password'])
+
+def latex(setup_dict, id, navn, dir):
+    fil = skrivapdf.birjan()
+    fil += skrivapdf.DepID('  ' + str(id) + '   ')
+    fil += skrivapdf.tveycol('typa:', setup_dict['typa'], 'Instroment', setup_dict['Instroment'])
+    for x in setup_dict['uppsetan_nøvn']:
+        if setup_dict['uppsetan'][x[0]] != '':
+            fil += skrivapdf.eincol(x[1] + ':', setup_dict['uppsetan'][x[0]])
+    fil += skrivapdf.endi()
+    skrivapdf.makepdf(fil, navn, dir)
