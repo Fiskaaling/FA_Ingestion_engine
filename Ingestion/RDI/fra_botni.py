@@ -37,7 +37,7 @@ def UVPlot(frame, root2):
     menuFrame.pack(side=TOP, fill=X, expand=False, anchor=N)
     Button(menuFrame, text='Vel Fílir', command=lambda: velFilir('.txt')).pack(side=LEFT)
     Button(menuFrame, text='Tekna', command=lambda: UVtekna(canvas, ax)).pack(side=LEFT)
-    Button(menuFrame, text='CLF', command=lambda: clear_figur(canvas, ax)).pack(side=RIGHT)
+    Button(menuFrame, text='CLF', command=lambda: clear_figur(canvas)).pack(side=RIGHT)
     Button(menuFrame, text='Goym mynd', command=lambda: goymmynd(fig)).pack(side=RIGHT)
     log_frame = Frame(frame, height=300)
     log_frame.pack(fill=X, expand=False, side=BOTTOM, anchor=W)
@@ -108,7 +108,7 @@ def vk(frame, root2):
     v = IntVar()
     Radiobutton(menuFrame, text='U', variable=v, value=1).pack(side=LEFT)
     Radiobutton(menuFrame, text='V', variable=v, value=2).pack(side=LEFT)
-    Button(menuFrame, text='CLF', command=lambda: clear_figur(canvas, ax)).pack(side=RIGHT)
+    Button(menuFrame, text='CLF', command=lambda: clear_figur(canvas)).pack(side=RIGHT)
     log_frame = Frame(frame, height=300)
     log_frame.pack(fill=X, expand=False, side=BOTTOM, anchor=W)
     gerlog(log_frame, root2)
@@ -221,7 +221,7 @@ def vel_fil():
                                                                  ("all files", "*.*"))).name
 
 
-def clear_figur(canvas, ax):
+def clear_figur(canvas):
     print('Slettar mynd')
     global fig
     fig.clf()

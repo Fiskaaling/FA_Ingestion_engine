@@ -1,17 +1,16 @@
 import tkinter.messagebox
 import tkinter.ttk as ttk
+from tkinter import filedialog
 import numpy as np
 import mysql.connector as db
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
-
+import pandas as pd
 import Processing.tekna_kort
 from misc.faLog import *
 
 
 def stovna_okid(frame, root2, db_info, mating_id=1):
-    global root
-    root = root2
     for widget in frame.winfo_children():
         widget.destroy()
     Label(frame, text='Stovna nýtt økið', font='Helvetica 18 bold').pack(side=TOP)
@@ -31,14 +30,16 @@ def stovna_okid(frame, root2, db_info, mating_id=1):
     buttonsFrame = Frame(controlsFrame)
     buttonsFrame.pack(side=TOP, fill=X)
 
-    teknaButton = Button(buttonsFrame, text='Tekna', command=lambda: tekna(fig, canvas, latEntry.get(), lonEntry.get(),
-                                                                           db_info, idEntry.get()))
+    teknaButton = Button(buttonsFrame, text='Tekna', command=lambda: dagfor_kort(fig, canvas, latEntry.get(), lonEntry.get()))
     teknaButton.pack(side=LEFT, anchor=N)
 
-    stovnaButton = Button(buttonsFrame, text='Stovna Punkt', command=lambda: innset(idEntry.get(), Okidvariable.get(), latEntry.get(), lonEntry.get(), waypointEntry.get(), dypidEntry.get(), CRSvariable.get(), db_info))
+    csvButton = Button(buttonsFrame, text='Les frá CSV', command=lambda: lesfraCSV(root2, idEntry.get(), fig, canvas, Okidvariable, db_info, punktir, CRSvariable.get()))
+    csvButton.pack(side=LEFT, anchor=N)
+
+    stovnaButton = Button(buttonsFrame, text='Stovna Punkt', command=lambda: innset(idEntry.get(), Okidvariable.get(), latEntry.get(), lonEntry.get(), waypointEntry.get(), dypidEntry.get(), CRSvariable.get(), db_info, punktir))
     stovnaButton.pack(side=RIGHT, anchor=N)
 
-    strikaButton = Button(buttonsFrame, text='Strika Punkt', command=lambda: strika(idLabel_var.get(), db_info))
+    strikaButton = Button(buttonsFrame, text='Strika Punkt', command=lambda: strika(idLabel_var.get(), db_info, punktir))
     strikaButton.pack(side=RIGHT, anchor=N)
 
 
@@ -121,7 +122,6 @@ def stovna_okid(frame, root2, db_info, mating_id=1):
 
     kortFrame = Frame(lframe)
     kortFrame.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
-    global punktir
     punktir = ttk.Treeview(rframe)
     punktir.bind("<Double-1>", lambda event, arg=punktir: OnDoubleClick(event, arg, idLabel_var, idEntry, CRSvariable, Okidvariable, latEntry, lonEntry, waypointEntry, dypidEntry, punktir, fig, canvas, db_info))
     scrollbar = Scrollbar(rframe, orient=VERTICAL)
@@ -130,8 +130,6 @@ def stovna_okid(frame, root2, db_info, mating_id=1):
 
     #fig = Figure(figsize=(5, 6), dpi=100)
     fig = Figure()
-
-    global ax
     ax = fig.add_subplot(111)
     canvas = FigureCanvasTkAgg(fig, master=kortFrame)
 
@@ -140,7 +138,7 @@ def stovna_okid(frame, root2, db_info, mating_id=1):
 
     log_frame = Frame(frame, height=300)
     log_frame.pack(fill=X, expand=False, side=BOTTOM, anchor=W)
-    gerlog(log_frame, root)
+    gerlog(log_frame, root2)
 
     cursor.execute("SELECT * FROM Økir")
     result = cursor.fetchall()
@@ -153,7 +151,7 @@ def stovna_okid(frame, root2, db_info, mating_id=1):
     scatter_string = '\n'
     for item in result:
         scatter_string = scatter_string + 'scatter=' + item[3] + ',' + item[4] + '\n'
-    dagfor_tree(result)
+    dagfor_tree(result, punktir)
 
     tekstur = """
 clf
@@ -167,7 +165,56 @@ scatter_std=100""" + scatter_string
 
     db_connection.disconnect()
 
-def strika(OKID_ID, db_info):
+def lesfraCSV(root, id_string, fig, canvas, Okidvariable, db_info, tree, CRSvariable):
+    filnavn = filedialog.askopenfile(parent=root, title='Les inn csv fíl',
+                                     filetypes=(('csv fíl', '*.csv'), ('Allir fílir', '*.*')))
+    data = pd.read_csv(filnavn.name, skiprows=22)
+    endLinesToDelete = 0
+    scatter_string = '\n'
+    lonData = data['lon']
+    for i, item in enumerate(data['lat']):
+        print(item)
+        if np.isnan(float(item)):
+            break
+        else:
+            scatter_string = scatter_string + 'scatter=' + item + ',' + lonData[i] + '\n'
+            endLinesToDelete += 1
+
+    scatter_string = scatter_string + 'scatter_farv=red'
+
+    db_connection = db.connect(**db_info)
+
+    cursor = db_connection.cursor()
+    cursor.execute("SELECT * FROM WL_Geografisk_okir WHERE Navn=%s", (Okidvariable.get(),))
+    geo_result = cursor.fetchall()
+    geookid = geo_result[0]
+    db_connection.disconnect()
+    tekna(fig, canvas, geookid[2], geookid[3], geookid[4], geookid[5], scatter_string)
+    innset_var = tkinter.messagebox.askquestion("Innset mátingar", "Ert tú sikkur?", icon='warning')
+    if innset_var == 'yes':
+        waypoints = data['name']
+        db_connection = db.connect(**db_info)
+        cursor = db_connection.cursor()
+        for i, item in enumerate(data['lat']):
+            if np.isnan(float(item)):
+                break
+            else:
+                print(id_string)
+                print(Okidvariable.get())
+                print(item)
+                print(lonData[i])
+                print(waypoints[i])
+                print(CRSvariable)
+                cursor.execute(
+                    "INSERT INTO Økir (Máting_ID, Økið, Lat, Lon, Waypoint, Coordinate_Reference_System) VALUES (%s, %s, %s, %s, %s, %s)",
+                    (id_string, Okidvariable.get(), item, lonData[i], waypoints[i], CRSvariable))
+        db_connection.commit()
+        db_connection.disconnect()
+
+    print(data)
+    print(data['lat'])
+
+def strika(OKID_ID, db_info, punktir):
     sletta = tkinter.messagebox.askquestion("Strika " + OKID_ID, "Ert tú sikkur?", icon='warning')
     if sletta == 'yes':
         db_connection = db.connect(**db_info)
@@ -176,11 +223,11 @@ def strika(OKID_ID, db_info):
         db_connection.commit()
         cursor.execute("SELECT * FROM Økir")
         result = cursor.fetchall()
-        dagfor_tree(result)
+        dagfor_tree(result, punktir)
         db_connection.close()
 
 
-def innset(id_string, Okidvariable, latEntry, lonEntry, waypointEntry, dypidEntry, CRSvariable, db_info):
+def innset(id_string, Okidvariable, latEntry, lonEntry, waypointEntry, dypidEntry, CRSvariable, db_info, punktir):
     if latEntry == '' or lonEntry == '':
         tkinter.messagebox.showerror('Feilur', 'lat ella lon virði manglar')
     else:
@@ -207,11 +254,26 @@ def innset(id_string, Okidvariable, latEntry, lonEntry, waypointEntry, dypidEntr
         db_connection.commit()
         cursor.execute("SELECT * FROM Økir")
         result = cursor.fetchall()
-        dagfor_tree(result)
+        dagfor_tree(result, punktir)
         db_connection.close()
 
 
-
+def dagfor_kort(fig, canvas, latEntry, lonEntry):
+    tekstur = """
+clf\n
+latmax=""" + str(float(latEntry)+0.2) + """
+latmin=""" + str(float(latEntry)-0.2) + """
+lonmin=""" + str(float(lonEntry)-0.2) + """
+lonmax=""" + str(float(lonEntry)+0.2) + """
+Tekna kort
+linjuSlag=eingin
+longdarlinjur=5
+breiddarlinjur=6
+scatter_std=100
+scatter=""" + latEntry + ',' + lonEntry + """
+"""
+    print(tekstur)
+    Processing.tekna_kort.les_og_tekna(tekstur, fig, canvas, True)
 
 def tekna(fig, canvas, Latmin, Latmax, Lonmin, Lonmax, Additional_commands):
     tekstur = """
@@ -228,11 +290,11 @@ scatter_std=100
 """ + Additional_commands
     Processing.tekna_kort.les_og_tekna(tekstur, fig, canvas, True)
 
-def dagfor_tree(result):
-    global punktir
+
+def dagfor_tree(result, punktir):
     punktir.delete(*punktir.get_children())
-    for i in range(len(result)):
-        rekkja = result[i]
+    for item in result:
+        rekkja = item
         punktir.insert("", 0, text=rekkja[0], values=rekkja[1::])
     punktir.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
 
@@ -263,9 +325,6 @@ def OnDoubleClick(event, arg, idLabel_var, idEntry, CRSvariable, Okidvariable, l
     CRSvariable.set(result[7])
     if Okidvariable.get() != result[2]:
         Okidvariable.set(result[2])
-
-    print(Okidvariable.get())
-    cursor = db_connection.cursor()
     cursor.execute("SELECT * FROM WL_Geografisk_okir WHERE Navn=%s", (Okidvariable.get(),))
     geo_result = cursor.fetchall()
     geookid = geo_result[0]
