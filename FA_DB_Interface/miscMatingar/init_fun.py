@@ -66,6 +66,7 @@ def Dagførlefttree(setup_dict):
         lefttree.insert('', 'end', x[0], text=x[2].strftime('%d/%m-%Y') + ' ' + x[1])
 
 def rudda(frame, setup_dict):
+    #TODO felagartree
     for widget in frame.winfo_children():
         widget.destroy()
     for widget in setup_dict['uppsetan_frame'].winfo_children():

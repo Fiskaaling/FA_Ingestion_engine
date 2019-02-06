@@ -101,3 +101,10 @@ def uppdatedb(setup_dict):
                        (setup_dict['uppsetan'][x], setup_dict['id'], x))
     db_connection.commit()
     db_connection.disconnect()
+
+def getPTD(setup_dict, destdir):
+    db_connection, cursor = fadblogin(setup_dict)
+    cursor.execute("SELECT Path_to_data FROM mátingar WHERE Path_to_data LIKE %s", (destdir + '%',))
+    out = [x[0] for x in cursor.fetchall()]
+    db_connection.disconnect()
+    return out

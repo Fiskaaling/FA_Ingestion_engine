@@ -21,7 +21,6 @@ def doublelefttree(item, setup_dict):
     velinstroment(setup_dict['lefttree'].item(item, "text"), setup_dict)
 
 def Doublefelagartree(item, setup_dict):
-    #TODO make me
     try:
         int(item)
     except ValueError:
@@ -54,20 +53,24 @@ def update_db(setup_dict):
 
     fun.geruppsetan(setup_dict)
     fun.inlesdato(setup_dict)
-    #TODO ger path til at vera unig í db
-    #TODO tjekka um indexi er í db
     datamui = setup_dict['Utfiltdato']['Startdato'].strftime('%y%m%d')
 
     raw = setup_dict['Path_to_RawData'] + '/'
     destdir = setup_dict['Instroment']
     id = db.getlastid(setup_dict) + 1
 
-    #TODO set inní DB árðin fílir vera kopyeraðir
-    #TODO finn destdir ordiligt
-    if datamui not in os.listdir(raw + destdir):
+    i = 0
+    for x in db.getPTD(setup_dict, destdir + '/' + datamui):
+        y = x.replace(destdir + '/' + datamui, '')
+        try:
+            i = max(int(y), i)
+        except ValueError:
+            pass
+
+    #TODO finn destdir ordiligt tá vit hava funni utav hvussu vit gera við Rawdatamappuna
+    if datamui not in os.listdir(raw + destdir) and i == 0:
         os.makedirs(raw + destdir + '/' + datamui)
     else:
-        i = 0
         while True:
             i += 1
             if datamui + str(i) not in os.listdir(raw + destdir):
@@ -75,27 +78,24 @@ def update_db(setup_dict):
                 print(datamui)
                 os.makedirs(raw + destdir + '/' + datamui)
                 break
-    #TODO tjekka um filenames er tómt
-    #TODO tjekka um nakar filur eitur tað sama
+
     destdir += '/' + datamui
-    #TODO flyt hettar til eftir at vit hava keyrt í db
-    latex(setup_dict, id, 'deployment_sheet.pdf', raw + destdir)
 
     embargo = setup_dict['info']['embargo'][int(setup_dict['info']['id'])]
-    if embargo != None:
-        embargo = setup_dict['Utfiltdato']['Startdato'] + dt.timedelta(days=embargo)
+    embargo = setup_dict['Utfiltdato']['Startdato'] + dt.timedelta(days=embargo)
 
     db.insetmating(setup_dict, id, destdir, embargo)
 
-    #TODO skal man brúka copy2
+    latex(setup_dict, id, 'deployment_sheet.pdf', raw + destdir)
+
+    #TODO finnútav copy confliktum
     for x in setup_dict['innsettirfilir']:
-        shutil.copy(x, raw + destdir)
-    #TODO riggar kanska ikki í windows
+        shutil.copy2(x, raw + destdir)
     for x in setup_dict['innsettarmappir']:
         shutil.copytree(x, raw + destdir + '/' + x.split('/')[-1])
     #TODO skal sikkur koyra rudda
     Matingar.inset_matingar(setup_dict['main_frame'], setup_dict['login']['host'],
-                   setup_dict['login']['user'], setup_dict['login']['password'])
+                            setup_dict['login']['user'], setup_dict['login']['password'])
 
 def latex(setup_dict, id, navn, dir):
     fil = skrivapdf.birjan()
