@@ -1,5 +1,6 @@
 from tkinter import *
 import os
+import datetime as dt
 import shutil
 from FA_DB_Interface.miscMatingar import db_ting as db
 from FA_DB_Interface.miscMatingar import init_fun as fun
@@ -18,6 +19,16 @@ def doublelefttree(item, setup_dict):
         return
     setup_dict['typa'] = setup_dict['lefttree'].parent(item)
     velinstroment(setup_dict['lefttree'].item(item, "text"), setup_dict)
+
+def Doublefelagartree(item, setup_dict):
+    #TODO make me
+    try:
+        int(item)
+    except ValueError:
+        return
+    setup_dict['info']['Umbiði_av'].set(setup_dict['felagartree'].item(item, "text"))
+    setup_dict['info']['Felag'].set(setup_dict['felagartree'].parent(item))
+    setup_dict['info']['id'] = item
 
 def velinstroment(Navn, setup_dict):
     frame = setup_dict['uppsetan_frame']
@@ -67,10 +78,14 @@ def update_db(setup_dict):
     #TODO tjekka um filenames er tómt
     #TODO tjekka um nakar filur eitur tað sama
     destdir += '/' + datamui
+    #TODO flyt hettar til eftir at vit hava keyrt í db
     latex(setup_dict, id, 'deployment_sheet.pdf', raw + destdir)
 
-    db.insetmating(setup_dict, id, destdir)
+    embargo = setup_dict['info']['embargo'][int(setup_dict['info']['id'])]
+    if embargo != None:
+        embargo = setup_dict['Utfiltdato']['Startdato'] + dt.timedelta(days=embargo)
 
+    db.insetmating(setup_dict, id, destdir, embargo)
 
     #TODO skal man brúka copy2
     for x in setup_dict['innsettirfilir']:
