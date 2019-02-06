@@ -9,12 +9,17 @@ from matplotlib.backend_bases import key_press_handler
 from matplotlib.figure import Figure
 from matplotlib import pyplot as plt
 import numpy as np
-from mpl_toolkits.basemap import Basemap
 import os
 import pandas as pd
 from scipy.interpolate import griddata
 from scipy import interpolate
 from misc.faLog import *
+import subprocess
+from tkinter import font
+import tkinter.ttk as ttk
+import cartopy.crs as ccrs
+import cartopy.feature as cpf
+
 
 class Window(Frame):
     def __init__(self, master=None):
@@ -35,13 +40,23 @@ class Window(Frame):
         exit()
 
 def teknakort():
-    fig = Figure(figsize=(8, 12), dpi=100)
-    global ax
-    ax = fig.add_subplot(111)
     global root
     root = Tk()
     root.geometry("1200x800")
+
+    if subprocess.check_output('whoami') == b'johannus\n':  # 4K bullshit, Alt er forbanna lítið
+        root.geometry("3000x1600")
+        f = font.Font(size=40)
+        root.option_add("*Font", f)
+        style = ttk.Style(root)
+        style.configure('Button', font=f)
+        style.configure('Treeview', rowheight=45)
+        style.configure('Treeview.Heading', font=f)
+        style.configure(".", font=f)
+
+
     app = Window(root)
+
 
     top = Toplevel()
     top.wm_attributes('-topmost', 1)
@@ -56,8 +71,26 @@ def teknakort():
     map_frame = Frame(content_frame)
     map_frame.pack(fill=BOTH, expand=True, side=LEFT, anchor=N)
 
+    fig = Figure(figsize=(8, 12), dpi=100)
+    global ax
+    #ax = fig.add_subplot(111, aspect=1)
+    #ax.plot([1, 2, 1])
+    ccrs_projection = ccrs.PlateCarree()
+    #ax = fig.add_axes([0, 0, 1, 1], projection=ccrs_projection, aspect=1, adjustable='box')
+    ax = fig.add_subplot(111, projection=ccrs_projection)
+    # ax = fig.add_subplot(1, 1, 1, projection=ccrs.InterruptedGoodeHomolosine())
+
+    ax.set_global()
+    ax.stock_img()
+    ax.coastlines()
 
     canvas = FigureCanvasTkAgg(fig, master=map_frame)
+
+    canvas.draw()
+    canvas.get_tk_widget().pack(fill=BOTH, expand=1)
+    # ax = fig2.gca(projection=ccrs.PlateCarree())
+    # ax = plt.axes(projection=ccrs.PlateCarree())
+
 
 
 
@@ -112,7 +145,6 @@ def teknakort():
                     CommandEntry.delete(0, 'end')
                 except Exception as e:
                     log_w(e)
-
 
     def control_key(state, event=None):
         global ctrl
@@ -306,6 +338,11 @@ def les_og_tekna(text, fig, canvas, silent=False):
     tekstx = 0
     teksty = 0
     tekna_land = True
+    #ccrs_settings = {'central_longitude': 0, 'min_latitude': 61, 'max_latitude': 63, 'latitude_true_scale': 62}
+    ccrs_settings = {'central_longitude' : 0.0, 'globe': None, 'central_longitude': 0.0}
+    ccrs_projection = ccrs.PlateCarree()
+    #ccrs_settings = {'central_longitude': -7, 'central_latitude': 62}
+    #ccrs_projection = ccrs.AzimuthalEquidistant(**ccrs_settings)
     for command in text:
         if not silent:
             print(command)
@@ -346,9 +383,10 @@ def les_og_tekna(text, fig, canvas, silent=False):
                     D_lon = np.array(lis[0: i * j]).reshape((j, i))  # first  i*j instances
                     D_lat = np.array(lis[i * j: i * j * 2]).reshape((j, i))  # second i*j instances
                     D_dep = np.array(lis[i * j * 2: i * j * 3]).reshape((j, i))  # third  i*j instances
-                    MD_lon, MD_lat = m(D_lon, D_lat)
-                    c = m.contour(MD_lon, MD_lat, D_dep,
-                                  ax=ax)  # Um kodan kiksar her broyt basemap fílin til // har feilurin peikar
+                    c = ax.contour(D_lon, D_lat, D_dep)
+                    #MD_lon, MD_lat = m(D_lon, D_lat)
+                    #c = m.contour(MD_lon, MD_lat, D_dep,
+                    #              ax=ax)  # Um kodan kiksar her broyt basemap fílin til // har feilurin peikar
                     ax.clabel(c, inline=1, fontsize=15, fmt='%2.0f')
             elif variable == 'csv_dybdarkort':
                 if 'csvData_heilt' not in locals():
@@ -618,26 +656,35 @@ def les_og_tekna(text, fig, canvas, silent=False):
 
             if command == 'clf':
                 fig.clf()
-                ax = fig.add_subplot(111)
+                #ax = fig.add_subplot(111)
+                ax = fig.add_subplot(111, projection=ccrs_projection)
+                #ax.set_aspect('equal', adjustable='box')
+                #ax = plt.axes(projection=ccrs.PlateCarree())
             elif command == 'break':
                 break
             elif command == 'Tekna kort':
-
                 if renderengine == '3D_botn':
                     m = Basemap(projection='merc', resolution=None,
                                 llcrnrlat=latmin, urcrnrlat=latmax,
                                 llcrnrlon=lonmin, urcrnrlon=lonmax, ax=ax, suppress_ticks=suppress_ticks)
                     ax = fig.add_subplot(111, projection='3d')
                 else:
-                    m = Basemap(projection='merc', resolution=None,
-                                llcrnrlat=latmin, urcrnrlat=latmax,
-                                llcrnrlon=lonmin, urcrnrlon=lonmax, ax=ax, suppress_ticks=suppress_ticks)
+                    #ax = ax.axes(projection=ccrs.PlateCarree())
+                    #ax = plt.figure().gca(projection=ccrs.PlateCarree())
+
+                    ax.set_extent([lonmin, lonmax, latmin, latmax])
+                    #m = Basemap(projection='merc', resolution=None,
+
+                    #            llcrnrlat=latmin, urcrnrlat=latmax,
+                    #            llcrnrlon=lonmin, urcrnrlon=lonmax, ax=ax, suppress_ticks=suppress_ticks)
                     if tekna_land:
                         for island in os.listdir('Kort_Data/Coasts'):
                             lo, aa, la = np.genfromtxt('Kort_Data/Coasts/' + island, delimiter=' ').T
-                            xpt, ypt = m(lo, la)
-                            plt.plot(xpt, ypt, 'k', linewidth=1)
-                            ax.fill(xpt, ypt, landlitur, zorder=10)
+                            ax.plot(lo, la, 'k', linewidth=1, transform=ccrs_projection)
+                            ax.fill(lo, la, landlitur, zorder=10, transform=ccrs_projection)
+                            #xpt, ypt = m(lo, la)
+                            #plt.plot(xpt, ypt, 'k', linewidth=1)
+                            #ax.fill(xpt, ypt, landlitur, zorder=10)
 
             elif command == 'btn_contourf':
                 grid_z0 = griddata((btn_x, btn_y), dypid.values, (meshgridx, meshgridy), method=btn_interpolation)
@@ -723,7 +770,9 @@ def les_og_tekna(text, fig, canvas, silent=False):
         a, b = event.xdata, event.ydata
         ispressed = True
         zoom_x_fra, zoom_y_fra = event.xdata, event.ydata
-        lon, lat = m(event.xdata, event.ydata, inverse=True)
+        lat = event.xdata
+        lon = event.ydata
+        #lon, lat = m(event.xdata, event.ydata, inverse=True)
         print('%s click: lon=%f, lat=%f, x=%f, y=%f' %
               ('double' if event.dblclick else 'single', lon, lat, event.xdata, event.ydata))
 
