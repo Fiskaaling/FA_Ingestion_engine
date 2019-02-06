@@ -80,9 +80,9 @@ def teknakort():
     ax = fig.add_subplot(111, projection=ccrs_projection)
     # ax = fig.add_subplot(1, 1, 1, projection=ccrs.InterruptedGoodeHomolosine())
 
-    ax.set_global()
+    #ax.set_global()
     ax.stock_img()
-    ax.coastlines()
+    #ax.coastlines()
 
     canvas = FigureCanvasTkAgg(fig, master=map_frame)
 
@@ -340,8 +340,9 @@ def les_og_tekna(text, fig, canvas, silent=False):
     tekna_land = True
     #ccrs_settings = {'central_longitude': 0, 'min_latitude': 61, 'max_latitude': 63, 'latitude_true_scale': 62}
     ccrs_settings = {'central_longitude' : 0.0, 'globe': None, 'central_longitude': 0.0}
-    ccrs_projection = ccrs.PlateCarree()
-    #ccrs_settings = {'central_longitude': -7, 'central_latitude': 62}
+    ccrs_settings = {'central_longitude': -7.0, 'central_latitude': 62}
+    #ccrs_settings = {}
+    ccrs_projection = ccrs.AzimuthalEquidistant(**ccrs_settings)
     #ccrs_projection = ccrs.AzimuthalEquidistant(**ccrs_settings)
     for command in text:
         if not silent:
@@ -671,8 +672,9 @@ def les_og_tekna(text, fig, canvas, silent=False):
                 else:
                     #ax = ax.axes(projection=ccrs.PlateCarree())
                     #ax = plt.figure().gca(projection=ccrs.PlateCarree())
-
-                    ax.set_extent([lonmin, lonmax, latmin, latmax])
+                    #ax.set_xlim(lonmin, lonmax)
+                    #ax.set_ylim(latmin, latmax)
+                    #ax.set_extent([lonmin, lonmax, latmin, latmax])
                     #m = Basemap(projection='merc', resolution=None,
 
                     #            llcrnrlat=latmin, urcrnrlat=latmax,
@@ -685,6 +687,9 @@ def les_og_tekna(text, fig, canvas, silent=False):
                             #xpt, ypt = m(lo, la)
                             #plt.plot(xpt, ypt, 'k', linewidth=1)
                             #ax.fill(xpt, ypt, landlitur, zorder=10)
+                    ax.set_extent([lonmin, lonmax, latmin, latmax], crs=ccrs_projection)
+                    #gl = ax.gridlines(crs=ccrs_projection, draw_labels=True,
+                    #                  linewidth=2, color='gray', alpha=0.5, linestyle='--')
 
             elif command == 'btn_contourf':
                 grid_z0 = griddata((btn_x, btn_y), dypid.values, (meshgridx, meshgridy), method=btn_interpolation)
