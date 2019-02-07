@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from tkinter import *
 from tkinter import font
 import Processing.tekna_kort

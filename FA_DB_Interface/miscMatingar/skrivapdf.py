@@ -10,7 +10,7 @@ def makepdf(tex, pdfname, outputdir='.'):
     outputdir = os.getcwd()
     os.chdir(temp)
 
-    f = open('cover.tex', 'w')
+    f = open('cover.tex', 'w', encoding="utf-8")
     f.write(tex)
     f.close()
 

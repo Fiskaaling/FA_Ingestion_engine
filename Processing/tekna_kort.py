@@ -1,15 +1,15 @@
-from mpl_toolkits.mplot3d import Axes3D
+#from mpl_toolkits.mplot3d import Axes3D
 from tkinter import *
 from tkinter import messagebox
 from tkinter import filedialog
 import matplotlib
 matplotlib.use('TkAgg')
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.backend_bases import key_press_handler
 from matplotlib.figure import Figure
 from matplotlib import pyplot as plt
 import numpy as np
-from mpl_toolkits.basemap import Basemap
+#from mpl_toolkits.basemap import Basemap
 import os
 import pandas as pd
 from scipy.interpolate import griddata

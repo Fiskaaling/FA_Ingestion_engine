@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 from matplotlib.figure import Figure
 #from matplotlib import pyplot as plt
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import os.path
 from misc.faLog import *
 R = 6373  # Radius av jørð (km)
