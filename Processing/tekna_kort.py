@@ -75,7 +75,8 @@ def teknakort():
     global ax
     #ax = fig.add_subplot(111, aspect=1)
     #ax.plot([1, 2, 1])
-    ccrs_projection = ccrs.PlateCarree()
+    ccrs_settings = {'central_longitude': 0, 'latitude_true_scale': 62, 'max_latitude': 63}#'central_longitude': -7, 'min_latitude': 61, 'max_latitude': 63,
+    ccrs_projection = ccrs.Mercator(**ccrs_settings)
     #ax = fig.add_axes([0, 0, 1, 1], projection=ccrs_projection, aspect=1, adjustable='box')
     ax = fig.add_subplot(111, projection=ccrs_projection)
     # ax = fig.add_subplot(1, 1, 1, projection=ccrs.InterruptedGoodeHomolosine())
@@ -341,8 +342,8 @@ def les_og_tekna(text, fig, canvas, silent=False):
     #ccrs_settings = {'central_longitude': 0, 'min_latitude': 61, 'max_latitude': 63, 'latitude_true_scale': 62}
     ccrs_settings = {'central_longitude' : 0.0, 'globe': None, 'central_longitude': 0.0}
     ccrs_settings = {'central_longitude': -7.0, 'central_latitude': 62}
-    #ccrs_settings = {}
-    ccrs_projection = ccrs.AzimuthalEquidistant(**ccrs_settings)
+    ccrs_settings = {'central_longitude': 0, 'latitude_true_scale': 62, 'max_latitude': 63}#'central_longitude': -7, 'min_latitude': 61, 'max_latitude': 63,
+    ccrs_projection = ccrs.Mercator(**ccrs_settings)
     #ccrs_projection = ccrs.AzimuthalEquidistant(**ccrs_settings)
     for command in text:
         if not silent:
@@ -785,7 +786,8 @@ def les_og_tekna(text, fig, canvas, silent=False):
     def onmove(event):
         global ispressed, zoom_x_fra, zoom_y_fra
         if ispressed:
-            lat, lon = m(event.xdata, event.ydata, inverse=True)
+            lat = event.xdata
+            lon = event.ydata
             #print(lat)
             pan(zoom_x_fra-event.xdata, zoom_y_fra-event.ydata, canvas)
 
