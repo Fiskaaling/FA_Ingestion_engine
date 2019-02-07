@@ -66,13 +66,13 @@ def Dagførlefttree(setup_dict):
         lefttree.insert('', 'end', x[0], text=x[2].strftime('%d/%m-%Y') + ' ' + x[1])
 
 def rudda(frame, setup_dict):
-    #TODO felagartree
     for widget in frame.winfo_children():
         widget.destroy()
     for widget in setup_dict['uppsetan_frame'].winfo_children():
         widget.destroy()
     setup_dict['lefttree'].delete(*setup_dict['lefttree'].get_children())
     setup_dict['righttree'].delete(*setup_dict['righttree'].get_children())
+    setup_dict['felagartree'].delete(*setup_dict['felagartree'].get_children())
     for x in setup_dict['dato'].values():
         for y in x.values():
             y.config(state=NORMAL)
@@ -94,7 +94,7 @@ def velfilir(setup_dict):
     # TODO møguliga datatypan hevur okkurt við instromenti at gera
     temp = filedialog.askopenfilenames(title='Velfil',
                                        filetypes=(("all files", "*.*"), ("txt files", "*.txt")))
-    # TODO veit ikki um hettar riggar í windows also split parturin
+    #TODO veit ikki um hettar riggar í windows also split parturin
     for x in list(temp):
         if x not in setup_dict['innsettirfilir'] and x.split('/')[-1] not in setup_dict['inniliggjandifilir']:
             setup_dict['innsettirfilir'].append(x)

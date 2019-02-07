@@ -52,7 +52,9 @@ def midan():
     return out
 
 def kjekkasyntax(ID):
-    return str(ID)
+    ID = str(ID).replace('%', r'\%').replace('$', r'\$').replace('{', r'\{').replace('_', r'\_')\
+        .replace('#', r'\#').replace('&', r'\&').replace('}', r'\}')
+    return ID
 
 def DepID(ID):
     return r"""\begin{document}
