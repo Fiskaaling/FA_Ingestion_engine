@@ -3,7 +3,7 @@ import os
 import datetime as dt
 import shutil
 from FA_DB_Interface.miscMatingar import db_ting as db
-from FA_DB_Interface.miscMatingar import init_fun as fun
+from . import init_fun as fun
 from FA_DB_Interface import Matingar
 from FA_DB_Interface.miscMatingar import skrivapdf
 import time
@@ -47,6 +47,7 @@ def velinstroment(Navn, setup_dict):
         i += 1
 
 def update_db(setup_dict):
+    #TODO riggar / í windows
     if setup_dict['Instroment'] == '':
         messagebox.showerror('Einki Instroment', 'Vel eitt instroment')
         return
@@ -87,15 +88,13 @@ def update_db(setup_dict):
     db.insetmating(setup_dict, id, destdir, embargo)
 
     latex(setup_dict, id, 'deployment_sheet.pdf', raw + destdir)
-
+    #TODO riggar split í windows
     #TODO finnútav copy confliktum
     for x in setup_dict['innsettirfilir']:
         shutil.copy2(x, raw + destdir)
     for x in setup_dict['innsettarmappir']:
         shutil.copytree(x, raw + destdir + '/' + x.split('/')[-1])
-    #TODO skal sikkur koyra rudda
-    Matingar.inset_matingar(setup_dict['main_frame'], setup_dict['login']['host'],
-                            setup_dict['login']['user'], setup_dict['login']['password'])
+    fun.rudda(setup_dict['funFrame'], setup_dict)
 
 def latex(setup_dict, id, navn, dir):
     fil = skrivapdf.birjan()
