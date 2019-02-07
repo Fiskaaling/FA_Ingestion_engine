@@ -93,7 +93,6 @@ def strika(db_info, input_ord, tabell, ordTree):
             result = cursor.fetchall()
             for word in result:
                 ordTree.insert("", 0, text=word[0])
-
             db_connection.disconnect()
 
 
