@@ -61,12 +61,13 @@ def update_db(setup_dict):
     id = db.getlastid(setup_dict) + 1
 
     i = 0
+
     for x in db.getPTD(setup_dict, destdir + '/' + datamui):
         y = x.replace(destdir + '/' + datamui, '')
         try:
-            i = max(int(y), i)
+            i = max(int(y) + 1, i)
         except ValueError:
-            pass
+            i = max(i, 1)
 
     #TODO finn destdir ordiligt tá vit hava funni utav hvussu vit gera við Rawdatamappuna
     if datamui not in os.listdir(raw + destdir) and i == 0:
