@@ -61,7 +61,6 @@ def update_db(setup_dict):
     id = db.getlastid(setup_dict) + 1
 
     i = 0
-
     for x in db.getPTD(setup_dict, destdir + '/' + datamui):
         y = x.replace(destdir + '/' + datamui, '')
         try:
