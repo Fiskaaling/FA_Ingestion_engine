@@ -25,10 +25,23 @@ def setuplefttree(frame, setup_dict):
     scrollbar.config(command=tree.yview)
 
     scrollbar.pack(side=RIGHT, fill=Y)
-    tree.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
-
+    tree.pack(fill=BOTH, expand=True, side=TOP, anchor=N)
     setup_dict['lefttree'] = tree
     tree.bind("<Double-1>", lambda event: fun.Doublelefttree(event, setup_dict))
+
+def setupfelagar(frame, setup_dict):
+    tree = ttk.Treeview(frame)
+    tree.column('#0', width=200)
+    tree.heading("#0", text="Felagar")
+
+    scrollbar = Scrollbar(frame, orient=VERTICAL)
+    scrollbar.config(command=tree.yview)
+
+    scrollbar.pack(side=RIGHT, fill=Y)
+    tree.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
+
+    setup_dict['felagartree'] = tree
+    tree.bind("<Double-1>", lambda event: fun.Doublefelagartree(event, setup_dict))
 
 def setuprighttree(frame, setup_dict):
     tree = ttk.Treeview(frame)
@@ -82,3 +95,13 @@ def setupdato(frame, setup_dict):
     dato[list(dato.keys())[1]]['D'] = Entry(frame, width=2)
     dato[list(dato.keys())[1]]['D'].grid(row=i, column=j)
     setup_dict['dato'] = dato
+
+def setupinfo(frame, setup_dict):
+    Label(frame, text='felagi').grid(row=0, column=0, sticky=N + W)
+    Felag = StringVar()
+    Felag.set('Felag')
+    Umbiði_av = StringVar()
+    Umbiði_av.set('Umbiði_av')
+    Label(frame, textvariable=Felag).grid(row=1, column=0, sticky=N + W)
+    Label(frame, textvariable=Umbiði_av).grid(row=2, column=0, sticky=N + W)
+    setup_dict['info'] = {'Felag': Felag, 'Umbiði_av': Umbiði_av}

@@ -22,6 +22,13 @@ def listinstrumentir(status, setup_dict):
     db_connection.disconnect()
     return out
 
+def listfelagar(setup_dict):
+    db_connection, cursor = fadblogin(setup_dict)
+    cursor.execute("SELECT Id_felagar, Felag, Kontaktpersónur, Vanligt_embargo_dagar FROM wl_felagar")
+    out = cursor.fetchall()
+    db_connection.disconnect()
+    return out
+
 def getuppsetanir(Navn, setup_dict):
     db_connection, cursor = fadblogin(setup_dict)
     cursor.execute("SELECT møgulig_uppseting_ID, Uppseting_Navn, std_uppseting "
@@ -37,17 +44,14 @@ def getlastid(setup_dict):
     db_connection.disconnect()
     return out[0]
 
-def insetmating(setup_dict, id, destdir):
+def insetmating(setup_dict, id, destdir, embargo):
     db_connection, cursor = fadblogin(setup_dict)
 
-    if setup_dict['Utfiltdato']['Enddato'] == None:
-        cursor.execute("INSERT into Mátingar (id, Mátari, Start_tid, Path_to_data) VALUE (%s, %s, %s, %s);",
-                       (id, setup_dict['Instroment'], setup_dict['Utfiltdato']['Startdato'], destdir))
-    else:
-        cursor.execute(
-            "INSERT into Mátingar (id, Mátari, Start_tid, Stop_tid, Path_to_data) VALUE (%s, %s, %s, %s, %s);",
-            (id, setup_dict['Instroment'], setup_dict['Utfiltdato']['Startdato'],
-             setup_dict['Utfiltdato']['Enddato'], destdir))
+    cursor.execute(
+        "INSERT into Mátingar (id, Mátari, Start_tid, Stop_tid, Path_to_data, Umbiði_av, Embargo_til)"
+        " VALUE (%s, %s, %s, %s, %s, %s, %s);",
+        (id, setup_dict['Instroment'], setup_dict['Utfiltdato']['Startdato'],
+         setup_dict['Utfiltdato']['Enddato'], destdir, setup_dict['info']['id'], embargo))
     for x in setup_dict['uppsetan'].keys():
         if setup_dict['uppsetan'][x] != '':
             print((id, x, setup_dict['uppsetan'][x]))
@@ -97,3 +101,10 @@ def uppdatedb(setup_dict):
                        (setup_dict['uppsetan'][x], setup_dict['id'], x))
     db_connection.commit()
     db_connection.disconnect()
+
+def getPTD(setup_dict, destdir):
+    db_connection, cursor = fadblogin(setup_dict)
+    cursor.execute("SELECT Path_to_data FROM mátingar WHERE Path_to_data LIKE %s", (destdir + '%',))
+    out = [x[0] for x in cursor.fetchall()]
+    db_connection.disconnect()
+    return out

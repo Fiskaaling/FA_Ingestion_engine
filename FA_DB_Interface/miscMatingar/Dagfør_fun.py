@@ -4,8 +4,8 @@ import os
 import shutil
 import datetime as dt
 from pprint import pprint
-from FA_DB_Interface.miscMatingar import db_ting as db
-from FA_DB_Interface.miscMatingar import init_fun as fun
+from . import db_ting as db
+from . import init_fun as fun
 from FA_DB_Interface import Matingar
 
 def doublelefttree(id, setup_dict):
@@ -74,13 +74,11 @@ def update_db(setup_dict):
     raw = setup_dict['Path_to_RawData'] + '/'
     destdir = setup_dict['destdir']
     del setup_dict['id']
-    # TODO skal man brúka copy2
     for x in setup_dict['innsettirfilir']:
-        shutil.copy(x, raw + destdir)
+        shutil.copy2(x, raw + destdir)
     # TODO riggar kanska ikki í windows
     for x in setup_dict['innsettarmappir']:
         shutil.copytree(x, raw + destdir + '/' + x.split('/')[-1])
     messagebox.showinfo('Uppdatera', 'Uppdatera')
-    # TODO skal sikkur koyra rudda
-    Matingar.inset_matingar(setup_dict['main_frame'], setup_dict['login']['host'],
-                            setup_dict['login']['user'], setup_dict['login']['password'])
+
+    fun.rudda(setup_dict['funFrame'], setup_dict)

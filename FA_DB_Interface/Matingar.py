@@ -36,7 +36,7 @@ def inset_matingar(frame, db_host='192.168.43.94', db_user='trondur', db_passwor
     BodyFrame.pack(fill=BOTH, expand=True, anchor=N + W)
 
     lefttree_frame = Frame(BodyFrame)
-    lefttree_frame.grid(row=0, column=0, rowspan=8)
+    lefttree_frame.grid(row=0, column=0, rowspan=8, sticky=N + W + S)
     setupframe.setuplefttree(lefttree_frame, setup_dict)
 
     righttree_frame = Frame(BodyFrame)
@@ -50,6 +50,14 @@ def inset_matingar(frame, db_host='192.168.43.94', db_user='trondur', db_passwor
     uppsetan_frame = Frame(BodyFrame)
     uppsetan_frame.grid(row=1, column=2, sticky=N+W+S)
     setup_dict['uppsetan_frame'] = uppsetan_frame
+
+    felaga_frame = Frame(BodyFrame)
+    felaga_frame.grid(row=4, column=1, sticky=W)
+    setupframe.setupfelagar(felaga_frame, setup_dict)
+
+    info_frame = Frame(BodyFrame)
+    info_frame.grid(row=5, column=1, sticky=N + W)
+    setupframe.setupinfo(info_frame, setup_dict)
 
     init_fun.inset(funFrame, setup_dict)
     setup_dict['funFrame'] = funFrame
