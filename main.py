@@ -62,6 +62,20 @@ def OnDoubleClick(event, tree):
         FA_DB_Interface.init.check_click(item, RightFrame, root)
 
 
+
+    ingestion_listbox.pack_forget()
+    expandButton = Button(ingestion_subframe, text='>', command=lambda: visTree(expandButton))
+    expandButton.pack(side=LEFT, expand=1, fill=Y)
+    Ingestion_frame.config(width=100)
+    Ingestion_frame.pack(expand=False)
+
+
+def visTree(expandButton):
+    ingestion_listbox.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
+    Ingestion_frame.pack(expand=True)
+    expandButton.pack_forget()
+    del expandButton
+
 # Teknar main gui
 root = Tk()
 root.geometry("1200x800")
