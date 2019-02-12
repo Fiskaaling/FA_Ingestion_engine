@@ -5,7 +5,7 @@ import pandas as pd
 import scipy.signal as sig
 import os
 import tkinter.ttk as ttk
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 import matplotlib.dates as md
 from datetime import datetime
