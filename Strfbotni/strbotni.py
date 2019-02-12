@@ -6,7 +6,7 @@ from matplotlib import pyplot as plt
 import matplotlib.dates as mdate
 import matplotlib
 matplotlib.use('TkAgg')
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 import time
 import datetime as dt

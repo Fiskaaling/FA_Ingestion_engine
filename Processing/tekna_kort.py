@@ -4,7 +4,7 @@ from tkinter import messagebox
 from tkinter import filedialog
 import matplotlib
 matplotlib.use('TkAgg')
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.backend_bases import key_press_handler
 from matplotlib.figure import Figure
 from matplotlib import pyplot as plt
@@ -38,6 +38,10 @@ class Window(Frame):
 
     def client_exit(self):
         exit()
+
+def m(lat, lon):
+    log_w('M ting ikki orduligt implementera!')
+    return lat, lon
 
 def teknakort():
     global root
@@ -76,14 +80,18 @@ def teknakort():
     #ax = fig.add_subplot(111, aspect=1)
     #ax.plot([1, 2, 1])
     ccrs_settings = {'central_longitude': 0, 'latitude_true_scale': 62, 'max_latitude': 63}#'central_longitude': -7, 'min_latitude': 61, 'max_latitude': 63,
-    ccrs_projection = ccrs.Mercator(**ccrs_settings)
+    global ccrs_projection
+    ccrs_projection = ccrs.Orthographic(-7, 62)
     #ax = fig.add_axes([0, 0, 1, 1], projection=ccrs_projection, aspect=1, adjustable='box')
     ax = fig.add_subplot(111, projection=ccrs_projection)
     # ax = fig.add_subplot(1, 1, 1, projection=ccrs.InterruptedGoodeHomolosine())
 
     #ax.set_global()
-    ax.stock_img()
+    #ax.stock_img()
     #ax.coastlines()
+
+    ax.add_feature(cpf.COASTLINE)
+    ax.add_feature(cpf.BORDERS, lw=0.5)
 
     canvas = FigureCanvasTkAgg(fig, master=map_frame)
 
@@ -190,7 +198,7 @@ def innsetPan(text_list, fig, canvas):
     global m
     xlim = ax.get_xlim()
     ylim = ax.get_ylim()
-    lon, lat = m(xlim, ylim, inverse=True)
+    lon, lat = m(xlim, ylim)
     raw_text = str(text_list.get("1.0", END))
     text = raw_text.split('\n')
     for command in text:
@@ -214,15 +222,15 @@ def innsetPan(text_list, fig, canvas):
     les_og_tekna(text_list.get("1.0", END), fig, canvas)
 
 
-def pan(x, y, canvas, relative=False):
+def pan(x, y, canvas, ccrs_projection, relative=False):
     global ax
     xlim = ax.get_xlim()
     ylim = ax.get_ylim()
     if relative:
         xdiff = abs(xlim[0]-xlim[1])
         ydiff = abs(ylim[0] - ylim[1])
-        ax.set_xlim([xlim[0] + xdiff*x, xlim[1] + xdiff*x])
-        ax.set_ylim([ylim[0] + ydiff*y, ylim[1] + ydiff*y])
+        ax.set_xlim([xlim[0] + xdiff*x, xlim[1] + xdiff*x], ccrs_projection)
+        ax.set_ylim([ylim[0] + ydiff*y, ylim[1] + ydiff*y], ccrs_projection)
     else:
         ax.set_xlim([xlim[0] + x, xlim[1] + x])
         ax.set_ylim([ylim[0] + y, ylim[1] + y])
@@ -313,6 +321,8 @@ def les_og_tekna(text, fig, canvas, silent=False):
     lonmax = -6.2
     latmin = 61.35
     lonmin = -7.7
+    breiddarlinjur = np.linspace(latmin, latmax, 10)
+    longdarlinjur = np.linspace(lonmin, lonmax, 10)
     filnavn = 'test'
     landlitur = 'lightgray'
     btn_interpolation = 'nearest'
@@ -343,8 +353,11 @@ def les_og_tekna(text, fig, canvas, silent=False):
     ccrs_settings = {'central_longitude' : 0.0, 'globe': None, 'central_longitude': 0.0}
     ccrs_settings = {'central_longitude': -7.0, 'central_latitude': 62}
     ccrs_settings = {'central_longitude': 0, 'latitude_true_scale': 62, 'max_latitude': 63}#'central_longitude': -7, 'min_latitude': 61, 'max_latitude': 63,
-    ccrs_projection = ccrs.Mercator(**ccrs_settings)
-    #ccrs_projection = ccrs.AzimuthalEquidistant(**ccrs_settings)
+    #ccrs_projection = ccrs.PlateCarree(ccrs_settings)
+    global ccrs_projection
+    ccrs_projection = ccrs.Mercator()
+    #ccrs_projection = ccrs.Orthographic(-7, 62)
+    #ccrs_projection = ccrs.AzimuthalEquidistant(**ccrs_settings) #Orthographic(-7, 62)
     for command in text:
         if not silent:
             print(command)
@@ -385,7 +398,8 @@ def les_og_tekna(text, fig, canvas, silent=False):
                     D_lon = np.array(lis[0: i * j]).reshape((j, i))  # first  i*j instances
                     D_lat = np.array(lis[i * j: i * j * 2]).reshape((j, i))  # second i*j instances
                     D_dep = np.array(lis[i * j * 2: i * j * 3]).reshape((j, i))  # third  i*j instances
-                    c = ax.contour(D_lon, D_lat, D_dep)
+                    levels = range(0, 200, 50)
+                    c = ax.contour(D_lon, D_lat, D_dep, levels=levels)
                     #MD_lon, MD_lat = m(D_lon, D_lat)
                     #c = m.contour(MD_lon, MD_lat, D_dep,
                     #              ax=ax)  # Um kodan kiksar her broyt basemap fílin til // har feilurin peikar
@@ -515,11 +529,15 @@ def les_og_tekna(text, fig, canvas, silent=False):
                 elif command[toindex::] == 'prikkut':
                     linjuSlag = [1, 1]
                 elif command[toindex::] == 'heil':
-                    linjuSlag = [1, 0]
+                    linjuSlag = (0, (1, 1))
             elif variable == 'breiddarlinjur':
                 if not renderengine == '3D_botn':
                     breiddarlinjur = np.linspace(latmin, latmax, int(command[toindex::]))
-                    m.drawparallels(breiddarlinjur, labels=[1, 0, 0, 0], zorder=1000, color='lightgrey', dashes=linjuSlag)
+                    longdarlinjur = np.linspace(lonmin, lonmax, int(command[toindex::]))
+                    print(breiddarlinjur)
+                    ax.gridlines(ccrs_projection, ylocs=breiddarlinjur)
+                    #m.drawparallels(breiddarlinjur, labels=[1, 0, 0, 0], zorder=1000, color='lightgrey', dashes=linjuSlag)
+                    #ax.gridlines(color='k', linestyle=(0, (1, 1)), ylocs=breiddarlinjur, xlocs=longdarlinjur)
             elif variable == 'longdarlinjur':
                 if not renderengine == '3D_botn':
                     longdarlinjur = np.linspace(lonmin, lonmax, int(command[toindex::]))
@@ -659,7 +677,8 @@ def les_og_tekna(text, fig, canvas, silent=False):
             if command == 'clf':
                 fig.clf()
                 #ax = fig.add_subplot(111)
-                ax = fig.add_subplot(111, projection=ccrs_projection)
+                ax = fig.add_subplot(1, 1, 1, projection=ccrs_projection)
+                ax.coastlines('50m')
                 #ax.set_aspect('equal', adjustable='box')
                 #ax = plt.axes(projection=ccrs.PlateCarree())
             elif command == 'break':
@@ -688,7 +707,7 @@ def les_og_tekna(text, fig, canvas, silent=False):
                             #xpt, ypt = m(lo, la)
                             #plt.plot(xpt, ypt, 'k', linewidth=1)
                             #ax.fill(xpt, ypt, landlitur, zorder=10)
-                    ax.set_extent([lonmin, lonmax, latmin, latmax], crs=ccrs_projection)
+                    ax.set_extent([lonmin, lonmax, latmin, latmax], ccrs_projection)
                     #gl = ax.gridlines(crs=ccrs_projection, draw_labels=True,
                     #                  linewidth=2, color='gray', alpha=0.5, linestyle='--')
 
@@ -784,12 +803,9 @@ def les_og_tekna(text, fig, canvas, silent=False):
 
 
     def onmove(event):
-        global ispressed, zoom_x_fra, zoom_y_fra
+        global ispressed, zoom_x_fra, zoom_y_fra, ccrs_projection
         if ispressed:
-            lat = event.xdata
-            lon = event.ydata
-            #print(lat)
-            pan(zoom_x_fra-event.xdata, zoom_y_fra-event.ydata, canvas)
+            pan(zoom_x_fra-event.xdata, zoom_y_fra-event.ydata, canvas, ccrs_projection)
 
 
     def release(event):
