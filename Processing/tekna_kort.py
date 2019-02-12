@@ -19,6 +19,8 @@ from tkinter import font
 import tkinter.ttk as ttk
 import cartopy.crs as ccrs
 import cartopy.feature as cpf
+import matplotlib.ticker as mticker
+from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
 
 
 class Window(Frame):
@@ -38,10 +40,6 @@ class Window(Frame):
 
     def client_exit(self):
         exit()
-
-def m(lat, lon):
-    log_w('M ting ikki orduligt implementera!')
-    return lat, lon
 
 def teknakort():
     global root
@@ -81,7 +79,7 @@ def teknakort():
     #ax.plot([1, 2, 1])
     ccrs_settings = {'central_longitude': 0, 'latitude_true_scale': 62, 'max_latitude': 63}#'central_longitude': -7, 'min_latitude': 61, 'max_latitude': 63,
     global ccrs_projection
-    ccrs_projection = ccrs.Orthographic(-7, 62)
+    ccrs_projection = ccrs.PlateCarree()
     #ax = fig.add_axes([0, 0, 1, 1], projection=ccrs_projection, aspect=1, adjustable='box')
     ax = fig.add_subplot(111, projection=ccrs_projection)
     # ax = fig.add_subplot(1, 1, 1, projection=ccrs.InterruptedGoodeHomolosine())
@@ -198,7 +196,7 @@ def innsetPan(text_list, fig, canvas):
     global m
     xlim = ax.get_xlim()
     ylim = ax.get_ylim()
-    lon, lat = m(xlim, ylim)
+    lon, lat = [xlim, ylim]
     raw_text = str(text_list.get("1.0", END))
     text = raw_text.split('\n')
     for command in text:
@@ -329,7 +327,7 @@ def les_og_tekna(text, fig, canvas, silent=False):
     btn_track = False
     btn_gridsize = 1000
     suppress_ticks = True
-    linjuSlag = [1, 0]
+    linjuSlag = 'dotted'
     btn_striku_hvor = 5
     qskala = 0.001
     scatter_std = 1
@@ -355,9 +353,7 @@ def les_og_tekna(text, fig, canvas, silent=False):
     ccrs_settings = {'central_longitude': 0, 'latitude_true_scale': 62, 'max_latitude': 63}#'central_longitude': -7, 'min_latitude': 61, 'max_latitude': 63,
     #ccrs_projection = ccrs.PlateCarree(ccrs_settings)
     global ccrs_projection
-    ccrs_projection = ccrs.Mercator()
-    #ccrs_projection = ccrs.Orthographic(-7, 62)
-    #ccrs_projection = ccrs.AzimuthalEquidistant(**ccrs_settings) #Orthographic(-7, 62)
+    ccrs_projection = ccrs.PlateCarree(-7)
     for command in text:
         if not silent:
             print(command)
@@ -402,7 +398,7 @@ def les_og_tekna(text, fig, canvas, silent=False):
                     c = ax.contour(D_lon, D_lat, D_dep, levels=levels)
                     #MD_lon, MD_lat = m(D_lon, D_lat)
                     #c = m.contour(MD_lon, MD_lat, D_dep,
-                    #              ax=ax)  # Um kodan kiksar her broyt basemap fílin til // har feilurin peikar
+                    #              ax=ax)
                     ax.clabel(c, inline=1, fontsize=15, fmt='%2.0f')
             elif variable == 'csv_dybdarkort':
                 if 'csvData_heilt' not in locals():
@@ -423,21 +419,21 @@ def les_og_tekna(text, fig, canvas, silent=False):
                 btn_lon = csvData['lon']
                 btn_lat = csvData['lat']
                 dypid = csvData['d']
-                btn_x, btn_y = m(btn_lon.values, btn_lat.values)
+                btn_x, btn_y = [btn_lon.values, btn_lat.values]
                 #btn_x1, btn_y1 = np.meshgrid(btn_x, btn_y)
 
                 meshgridy = np.linspace(latmin, latmax, btn_gridsize)
                 meshgridx = np.linspace(lonmin, lonmax, btn_gridsize)
                 print('Gridsize =' + str(btn_gridsize))
-                meshgridx, meshgridy = m(meshgridx, meshgridy)
+                meshgridx, meshgridy = [meshgridx, meshgridy]
                 meshgridx, meshgridy = np.meshgrid(meshgridx, meshgridy)
 
                 #ax.scatter(meshgridx, meshgridy, s=1)
                 if btn_track:
                     if renderengine == '3D_botn':
-                        ax.scatter(btn_x, btn_y, -dypid, s=scatter_std, zorder=100)
+                        ax.scatter(btn_lon.values, btn_lat.values, -dypid, s=scatter_std, zorder=100)
                     else:
-                        ax.scatter(btn_x, btn_y, s=scatter_std, zorder=100, c=dypid)
+                        ax.scatter(btn_lon.values, btn_lat.values, s=scatter_std, zorder=100, c=dypid)
                 #grid_x, grid_y = np.mgrid[np.linspace(latmin, latmax, num=7312), np.linspace(lonmin, lonmax, num=7312)]
                 #grid_x, grid_y = np.meshgrid(np.linspace(latmin, latmax, num=7312), np.linspace(lonmin, lonmax, num=7312))
                 #grid_z0 = griddata((btn_x, btn_y), dypid.values, (meshgridx, meshgridy), method='linear')
@@ -458,12 +454,13 @@ def les_og_tekna(text, fig, canvas, silent=False):
             elif variable == 'lin_fil':
                 lineData = pd.read_csv(command[toindex::])
                 if renderengine == '3D_botn':
-                    line_x_hj, line_y_hj = m(lineData['lon'].values, lineData['lat'].values)
+                    line_x_hj = lineData['lon'].values
+                    line_y_hj = lineData['lat'].values
                     line_x = [y for i in range(len(line_x_hj)-1)
                               for y in np.linspace(line_x_hj[i] , line_x_hj[i+1], btn_gridsize)]
                     line_y = [y for i in range(len(line_x_hj) - 1)
                               for y in np.linspace(line_y_hj[i], line_y_hj[i+1], btn_gridsize)]
-                    line_z = griddata((btn_x, btn_y), -dypid.values,
+                    line_z = griddata((btn_lon.values, btn_lat.values), -dypid.values,
                                       (line_x, line_y), method=btn_interpolation)
                     ax.plot(line_x, line_y, line_z, color=lin_farv, linewidth=3,
                             linestyle='solid', label=lin_legend)
@@ -475,13 +472,13 @@ def les_og_tekna(text, fig, canvas, silent=False):
                                 , color=lin_farv, linewidth=3
                                 , linestyle='solid')
                 else:
-                    line_x, line_y = m(lineData['lon'].values, lineData['lat'].values)
-                    ax.plot(line_x, line_y, lin_farv, linewidth=1, label=lin_legend)
+                    ax.plot(lineData['lon'].values, lineData['lat'].values, lin_farv, linewidth=1, label=lin_legend)
             elif variable == 'scatter_std':
                 scatter_std = float(command[toindex::])
             elif variable == 'scatter_fil':
                 scatterData = pd.read_csv(command[toindex::])
-                line_x, line_y = m(scatterData['lon'].values, scatterData['lat'].values)
+                line_x = scatterData['lon'].values
+                line_y = scatterData['lat'].values
                 Samla = True
                 z_sca_a_yvirfladu = True
                 columns = scatterData.columns.values
@@ -525,23 +522,25 @@ def les_og_tekna(text, fig, canvas, silent=False):
                             show_legend = True
             elif variable == 'linjuSlag':
                 if command[toindex::] == 'eingin':
-                    linjuSlag = [0, 1]
+                    linjuSlag = 'None'
                 elif command[toindex::] == 'prikkut':
-                    linjuSlag = [1, 1]
+                    linjuSlag = 'dotted'
                 elif command[toindex::] == 'heil':
-                    linjuSlag = (0, (1, 1))
+                    linjuSlag = 'solid'
+                else:
+                    log_w('Ókent linjuslag')
             elif variable == 'breiddarlinjur':
                 if not renderengine == '3D_botn':
                     breiddarlinjur = np.linspace(latmin, latmax, int(command[toindex::]))
-                    longdarlinjur = np.linspace(lonmin, lonmax, int(command[toindex::]))
-                    print(breiddarlinjur)
-                    ax.gridlines(ccrs_projection, ylocs=breiddarlinjur)
-                    #m.drawparallels(breiddarlinjur, labels=[1, 0, 0, 0], zorder=1000, color='lightgrey', dashes=linjuSlag)
-                    #ax.gridlines(color='k', linestyle=(0, (1, 1)), ylocs=breiddarlinjur, xlocs=longdarlinjur)
+                    gl = ax.gridlines(ccrs_projection, linestyle=linjuSlag, ylocs=breiddarlinjur, xlocs=longdarlinjur, color='lightgray', draw_labels=True, zorder=100)
+                    gl.xlabels_top = False
+                    gl.ylabels_left = False
             elif variable == 'longdarlinjur':
                 if not renderengine == '3D_botn':
                     longdarlinjur = np.linspace(lonmin, lonmax, int(command[toindex::]))
-                    m.drawmeridians(longdarlinjur, labels=[0, 0, 0, 1], zorder=1000, color='lightgrey', dashes=linjuSlag)
+                    gl = ax.gridlines(ccrs_projection, linestyle=linjuSlag, ylocs=breiddarlinjur, xlocs=longdarlinjur, color='lightgray', draw_labels=True, zorder=100)
+                    gl.xlabels_top = False
+                    gl.ylabels_left = False
             elif variable == 'suppress_ticks':
                 if command[toindex::] == 'True':
                     suppress_ticks = True
@@ -564,8 +563,7 @@ def les_og_tekna(text, fig, canvas, silent=False):
                 Qdata = pd.read_csv(command[toindex::])
                 lon = Qdata['lon']
                 lat = Qdata['lat']
-                Qx, Qy = m(lon.values, lat.values)
-                q = m.quiver(Qx, Qy, Qdata['u']*qskala, Qdata['v']*qskala, scale=10, width=0.003, headwidth=5, zorder=100)
+                q = ax.quiver(lon.values, lat.values, Qdata['u']*qskala, Qdata['v']*qskala, scale=10, width=0.003, headwidth=5, zorder=100, transform=ccrs_projection)
             elif variable == 'quiverf':
                 Qdata = pd.read_csv(command[toindex::])
                 pos_lon = Qdata['lon']
@@ -594,11 +592,11 @@ def les_og_tekna(text, fig, canvas, silent=False):
                         lat_undir.append(pos_lat[arrow_index])
                         u_undir.append(u[arrow_index])
                         v_undir.append(v[arrow_index])
-                x_undir, y_undir = m(lon_undir, lat_undir)
-                x_yvir, y_yvir = m(lon_yvir, lat_yvir)
+                x_undir, y_undir = [lon_undir, lat_undir]
+                x_yvir, y_yvir = [lon_yvir, lat_yvir]
 
-                q = m.quiver(x_undir, y_undir, u_undir, v_undir, color='g', scale=10, width=0.003, headwidth=5,
-                             zorder=100)
+                q = ax.quiver(x_undir, y_undir, u_undir, v_undir, color='g', scale=10, width=0.003, headwidth=5,
+                             zorder=100, transform=ccrs_projection)
                 ax.quiverkey(q, 0.85, 0.95 - 0 * 0.03, quiverf_threshold*qskala, label='Undir ' + str(quiverf_threshold) + ' m/s', labelpos='W') # 2.57222
 
                 q = m.quiver(x_yvir, y_yvir, u_yvir, v_yvir, color='r', scale=10, width=0.003, headwidth=5, zorder=100)
@@ -622,7 +620,8 @@ def les_og_tekna(text, fig, canvas, silent=False):
             elif variable == 'circle_fil':
                 print('Teknar rundingar')
                 scatterData = pd.read_csv(command[toindex::])
-                line_x, line_y = m(scatterData['lon'].values, scatterData['lat'].values)
+                line_x = scatterData['lon'].values
+                line_y = scatterData['lat'].values
                 Samla = True
                 columns = scatterData.columns.values
                 for i in range(len(columns)):
@@ -660,15 +659,15 @@ def les_og_tekna(text, fig, canvas, silent=False):
                 ax.text(tekstx, teksty, open(command[toindex::]).read(), fontsize=fontsize, zorder=11)
             elif variable == 'tekstxy':
                 temp = command[toindex::].split()
-                tekstx, teksty = m(np.float(temp[0]), np.float(temp[1]))
+                tekstx = np.float(temp[0])
+                teksty = np.float(temp[1])
                 print(str(np.float(temp[0])) + ',' + str(np.float(temp[1])))
                 print(str(tekstx) + ',' + str(teksty))
             elif variable == 'scatter':
                 pos = command[toindex::].split(',')
                 lat = float(pos[0])
                 lon = float(pos[1])
-                scatter_x, scatter_y = m(lon, lat)
-                ax.scatter(scatter_x, scatter_y, zorder=100, color=scatter_farv, label=scatter_legend, s=scatter_std)
+                ax.scatter(lon, lat, zorder=100, color=scatter_farv, label=scatter_legend, s=scatter_std)
             else:
                 if '#' not in variable and command != '':
                     log_w('Ókend stýriboð ' + variable)
@@ -685,20 +684,11 @@ def les_og_tekna(text, fig, canvas, silent=False):
                 break
             elif command == 'Tekna kort':
                 if renderengine == '3D_botn':
-                    m = Basemap(projection='merc', resolution=None,
-                                llcrnrlat=latmin, urcrnrlat=latmax,
-                                llcrnrlon=lonmin, urcrnrlon=lonmax, ax=ax, suppress_ticks=suppress_ticks)
-                    ax = fig.add_subplot(111, projection='3d')
-                else:
-                    #ax = ax.axes(projection=ccrs.PlateCarree())
-                    #ax = plt.figure().gca(projection=ccrs.PlateCarree())
-                    #ax.set_xlim(lonmin, lonmax)
-                    #ax.set_ylim(latmin, latmax)
-                    #ax.set_extent([lonmin, lonmax, latmin, latmax])
                     #m = Basemap(projection='merc', resolution=None,
-
                     #            llcrnrlat=latmin, urcrnrlat=latmax,
                     #            llcrnrlon=lonmin, urcrnrlon=lonmax, ax=ax, suppress_ticks=suppress_ticks)
+                    ax = fig.add_subplot(111, projection='3d')
+                else:
                     if tekna_land:
                         for island in os.listdir('Kort_Data/Coasts'):
                             lo, aa, la = np.genfromtxt('Kort_Data/Coasts/' + island, delimiter=' ').T
@@ -712,7 +702,7 @@ def les_og_tekna(text, fig, canvas, silent=False):
                     #                  linewidth=2, color='gray', alpha=0.5, linestyle='--')
 
             elif command == 'btn_contourf':
-                grid_z0 = griddata((btn_x, btn_y), dypid.values, (meshgridx, meshgridy), method=btn_interpolation)
+                grid_z0 = griddata((btn_lon.values, btn_lat.values), dypid.values, (meshgridx, meshgridy), method=btn_interpolation)
                 #grid_z0 = interpolate.interp2d(btn_x, btn_y, dypid.values, kind='cubic')
                 vmin = min(-150, min([-y for x in grid_z0 for y in x]))
                 lv = range(int(vmin/btn_striku_hvor)*btn_striku_hvor, int(btn_striku_hvor), int(btn_striku_hvor))
@@ -735,26 +725,25 @@ def les_og_tekna(text, fig, canvas, silent=False):
                     v2 = max([y for x in grid_z0 for y in x])
                     ax.set_aspect(scalefactor * v2 / v1)
                 else:
-                    c = m.contourf(meshgridx, meshgridy, -grid_z0, lv, ax=ax)  # Um kodan kiksar her broyt basemap fílin til // har feilurin peikar
+                    c = ax.contourf(meshgridx, meshgridy, -grid_z0, lv, transform=ccrs_projection)
                     #ax.clabel(c, inline=1, fontsize=15, fmt='%2.0f')
                     #fig.colorbar(c)
                     if vmin >= -150:
                         confti=list(range(int(vmin/10)*10, int(10), int(10)))
                     else:
                         confti = list(range(int(vmin / 20) * 20, int(20), int(20)))
-                    fig.colorbar(c, orientation='horizontal', ax=ax, ticks=confti, shrink=float(scatter_farv), pad=0.02)
+                    fig.colorbar(c, orientation='horizontal', ax=ax, ticks=confti, pad=0.02)
             elif command == 'btn_contour':
-                grid_z0 = griddata((btn_x, btn_y), dypid.values, (meshgridx, meshgridy), method=btn_interpolation)
+                grid_z0 = griddata((btn_lon.values, btn_lat.values), dypid.values, (meshgridx, meshgridy), method=btn_interpolation)
                 vmin = min(-150, min([-y for x in grid_z0 for y in x]))
                 temp=btn_striku_hvor
                 lv = range(int(vmin/temp)*temp, int(btn_striku_hvor), int(btn_striku_hvor))
                 #grid_z0 = interpolate.interp2d(btn_x, btn_y, dypid.values, kind='cubic')
-                #c = m.contour(meshgridx, meshgridy, -1*grid_z0, lv, ax=ax)  # Um kodan kiksar her broyt basemap fílin til // har feilurin peik
                 if renderengine == '3D_botn':
                     ax.contour3D(meshgridx, meshgridy, -1 * grid_z0, levels=lv,
                                  colors='k',vmax=0 , linestyles='solid')
                 else:
-                    c = m.contour(meshgridx, meshgridy, -1 * grid_z0, lv, ax=ax, colors='black', linestyles='solid', linewidths=0.2)
+                    c = ax.contourf(meshgridx, meshgridy, -grid_z0, lv, transform=ccrs_projection, colors='black', linestyles='solid', linewidths=0.2)
                     if clabel:
                         ax.clabel(c, inline=1, fontsize=fontsize, fmt='%2.0f', manual=True)
             elif command == 's3':
@@ -771,7 +760,8 @@ def les_og_tekna(text, fig, canvas, silent=False):
         leg = ax.legend(loc='best', ncol=ncol)
         leg.set_zorder(3000)
     if renderengine == '3D_botn':
-        s1, s2 = m(lonmax, latmax)
+        s1 = lonmax
+        s2 = latmax
         sm = max(s1,s2)
         s1 = s1/sm
         s2 = s2/sm
@@ -795,11 +785,7 @@ def les_og_tekna(text, fig, canvas, silent=False):
         a, b = event.xdata, event.ydata
         ispressed = True
         zoom_x_fra, zoom_y_fra = event.xdata, event.ydata
-        lat = event.xdata
-        lon = event.ydata
-        #lon, lat = m(event.xdata, event.ydata, inverse=True)
-        print('%s click: lon=%f, lat=%f, x=%f, y=%f' %
-              ('double' if event.dblclick else 'single', lon, lat, event.xdata, event.ydata))
+        print('%s click: lon=%f, lat=%f,' % ('double' if event.dblclick else 'single', event.xdata, event.ydata))
 
 
     def onmove(event):
