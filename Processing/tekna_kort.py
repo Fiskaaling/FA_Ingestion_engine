@@ -1,4 +1,4 @@
-from mpl_toolkits.mplot3d import Axes3D
+#from mpl_toolkits.mplot3d import Axes3D
 from tkinter import *
 from tkinter import messagebox
 from tkinter import filedialog

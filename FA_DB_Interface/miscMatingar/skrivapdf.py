@@ -10,7 +10,7 @@ def makepdf(tex, pdfname, outputdir='.'):
     outputdir = os.getcwd()
     os.chdir(temp)
 
-    f = open('cover.tex', 'w')
+    f = open('cover.tex', 'w', encoding="utf-8")
     f.write(tex)
     f.close()
 
@@ -52,7 +52,9 @@ def midan():
     return out
 
 def kjekkasyntax(ID):
-    return str(ID)
+    ID = str(ID).replace('%', r'\%').replace('$', r'\$').replace('{', r'\{').replace('_', r'\_')\
+        .replace('#', r'\#').replace('&', r'\&').replace('}', r'\}')
+    return ID
 
 def DepID(ID):
     return r"""\begin{document}

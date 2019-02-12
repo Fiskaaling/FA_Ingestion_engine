@@ -28,6 +28,7 @@ def inset(frame, setup_dict):
     fun_pop = OptionMenu(frame, tk_status, *choices_status, command=lambda x: insetlefttree(x, setup_dict))
     fun_pop.pack(side=LEFT)
     insetlefttree(tk_status.get(), setup_dict)
+    insetfelagartree(setup_dict)
 
 def Dagfør(frame, setup_dict):
     rudda(frame, setup_dict)
@@ -47,6 +48,17 @@ def insetlefttree(staus, setup_dict):
     for x in Instromentir:
         lefttree.insert(x[2], 'end', text=x[0])
 
+def insetfelagartree(setup_dict):
+    felagar = db.listfelagar(setup_dict)
+    felagartree = setup_dict['felagartree']
+    Feløg = list(set([x[1] for x in felagar]))
+    for x in Feløg:
+        felagartree.insert('', 'end', x, text=x)
+    for x in felagar:
+        felagartree.insert(x[1], 'end', x[0], text=x[2])
+    setup_dict['info']['embargo'] = dict([[x[0], x[3]] for x in felagar])
+
+
 def Dagførlefttree(setup_dict):
     matingar = db.stopnull(setup_dict)
     lefttree = setup_dict['lefttree']
@@ -60,6 +72,7 @@ def rudda(frame, setup_dict):
         widget.destroy()
     setup_dict['lefttree'].delete(*setup_dict['lefttree'].get_children())
     setup_dict['righttree'].delete(*setup_dict['righttree'].get_children())
+    setup_dict['felagartree'].delete(*setup_dict['felagartree'].get_children())
     for x in setup_dict['dato'].values():
         for y in x.values():
             y.config(state=NORMAL)
@@ -72,11 +85,16 @@ def Doublelefttree(event, setup_dict):
     elif setup_dict['fun'] == 'Dagfør':
         Dagfør_fun.doublelefttree(item, setup_dict)
 
+def Doublefelagartree(event, setup_dict):
+    item = setup_dict['felagartree'].identify('item', event.x, event.y)
+    if setup_dict['fun'] == 'inset':
+        Insert_fun.Doublefelagartree(item, setup_dict)
+
 def velfilir(setup_dict):
     # TODO møguliga datatypan hevur okkurt við instromenti at gera
     temp = filedialog.askopenfilenames(title='Velfil',
                                        filetypes=(("all files", "*.*"), ("txt files", "*.txt")))
-    # TODO veit ikki um hettar riggar í windows also split parturin
+    #TODO veit ikki um hettar riggar í windows also split parturin
     for x in list(temp):
         if x not in setup_dict['innsettirfilir'] and x.split('/')[-1] not in setup_dict['inniliggjandifilir']:
             setup_dict['innsettirfilir'].append(x)
