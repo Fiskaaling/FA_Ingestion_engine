@@ -36,6 +36,7 @@ class Window(Frame):
 
 
 def OnDoubleClick(event, tree):
+    minimize = 0
     item = tree.identify('item', event.x, event.y)
     item = tree.item(item, "text")
     if item == 'Tekna Kort':
@@ -59,15 +60,15 @@ def OnDoubleClick(event, tree):
         Ingestion.RDI.fra_botni.check_click(item, RightFrame, root)
         Ingestion.Botnkort.tilCsv.check_click(item, RightFrame, root)
         Ingestion.CTD.init.check_click(item, RightFrame, root)
-        FA_DB_Interface.init.check_click(item, RightFrame, root)
+        minimize += FA_DB_Interface.init.check_click(item, RightFrame, root)
 
 
-
-    ingestion_listbox.pack_forget()
-    expandButton = Button(ingestion_subframe, text='>', command=lambda: visTree(expandButton))
-    expandButton.pack(side=LEFT, expand=1, fill=Y)
-    Ingestion_frame.config(width=100)
-    Ingestion_frame.pack(expand=False)
+    if not minimize:
+        ingestion_listbox.pack_forget()
+        expandButton = Button(ingestion_subframe, text='>', command=lambda: visTree(expandButton))
+        expandButton.pack(side=LEFT, expand=1, fill=Y)
+        Ingestion_frame.config(width=100)
+        Ingestion_frame.pack(expand=False)
 
 
 def visTree(expandButton):

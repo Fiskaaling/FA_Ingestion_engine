@@ -2,18 +2,15 @@ from tkinter import filedialog
 from misc.faLog import *
 import tkinter.messagebox
 import tkinter.ttk as ttk
-
+import mysql
 import mysql.connector as db
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
-
+import tkinter as tk
 import Processing.tekna_kort
 from misc.faLog import *
 
-global root
-
-def stovna_geo_okid(frame, root2, db_info):
-    root = root2
+def stovna_geo_okid(frame, root, db_info):
     for widget in frame.winfo_children():
         widget.destroy()
     Label(frame, text='Stovna nýtt Geografiskt økið', font='Helvetica 18 bold').pack(side=TOP)
@@ -37,10 +34,10 @@ def stovna_geo_okid(frame, root2, db_info):
                                                                            lonminEntry.get(), lonmaxEntry.get()))
     teknaButton.pack(side=LEFT, anchor=N)
 
-    stovnaButton = Button(buttonsFrame, text='Stovna Økið', command=lambda: innset(navnEntry.get(), styttingEntry.get(), latminEntry.get(), latmaxEntry.get(), lonminEntry.get(), lonmaxEntry.get(), db_info))
+    stovnaButton = Button(buttonsFrame, text='Stovna Økið', command=lambda: innset(navnEntry.get(), styttingEntry.get(), latminEntry.get(), latmaxEntry.get(), lonminEntry.get(), lonmaxEntry.get(), db_info, punktir))
     stovnaButton.pack(side=RIGHT, anchor=N)
 
-    strikaButton = Button(buttonsFrame, text='Strika Økið', command=lambda: strika(navnEntry.get(), db_info))
+    strikaButton = Button(buttonsFrame, text='Strika Økið', command=lambda: strika(navnEntry.get(), db_info, punktir))
     strikaButton.pack(side=RIGHT, anchor=N)
 
     navnFrame = Frame(controlsFrame)
@@ -83,7 +80,6 @@ def stovna_geo_okid(frame, root2, db_info):
 
     kortFrame = Frame(lframe)
     kortFrame.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
-    global punktir
     punktir = ttk.Treeview(rframe)
     punktir.bind("<Double-1>", lambda event, arg=punktir: OnDoubleClick(event, arg, navnEntry, styttingEntry, latminEntry, latmaxEntry, lonminEntry, lonmaxEntry, db_info, fig, canvas))
     scrollbar = Scrollbar(rframe, orient=VERTICAL)
@@ -93,7 +89,6 @@ def stovna_geo_okid(frame, root2, db_info):
     #fig = Figure(figsize=(5, 6), dpi=100)
     fig = Figure()
 
-    global ax
     ax = fig.add_subplot(111)
     canvas = FigureCanvasTkAgg(fig, master=kortFrame)
 
@@ -113,7 +108,7 @@ def stovna_geo_okid(frame, root2, db_info):
         punktir.heading(kolonnir[i], text=kolonnir[i])
         #punktir.column("#" + str(i), width=100)
 
-    dagfor_tree(result)
+    dagfor_tree(result, punktir)
 
     tekstur = """
 clf
@@ -130,19 +125,25 @@ breiddarlinjur=6
     print(cursor.column_names)
     print(result)
 
-def strika(Navn, db_info):
+def strika(Navn, db_info, punktir):
     sletta = tkinter.messagebox.askquestion("Strika " + Navn, "Ert tú sikkur?", icon='warning')
     if sletta == 'yes':
         db_connection = db.connect(**db_info)
         cursor = db_connection.cursor()
-        cursor.execute("DELETE FROM WL_Geografisk_okir WHERE Navn = %s", (Navn, ))
-        db_connection.commit()
-        cursor.execute("SELECT * FROM WL_Geografisk_okir")
-        result = cursor.fetchall()
-        dagfor_tree(result)
-        db_connection.close()
+        try:
+            cursor.execute("DELETE FROM WL_Geografisk_okir WHERE Navn = %s", (Navn, ))
+            db_connection.commit()
+        except mysql.connector.Error as err:
+            print("Striking miseyndaðist, tað er nokk onkurt í peikar á hettar\n\n" + str(err))
+            tk.messagebox.showerror("Error",
+                                    "Striking miseyndaðist, tað er nokk onkurt í peikar á hettar\n\n" + str(err))
+        else:
+            cursor.execute("SELECT * FROM WL_Geografisk_okir")
+            result = cursor.fetchall()
+            dagfor_tree(result, punktir)
+            db_connection.close()
 
-def innset(Navn, Stytting, Latmin, Latmax, Lonmin, Lonmax, db_info):
+def innset(Navn, Stytting, Latmin, Latmax, Lonmin, Lonmax, db_info, punktir):
     if Navn == '' or Stytting == '':
         tkinter.messagebox.showerror('Feilur', 'Navn ella stytting manglar')
     else:
@@ -159,7 +160,7 @@ def innset(Navn, Stytting, Latmin, Latmax, Lonmin, Lonmax, db_info):
         db_connection.commit()
         cursor.execute("SELECT * FROM WL_Geografisk_okir")
         result = cursor.fetchall()
-        dagfor_tree(result)
+        dagfor_tree(result, punktir)
         db_connection.close()
         print('Liðugt')
 
@@ -179,8 +180,7 @@ breiddarlinjur=6
 """
     Processing.tekna_kort.les_og_tekna(tekstur, fig, canvas, False)
 
-def dagfor_tree(result):
-    global punktir
+def dagfor_tree(result, punktir):
     punktir.delete(*punktir.get_children())
     for item in result:
         rekkja = item
