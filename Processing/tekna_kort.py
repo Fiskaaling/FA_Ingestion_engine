@@ -41,10 +41,6 @@ class Window(Frame):
     def client_exit(self):
         exit()
 
-def m(lat, lon):
-    log_w('M ting ikki orduligt implementera!')
-    return lat, lon
-
 def teknakort():
     global root
     root = Tk()
@@ -402,7 +398,7 @@ def les_og_tekna(text, fig, canvas, silent=False):
                     c = ax.contour(D_lon, D_lat, D_dep, levels=levels)
                     #MD_lon, MD_lat = m(D_lon, D_lat)
                     #c = m.contour(MD_lon, MD_lat, D_dep,
-                    #              ax=ax)  # Um kodan kiksar her broyt basemap fílin til // har feilurin peikar
+                    #              ax=ax)
                     ax.clabel(c, inline=1, fontsize=15, fmt='%2.0f')
             elif variable == 'csv_dybdarkort':
                 if 'csvData_heilt' not in locals():
@@ -688,20 +684,11 @@ def les_og_tekna(text, fig, canvas, silent=False):
                 break
             elif command == 'Tekna kort':
                 if renderengine == '3D_botn':
-                    m = Basemap(projection='merc', resolution=None,
-                                llcrnrlat=latmin, urcrnrlat=latmax,
-                                llcrnrlon=lonmin, urcrnrlon=lonmax, ax=ax, suppress_ticks=suppress_ticks)
-                    ax = fig.add_subplot(111, projection='3d')
-                else:
-                    #ax = ax.axes(projection=ccrs.PlateCarree())
-                    #ax = plt.figure().gca(projection=ccrs.PlateCarree())
-                    #ax.set_xlim(lonmin, lonmax)
-                    #ax.set_ylim(latmin, latmax)
-                    #ax.set_extent([lonmin, lonmax, latmin, latmax])
                     #m = Basemap(projection='merc', resolution=None,
-
                     #            llcrnrlat=latmin, urcrnrlat=latmax,
                     #            llcrnrlon=lonmin, urcrnrlon=lonmax, ax=ax, suppress_ticks=suppress_ticks)
+                    ax = fig.add_subplot(111, projection='3d')
+                else:
                     if tekna_land:
                         for island in os.listdir('Kort_Data/Coasts'):
                             lo, aa, la = np.genfromtxt('Kort_Data/Coasts/' + island, delimiter=' ').T
@@ -738,7 +725,7 @@ def les_og_tekna(text, fig, canvas, silent=False):
                     v2 = max([y for x in grid_z0 for y in x])
                     ax.set_aspect(scalefactor * v2 / v1)
                 else:
-                    c = ax.contourf(meshgridx, meshgridy, -grid_z0, lv, transform=ccrs_projection)  # Um kodan kiksar her broyt basemap fílin til // har feilurin peikar
+                    c = ax.contourf(meshgridx, meshgridy, -grid_z0, lv, transform=ccrs_projection)
                     #ax.clabel(c, inline=1, fontsize=15, fmt='%2.0f')
                     #fig.colorbar(c)
                     if vmin >= -150:
@@ -752,7 +739,6 @@ def les_og_tekna(text, fig, canvas, silent=False):
                 temp=btn_striku_hvor
                 lv = range(int(vmin/temp)*temp, int(btn_striku_hvor), int(btn_striku_hvor))
                 #grid_z0 = interpolate.interp2d(btn_x, btn_y, dypid.values, kind='cubic')
-                #c = m.contour(meshgridx, meshgridy, -1*grid_z0, lv, ax=ax)  # Um kodan kiksar her broyt basemap fílin til // har feilurin peik
                 if renderengine == '3D_botn':
                     ax.contour3D(meshgridx, meshgridy, -1 * grid_z0, levels=lv,
                                  colors='k',vmax=0 , linestyles='solid')
