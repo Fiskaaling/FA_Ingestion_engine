@@ -2,8 +2,9 @@ import subprocess
 import os
 import tempfile
 import shutil
+import sys
 
-def makepdf(tex, pdfname, outputdir='.'):
+def makepdf(tex, pdfname, outputdir='.', printa=True):
     current = os.getcwd()
     temp = tempfile.mkdtemp()
     os.chdir(outputdir)
@@ -17,6 +18,9 @@ def makepdf(tex, pdfname, outputdir='.'):
     subprocess.call(['pdflatex', '-halt-on-error', 'cover.tex'], shell=False, stdout=subprocess.PIPE)
 
     if 'cover.pdf' in os.listdir():
+        #printa
+        if sys.platform == 'linux' and printa:
+                subprocess.call(['lpr', 'cover.pdf'], shell=False)
         os.rename('cover.pdf', pdfname)
         shutil.copy(pdfname, outputdir)
         os.chdir(current)

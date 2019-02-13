@@ -25,8 +25,16 @@ def inset(frame, setup_dict):
     else:
         tk_status.set(choices_status[0])
 
+    PrintaDep = BooleanVar()
+    PrintaDep.set(True)
+    setup_dict['printadeb'] = PrintaDep
+
     fun_pop = OptionMenu(frame, tk_status, *choices_status, command=lambda x: insetlefttree(x, setup_dict))
     fun_pop.pack(side=LEFT)
+
+    Checkbutton(frame, text='Printa Deployment', variable=PrintaDep,
+                onvalue=True, offvalue=False).pack(side=LEFT)
+
     insetlefttree(tk_status.get(), setup_dict)
     insetfelagartree(setup_dict)
 

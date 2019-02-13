@@ -104,4 +104,4 @@ def latex(setup_dict, id, navn, dir):
         if setup_dict['uppsetan'][x[0]] != '':
             fil += skrivapdf.eincol(x[1] + ':', setup_dict['uppsetan'][x[0]])
     fil += skrivapdf.endi()
-    skrivapdf.makepdf(fil, navn, dir)
+    skrivapdf.makepdf(fil, navn, dir, setup_dict['printadeb'].get())
