@@ -683,8 +683,6 @@ def les_og_tekna(text, fig, canvas, silent=False):
                             #plt.plot(xpt, ypt, 'k', linewidth=1)
                             #ax.fill(xpt, ypt, landlitur, zorder=10)
                     ax.set_extent([lonmin, lonmax, latmin, latmax], ccrs_projection)
-                    #gl = ax.gridlines(crs=ccrs_projection, draw_labels=True,
-                    #                  linewidth=2, color='gray', alpha=0.5, linestyle='--')
 
             elif command == 'btn_contourf':
                 grid_z0 = griddata((btn_lon.values, btn_lat.values), dypid.values, (meshgridx, meshgridy), method=btn_interpolation)
