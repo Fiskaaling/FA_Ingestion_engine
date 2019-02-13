@@ -1,4 +1,4 @@
-# Standard Kort
+﻿# Standard Kort
 clf
 latmax=62.4
 lonmax=-6.2
@@ -7,7 +7,6 @@ lonmin=-7.7
 landlitur=green
 title=Føroyar
 Tekna kort
-dybdarlinjur=Kort_Data/depth_new_LG_smooth.tec
 breiddarlinjur=10
 longdarlinjur=10
 
