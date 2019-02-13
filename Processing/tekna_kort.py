@@ -81,12 +81,7 @@ def teknakort():
     global ccrs_projection
     ccrs_projection = ccrs.PlateCarree()
     #ax = fig.add_axes([0, 0, 1, 1], projection=ccrs_projection, aspect=1, adjustable='box')
-    ax = fig.add_subplot(111, projection=ccrs_projection)
-    # ax = fig.add_subplot(1, 1, 1, projection=ccrs.InterruptedGoodeHomolosine())
-
-    #ax.set_global()
-    #ax.stock_img()
-    #ax.coastlines()
+    ax = fig.add_subplot(111, projection=ccrs_projection, adjustable='datalim')
 
     ax.add_feature(cpf.COASTLINE)
     ax.add_feature(cpf.BORDERS, lw=0.5)
@@ -95,11 +90,6 @@ def teknakort():
 
     canvas.draw()
     canvas.get_tk_widget().pack(fill=BOTH, expand=1)
-    # ax = fig2.gca(projection=ccrs.PlateCarree())
-    # ax = plt.axes(projection=ccrs.PlateCarree())
-
-
-
 
     list_frame = Frame(content_frame)
     list_frame.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
@@ -347,11 +337,6 @@ def les_og_tekna(text, fig, canvas, silent=False):
     tekstx = 0
     teksty = 0
     tekna_land = True
-    #ccrs_settings = {'central_longitude': 0, 'min_latitude': 61, 'max_latitude': 63, 'latitude_true_scale': 62}
-    ccrs_settings = {'central_longitude' : 0.0, 'globe': None, 'central_longitude': 0.0}
-    ccrs_settings = {'central_longitude': -7.0, 'central_latitude': 62}
-    ccrs_settings = {'central_longitude': 0, 'latitude_true_scale': 62, 'max_latitude': 63}#'central_longitude': -7, 'min_latitude': 61, 'max_latitude': 63,
-    #ccrs_projection = ccrs.PlateCarree(ccrs_settings)
     global ccrs_projection
     ccrs_projection = ccrs.PlateCarree(-7)
     for command in text:
