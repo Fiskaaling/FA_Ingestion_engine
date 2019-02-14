@@ -66,7 +66,6 @@ def uppdateraupp(id, setup_dict):
         setup_dict['uppsetwid'][x[0]].insert(END, x[1])
 
 def update_db(setup_dict):
-    print('hey')
     fun.geruppsetan(setup_dict)
     fun.inlesdato(setup_dict)
     db.uppdatedb(setup_dict)
@@ -86,6 +85,7 @@ def update_db(setup_dict):
             shutil.copytree(x, raw + destdir + '/' + x.split('/')[-1])
         except:
             pass
+    #TODO man skal sikkurt skriva eitt deployment skjal til uppdateringina
     messagebox.showinfo('Uppdatera', 'Uppdatera')
 
     fun.rudda(setup_dict['funFrame'], setup_dict)
