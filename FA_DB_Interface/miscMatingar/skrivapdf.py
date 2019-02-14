@@ -22,7 +22,7 @@ def makepdf(tex, pdfname, outputdir='.', printa=True):
         if sys.platform == 'linux' and printa:
                 subprocess.call(['lpr', 'cover.pdf'], shell=False)
         os.rename('cover.pdf', pdfname)
-        shutil.copy(pdfname, outputdir)
+        shutil.copyfile(pdfname, outputdir + '/' + pdfname)
         os.chdir(current)
         shutil.rmtree(temp)
     else:

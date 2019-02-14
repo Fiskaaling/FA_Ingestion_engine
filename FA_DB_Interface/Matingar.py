@@ -11,12 +11,13 @@ from FA_DB_Interface.datowid import datowid
 import FA_DB_Interface.miscMatingar.setupframe as setupframe
 import FA_DB_Interface.miscMatingar.init_fun as init_fun
 
-def inset_matingar(frame, db_host='192.168.43.94', db_user='trondur', db_password='koda'):
+def inset_matingar(frame, db_host, db_user, db_password):
     for widget in frame.winfo_children():
         widget.destroy()
+    #TODO path_to_RawData skal eisini riggar allastani
     setup_dict = {'login': {'host': db_host, 'user': db_user, 'password': db_password, 'database': 'fa_db'},
                   'main_frame': frame,
-                  'Path_to_RawData': 'Rawdata',
+                  'Path_to_RawData': r'/run/user/1000/gvfs/smb-share:server=webalduboya,share=data/RawData',
                   'Instroment': '',
                   'innsettirfilir': [],
                   'innsettarmappir': [],

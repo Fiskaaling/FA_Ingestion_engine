@@ -54,7 +54,6 @@ def insetmating(setup_dict, id, destdir, embargo):
          setup_dict['Utfiltdato']['Enddato'], destdir, setup_dict['info']['id'], embargo))
     for x in setup_dict['uppsetan'].keys():
         if setup_dict['uppsetan'][x] != '':
-            print((id, x, setup_dict['uppsetan'][x]))
             cursor.execute("INSERT into Uppsetingar (uppseting_id, uppseting, virði) VALUE (%s, %s, %s)",
                            (id, x, setup_dict['uppsetan'][x]))
     #TODO inset økir
