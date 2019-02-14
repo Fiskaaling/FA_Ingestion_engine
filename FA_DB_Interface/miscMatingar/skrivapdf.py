@@ -3,6 +3,9 @@ import os
 import tempfile
 import shutil
 import sys
+if sys.platform == 'win32':
+    import win32api
+    import time
 
 def makepdf(tex, pdfname, outputdir='.', printa=True):
     current = os.getcwd()
@@ -19,8 +22,17 @@ def makepdf(tex, pdfname, outputdir='.', printa=True):
 
     if 'cover.pdf' in os.listdir():
         #printa
-        if sys.platform == 'linux' and printa:
+        if printa:
+            if sys.platform == 'linux':
                 subprocess.call(['lpr', 'cover.pdf'], shell=False)
+            elif sys.platform == 'win32':
+                try:
+                    #TODO dont sleep
+                    win32api.ShellExecute(0, 'print', 'cover.pdf', None, '.', 0)
+                    time.sleep(2)
+                except:
+                    win32api.ShellExecute(0, 'open', 'cover.pdf', None, '.', 0)
+                    time.sleep(2)
         os.rename('cover.pdf', pdfname)
         shutil.copyfile(pdfname, outputdir + '/' + pdfname)
         os.chdir(current)
@@ -56,8 +68,8 @@ def midan():
     return out
 
 def kjekkasyntax(ID):
-    ID = str(ID).replace('%', r'\%').replace('$', r'\$').replace('{', r'\{').replace('_', r'\_')\
-        .replace('#', r'\#').replace('&', r'\&').replace('}', r'\}')
+    ID = str(ID).replace('\\', r'\backslash').replace('%', r'\%').replace('$', r'\$').replace('{', r'\{')\
+        .replace('_', r'\_').replace('#', r'\#').replace('&', r'\&').replace('}', r'\}')
     return ID
 
 def DepID(ID):
