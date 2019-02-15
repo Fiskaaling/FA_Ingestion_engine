@@ -1,4 +1,4 @@
-from FA_DB_Interface import stovna_geo_okid, stovna_okid, Matingar, wordlist_editor
+from FA_DB_Interface import stovna_geo_okid, stovna_okid, Matingar, wordlist_editor, Leitamatingar
 
 db_host = '192.168.43.62'
 db_user = 'JK'
@@ -25,6 +25,8 @@ def check_click(item, RightFrame, root):
         stovna_okid.stovna_okid(RightFrame, root, db_info)
     elif item == 'Wordlist Editor':
         wordlist_editor.wl_edtitor(RightFrame, root, db_info)
+    elif item == 'Leita í mátingum':
+        Leitamatingar.Leita(RightFrame, db_host, db_user, db_password)
     else:
         toReturn = 0
     return toReturn

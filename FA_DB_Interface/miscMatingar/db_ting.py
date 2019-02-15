@@ -1,6 +1,5 @@
 import mysql.connector as db
 
-
 def fadblogin(setup_dict):
     db_connection = db.connect(**setup_dict['login'])
     return db_connection, db_connection.cursor()
