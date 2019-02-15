@@ -88,7 +88,7 @@ def update_db(setup_dict):
     db.insetmating(setup_dict, id, destdir, embargo)
 
     os.makedirs(raw + destdir + '/Setup')
-    latex(setup_dict, id, 'deployment_sheet.pdf', raw + destdir + '/Setup')
+    skrivapdf.depLaTeX(setup_dict, id, 'deployment_sheet.pdf', raw + destdir + '/Setup')
 
     os.makedirs(raw + destdir + '/RawData')
     #TODO riggar split í windows
@@ -105,12 +105,3 @@ def update_db(setup_dict):
         except:
             pass
     fun.rudda(setup_dict['funFrame'], setup_dict)
-
-def latex(setup_dict, id, navn, dir):
-    fil = skrivapdf.birjan()
-    fil += skrivapdf.DepID('  ' + str(id) + '   ')
-    fil += skrivapdf.tveycol('typa:', setup_dict['typa'], 'Instroment', setup_dict['Instroment'])
-    for x in setup_dict['uppsetan_nøvn']:
-        fil += skrivapdf.eincol(x[1] + ':', setup_dict['uppsetan'][x[0]])
-    fil += skrivapdf.endi()
-    skrivapdf.makepdf(fil, navn, dir, setup_dict['printadeb'].get())

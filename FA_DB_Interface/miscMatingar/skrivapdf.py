@@ -90,3 +90,11 @@ def eincol(parm, val):
 """ % (kjekkasyntax(parm), kjekkasyntax(val))
 
 
+def depLaTeX(setup_dict, id, navn, dir):
+    fil = birjan()
+    fil += DepID('  ' + str(id) + '   ')
+    fil += tveycol('typa:', setup_dict['typa'], 'Instroment', setup_dict['Instroment'])
+    for x in setup_dict['uppsetan_nøvn']:
+        fil += eincol(x[1] + ':', setup_dict['uppsetan'][x[0]])
+    fil += endi()
+    makepdf(fil, navn, dir, setup_dict['printadeb'].get())
