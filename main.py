@@ -37,7 +37,7 @@ class Window(Frame):
 
 
 def OnDoubleClick(event, tree):
-    minimize = 0
+    minimize = 1
     item = tree.identify('item', event.x, event.y)
     item = tree.item(item, "text")
     if item == 'Tekna Kort':
@@ -57,26 +57,32 @@ def OnDoubleClick(event, tree):
     elif item == 'seaguard':
         seaguard.load(RightFrame, root)
     else:
-        Ingestion.oxygenkeda.check_click(item, RightFrame, root)
-        Ingestion.RDI.fra_botni.check_click(item, RightFrame, root)
-        Ingestion.Botnkort.tilCsv.check_click(item, RightFrame, root)
-        Ingestion.CTD.init.check_click(item, RightFrame, root)
+        minimize = 0
+        minimize += Ingestion.oxygenkeda.check_click(item, RightFrame, root)
+        minimize += Ingestion.RDI.fra_botni.check_click(item, RightFrame, root)
+        minimize += Ingestion.Botnkort.tilCsv.check_click(item, RightFrame, root)
+        minimize += Ingestion.CTD.init.check_click(item, RightFrame, root)
         minimize += FA_DB_Interface.init.check_click(item, RightFrame, root)
         minimize += AADI.check_click(item, RightFrame, root)
 
 
-    if not minimize:
-        ingestion_listbox.pack_forget()
-        expandButton = Button(ingestion_subframe, text='>', command=lambda: visTree(expandButton))
-        expandButton.pack(side=LEFT, expand=1, fill=Y)
-        Ingestion_frame.config(width=100)
-        Ingestion_frame.pack(expand=False)
+    if minimize:
+        mintree()
+
+def mintree():
+    ingestion_listbox.pack_forget()
+    condens.pack_forget()
+    expandButton = Button(ingestion_subframe, text='>', command=lambda: visTree(expandButton))
+    expandButton.pack(side=LEFT, expand=1, fill=Y)
+    Ingestion_frame.config(width=100)
+    Ingestion_frame.pack(expand=False)
 
 
 def visTree(expandButton):
+    expandButton.pack_forget()
+    condens.pack(side=RIGHT, fill=Y)
     ingestion_listbox.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
     Ingestion_frame.pack(expand=True)
-    expandButton.pack_forget()
     del expandButton
 
 # Teknar main gui
@@ -137,6 +143,8 @@ ingestion_listbox.insert(LV, "end", text='Aldumátingar')
 ingestion_listbox.insert(LV, "end", text='Vatnstøða')
 
 #ingestion_listbox.insert(END, 'Test')
+condens = Button(ingestion_subframe, text='<', command=lambda: mintree())
+condens.pack(side=RIGHT, fill=Y)
 ingestion_listbox.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
 
 

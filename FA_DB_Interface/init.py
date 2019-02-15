@@ -12,10 +12,11 @@ def init(ingestion_listbox):
     ingestion_listbox.insert(databasi, 0, text="Stovna Økið")
     ingestion_listbox.insert(databasi, 0, text='Mátingar')
     ingestion_listbox.insert(databasi, 0, text='Wordlist Editor')
+    ingestion_listbox.insert(databasi, 0, text='Leita í mátingum')
 
 
 def check_click(item, RightFrame, root):
-    toReturn = 0
+    toReturn = 1
     if item == 'Stovna Geo Økið':
         stovna_geo_okid.stovna_geo_okid(RightFrame, root, db_info)
     elif item == 'Mátingar':
@@ -25,5 +26,5 @@ def check_click(item, RightFrame, root):
     elif item == 'Wordlist Editor':
         wordlist_editor.wl_edtitor(RightFrame, root, db_info)
     else:
-        toReturn = 1
+        toReturn = 0
     return toReturn

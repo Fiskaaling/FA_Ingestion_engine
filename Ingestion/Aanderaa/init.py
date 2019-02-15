@@ -6,9 +6,9 @@ def init(ingestion_listbox):
 
 
 def check_click(item, RightFrame, root):
-    toReturn = 0
+    toReturn = 1
     if item == 'Plotta boyu data':
         plotta_boyudata.csvPlot(RightFrame, root)
     else:
-        toReturn = 1
+        toReturn = 0
     return toReturn

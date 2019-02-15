@@ -15,6 +15,7 @@ import FA_DB_Interface.miscMatingar.init_fun as init_fun
 def inset_matingar(frame, db_host, db_user, db_password):
     for widget in frame.winfo_children():
         widget.destroy()
+    #TODO ikki koyra inn í db uttan at faa filarnar inn
     #TODO path_to_RawData skal eisini riggar allastani
     setup_dict = {'login': {'host': db_host, 'user': db_user, 'password': db_password, 'database': 'fa_db'},
                   'main_frame': frame,
