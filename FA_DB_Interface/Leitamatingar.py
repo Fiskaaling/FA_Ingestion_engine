@@ -29,12 +29,19 @@ def Leita(frame, db_host, db_user, db_password):
     setvar(setup_dict)
     setupframe.setupmenuframe(menuFrame, setup_dict)
 
-    ADFrame = Frame(upperframe)
+    LowerFrame = Frame(upperframe)
+    setup_dict['LowerFrame'] = LowerFrame
+
+    ADFrame = Frame(LowerFrame)
     setup_dict['ADFrame'] = ADFrame
     setupframe.setupadframe(ADFrame, setup_dict)
 
+    tidFrame = Frame(LowerFrame)
+    setup_dict['tidFrame'] = tidFrame
+    setupframe.setuptidframe(tidFrame, setup_dict)
+
     BodyFrame = Frame(frame, bg='green')
-    setup_dict['BodyFrame'] = ADFrame
+    setup_dict['BodyFrame'] = BodyFrame
     BodyFrame.pack(fill=BOTH, expand=True, anchor=N + W)
     setupframe.setupbodyframe(setup_dict)
 

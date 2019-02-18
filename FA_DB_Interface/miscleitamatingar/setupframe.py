@@ -1,67 +1,130 @@
 from tkinter import *
 import tkinter.ttk as ttk
-from pprint import pprint
 import FA_DB_Interface.miscleitamatingar.db_ting as db
+from FA_DB_Interface.datowid import datowid
+from FA_DB_Interface.miscleitamatingar import update
 from pprint import pprint
 
+
 def setupmenuframe(frame, setup_dict):
+    setup_dict['LowerBool'] = False
     Label(frame, text='mátari:(').pack(side=LEFT)
     Label(frame, text='slag').pack(side=LEFT)
 
     tk_slag = setup_dict['tk_slag']
-    temp = ['Øll'] + db.get_slag(setup_dict)
+    temp = ['Øll'] + [x[0] for x in db.get_slag(setup_dict)]
     tk_slag.set(temp[0])
-    fun_pop1 = OptionMenu(frame, tk_slag, *temp, command=lambda x: popinstframe(setup_dict, x[0], pop2frame, tk_inst))
+    fun_pop1 = OptionMenu(frame, tk_slag, *temp, command=lambda x: popinstframe(setup_dict, x, pop2frame, tk_inst))
     fun_pop1.pack(side=LEFT)
 
+    Label(frame, text='Mátari').pack(side=LEFT)
     pop2frame = Frame(frame)
     pop2frame.pack(side=LEFT)
     tk_inst = setup_dict['tk_inst']
     popinstframe(setup_dict, tk_slag.get(), pop2frame, tk_inst)
 
-    tk_ting3 = StringVar(frame, setup_dict['main_frame'])
-    tk_ting3.set('nr1')
-    fun_pop3 = OptionMenu(frame, tk_ting3, 'nr1', 'nr2')
-    fun_pop3.pack(side=LEFT)
+    Label(frame, text=') Start tíð:').pack(side=LEFT)
+
+    Button(frame, text='tíð', command=lambda: startid(setup_dict)).pack(side=LEFT)
 
     Button(frame, text='print', command=lambda: pprint(setup_dict)).pack(side=LEFT)
 
     Button(frame, text='update', command=lambda: setupbodyframe(setup_dict)).pack(side=LEFT)
+    admiB = Button(frame, text='-', command=lambda: ADmi(setup_dict))
+    adplB = Button(frame, text='+', command=lambda: ADpl(setup_dict))
+    setup_dict['ADknob'] = {'ADmiB': admiB, 'ADplB': adplB}
+    adplB.pack(side=RIGHT)
 
-    ADmiB = Button(frame, text='-', command=lambda: ADmi(ADplB, ADmiB, setup_dict))
-    ADplB = Button(frame, text='+', command=lambda: ADpl(ADplB, ADmiB, setup_dict))
-    ADplB.pack(side=RIGHT)
 
 def setupbodyframe(setup_dict):
     frame = setup_dict['BodyFrame']
     for widget in frame.winfo_children():
         widget.destroy()
-    kolonnir = db.getcol(setup_dict)
-    Items = ttk.Treeview(frame)
-    Items['columns'] = kolonnir[1::]
+    items = ttk.Treeview(frame)
+    items.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
+    kolonnir, innihald = update.update(setup_dict)
+
+    items['columns'] = kolonnir[1::]
+    innihald_tree = [list(x) for x in innihald]
+
+    for i, j in enumerate(kolonnir):
+        if j == 'mátingar.Start_tid':
+            for k in range(len(innihald_tree)):
+                innihald_tree[k][i] = innihald_tree[k][i].strftime('%d %b-%Y')
+        if j == 'mátingar.Stop_tid':
+            for k in range(len(innihald_tree)):
+                if innihald_tree[k][i] == None:
+                    innihald_tree[k][i] = 'Einkið Endadato'
+                else:
+                    innihald_tree[k][i] = innihald_tree[k][i].strftime('%d %b-%Y')
+        if j == 'mátingar.Umbiði_av':
+            temp = db.get_felagar(setup_dict)
+            for k in range(len(innihald_tree)):
+                for felagi in temp:
+                    if innihald_tree[k][i] == felagi[0]:
+                        innihald_tree[k][i] = felagi[2] + ' (' + felagi[1] + ')'
+
+
     for i in range(1, len(kolonnir)):
-        Items.heading(kolonnir[i], text=kolonnir[i])
-    for ting in db.getmatinger(setup_dict):
-        Items.insert("", 'end', text=ting[0], values=ting[1::])
-    Items.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
+        items.heading(kolonnir[i], text=kolonnir[i].split('.')[-1])
+    for ting in innihald_tree:
+        items.insert("", 'end', text=ting[0], values=ting[1::])
+
 
 def setupadframe(frame, setup_dict):
     Label(frame, text='ADFrame').pack(side=LEFT)
 
-def ADpl(ADplB, ADmiB, setup_dict):
-    setup_dict['ADFrame'].pack(side=BOTTOM, fill=X)
+
+def setuptidframe(frame, setup_dict):
+    dato = datowid(frame)
+    dato['Startdato']['Ár'].insert(0, 1900)
+    dato['Startdato']['M'].insert(0, 1)
+    dato['Startdato']['D'].insert(0, 1)
+    dato['Enddato']['Ár'].insert(0, 2100)
+    dato['Enddato']['M'].insert(0, 12)
+    dato['Enddato']['D'].insert(0, 31)
+    setup_dict['dato'] = dato
+
+
+def ADpl(setup_dict):
+    for widget in setup_dict['LowerFrame'].winfo_children():
+        widget.pack_forget()
+    ADplB = setup_dict['ADknob']['ADplB']
+    ADmiB = setup_dict['ADknob']['ADmiB']
     ADplB.pack_forget()
     ADmiB.pack(side=RIGHT)
 
-def ADmi(ADplB, ADmiB, setup_dict):
-    setup_dict['ADFrame'].pack_forget()
+    setup_dict['ADFrame'].pack(side=BOTTOM, fill=X)
+    setup_dict['LowerFrame'].pack(side=BOTTOM, fill=X)
+    setup_dict['LowerBool'] = True
+
+def ADmi(setup_dict):
+    for widget in setup_dict['LowerFrame'].winfo_children():
+        widget.pack_forget()
+    ADplB = setup_dict['ADknob']['ADplB']
+    ADmiB = setup_dict['ADknob']['ADmiB']
     ADmiB.pack_forget()
     ADplB.pack(side=RIGHT)
+
+    setup_dict['LowerFrame'].pack_forget()
+    setup_dict['LowerBool'] = False
 
 def popinstframe(setup_dict, slag, frame, var):
     for widget in frame.winfo_children():
         widget.destroy()
-    options = ['Øll'] + list(db.get_instrumentir(setup_dict, slag))
+    options = ['Øll'] + [x[0] for x in db.get_instrumentir(setup_dict, slag)]
     var.set(options[0])
     fun_pop2 = OptionMenu(frame, var, *options)
     fun_pop2.pack(side=LEFT)
+
+def startid(setup_dict):
+    for widget in setup_dict['LowerFrame'].winfo_children():
+        widget.pack_forget()
+
+    setup_dict['tidFrame'].pack(side=BOTTOM, fill=X)
+
+    if not setup_dict['LowerBool']:
+        setup_dict['ADknob']['ADplB'].pack_forget()
+        setup_dict['ADknob']['ADmiB'].pack(side=RIGHT)
+        setup_dict['LowerFrame'].pack(side=BOTTOM, fill=X)
+        setup_dict['LowerBool'] = True
