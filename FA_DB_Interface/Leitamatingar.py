@@ -25,6 +25,8 @@ def Leita(frame, db_host, db_user, db_password):
 
     menuFrame = Frame(upperframe)
     menuFrame.pack(side=TOP, fill=X, expand=False, anchor=N)
+    setup_dict['menuFrame'] = menuFrame
+    setvar(setup_dict)
     setupframe.setupmenuframe(menuFrame, setup_dict)
 
     ADFrame = Frame(upperframe)
@@ -32,5 +34,14 @@ def Leita(frame, db_host, db_user, db_password):
     setupframe.setupadframe(ADFrame, setup_dict)
 
     BodyFrame = Frame(frame, bg='green')
+    setup_dict['BodyFrame'] = ADFrame
     BodyFrame.pack(fill=BOTH, expand=True, anchor=N + W)
-    setupframe.setupbodyframe(BodyFrame, setup_dict)
+    setupframe.setupbodyframe(setup_dict)
+
+def setvar(setup_dict):
+    frame = setup_dict['menuFrame']
+    tk_slag = StringVar(frame, setup_dict['main_frame'])
+    setup_dict['tk_slag'] = tk_slag
+
+    tk_inst = StringVar(frame, setup_dict['main_frame'])
+    setup_dict['tk_inst'] = tk_inst
