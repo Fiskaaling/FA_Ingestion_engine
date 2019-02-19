@@ -6,5 +6,9 @@ def init(ingestion_listbox):
 
 
 def check_click(item, RightFrame, root):
+    toReturn = 1
     if item == 'Tekna Ascii fíl':
         Ingestion.CTD.plotAscii.asciiPlt(RightFrame, root)
+    else:
+        toReturn = 0
+    return toReturn

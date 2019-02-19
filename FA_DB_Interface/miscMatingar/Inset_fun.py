@@ -87,21 +87,21 @@ def update_db(setup_dict):
 
     db.insetmating(setup_dict, id, destdir, embargo)
 
-    latex(setup_dict, id, 'deployment_sheet.pdf', raw + destdir)
+    os.makedirs(raw + destdir + '/Setup')
+    skrivapdf.depLaTeX(setup_dict, id, 'deployment_sheet.pdf', raw + destdir + '/Setup')
+
+    os.makedirs(raw + destdir + '/RawData')
     #TODO riggar split í windows
     #TODO finnútav copy confliktum
+    #TODO try except skal umskrivast
     for x in setup_dict['innsettirfilir']:
-        shutil.copy2(x, raw + destdir)
+        try:
+            shutil.copy2(x, raw + destdir + '/RawData')
+        except:
+            pass
     for x in setup_dict['innsettarmappir']:
-        shutil.copytree(x, raw + destdir + '/' + x.split('/')[-1])
+        try:
+            shutil.copytree(x, raw + destdir + '/RawData/' + x.split('/')[-1])
+        except:
+            pass
     fun.rudda(setup_dict['funFrame'], setup_dict)
-
-def latex(setup_dict, id, navn, dir):
-    fil = skrivapdf.birjan()
-    fil += skrivapdf.DepID('  ' + str(id) + '   ')
-    fil += skrivapdf.tveycol('typa:', setup_dict['typa'], 'Instroment', setup_dict['Instroment'])
-    for x in setup_dict['uppsetan_nøvn']:
-        if setup_dict['uppsetan'][x[0]] != '':
-            fil += skrivapdf.eincol(x[1] + ':', setup_dict['uppsetan'][x[0]])
-    fil += skrivapdf.endi()
-    skrivapdf.makepdf(fil, navn, dir, setup_dict['printadeb'].get())

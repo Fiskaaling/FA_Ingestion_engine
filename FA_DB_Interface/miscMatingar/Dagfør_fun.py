@@ -15,9 +15,9 @@ def doublelefttree(id, setup_dict):
     righttree = setup_dict['righttree']
     righttree.delete(*righttree.get_children())
     temp = db.getdatepath(id, setup_dict)
-    setup_dict['destdir'] = temp[1]
+    setup_dict['destdir'] = temp[1] + '/RawData'
     uppdateraDate(temp, setup_dict)
-    uppdaterarighttree(righttree, temp, setup_dict)
+    uppdaterarighttree(righttree, setup_dict)
     uppdateraupp(id, setup_dict)
 
 def uppdateraDate(temp, setup_dict):
@@ -33,8 +33,8 @@ def uppdateraDate(temp, setup_dict):
     for x in Date.values():
         x.config(state=DISABLED)
 
-def uppdaterarighttree(righttree, temp, setup_dict):
-    path = setup_dict['Path_to_RawData'] + '/' + temp[1]
+def uppdaterarighttree(righttree, setup_dict):
+    path = setup_dict['Path_to_RawData'] + '/' + setup_dict['destdir']
     temp = os.listdir(path)
     for x in temp:
         try:
@@ -66,19 +66,26 @@ def uppdateraupp(id, setup_dict):
         setup_dict['uppsetwid'][x[0]].insert(END, x[1])
 
 def update_db(setup_dict):
-    print('hey')
     fun.geruppsetan(setup_dict)
     fun.inlesdato(setup_dict)
-    pprint(setup_dict)
     db.uppdatedb(setup_dict)
     raw = setup_dict['Path_to_RawData'] + '/'
     destdir = setup_dict['destdir']
     del setup_dict['id']
     for x in setup_dict['innsettirfilir']:
-        shutil.copy2(x, raw + destdir)
+        #TODO fix this
+        try:
+            shutil.copy2(x, raw + destdir)
+        except:
+            pass
     # TODO riggar kanska ikki í windows
     for x in setup_dict['innsettarmappir']:
-        shutil.copytree(x, raw + destdir + '/' + x.split('/')[-1])
+        #TODO fix this
+        try:
+            shutil.copytree(x, raw + destdir + '/' + x.split('/')[-1])
+        except:
+            pass
+    #TODO man skal sikkurt skriva eitt deployment skjal til uppdateringina
     messagebox.showinfo('Uppdatera', 'Uppdatera')
 
     fun.rudda(setup_dict['funFrame'], setup_dict)

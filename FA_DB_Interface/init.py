@@ -1,4 +1,4 @@
-from FA_DB_Interface import stovna_geo_okid, stovna_okid, Matingar, wordlist_editor
+from FA_DB_Interface import stovna_geo_okid, stovna_okid, Matingar, wordlist_editor, Leitamatingar
 
 db_host = '192.168.43.62'
 db_user = 'JK'
@@ -12,10 +12,11 @@ def init(ingestion_listbox):
     ingestion_listbox.insert(databasi, 0, text="Stovna Økið")
     ingestion_listbox.insert(databasi, 0, text='Mátingar')
     ingestion_listbox.insert(databasi, 0, text='Wordlist Editor')
+    ingestion_listbox.insert(databasi, 0, text='Leita í mátingum')
 
 
 def check_click(item, RightFrame, root):
-    toReturn = 0
+    toReturn = 1
     if item == 'Stovna Geo Økið':
         stovna_geo_okid.stovna_geo_okid(RightFrame, root, db_info)
     elif item == 'Mátingar':
@@ -24,6 +25,8 @@ def check_click(item, RightFrame, root):
         stovna_okid.stovna_okid(RightFrame, root, db_info)
     elif item == 'Wordlist Editor':
         wordlist_editor.wl_edtitor(RightFrame, root, db_info)
+    elif item == 'Leita í mátingum':
+        Leitamatingar.Leita(RightFrame, db_host, db_user, db_password)
     else:
-        toReturn = 1
+        toReturn = 0
     return toReturn
