@@ -4,6 +4,7 @@ import FA_DB_Interface.miscleitamatingar.db_ting as db
 from FA_DB_Interface.datowid import datowid
 from FA_DB_Interface.miscleitamatingar import update
 from pprint import pprint
+import datetime as dt
 
 
 def setupmenuframe(frame, setup_dict):
@@ -47,22 +48,42 @@ def setupbodyframe(setup_dict):
     items['columns'] = kolonnir[1::]
     innihald_tree = [list(x) for x in innihald]
 
+    #setup av formati av hvussu kolonnunar skullu síggja út
+    items.column('#0', minwidth=40, width=60)
     for i, j in enumerate(kolonnir):
-        if j == 'mátingar.Start_tid':
+        if j == 'mátingar.Mátari':
+            items.column('#' + str(i), minwidth=90, width=140)
+        elif j == 'mátingar.Start_tid':
+            items.column('#' + str(i), minwidth=90, width=140)
             for k in range(len(innihald_tree)):
                 innihald_tree[k][i] = innihald_tree[k][i].strftime('%d %b-%Y')
-        if j == 'mátingar.Stop_tid':
+        elif j == 'mátingar.Stop_tid':
+            items.column('#' + str(i), minwidth=90, width=140)
             for k in range(len(innihald_tree)):
                 if innihald_tree[k][i] == None:
-                    innihald_tree[k][i] = 'Einkið Endadato'
+                    innihald_tree[k][i] = 'ígongd'
                 else:
                     innihald_tree[k][i] = innihald_tree[k][i].strftime('%d %b-%Y')
-        if j == 'mátingar.Umbiði_av':
+        elif j == 'mátingar.Path_to_data':
+            items.column('#' + str(i), minwidth=100, width=150)
+        elif j == 'mátingar.Umbiði_av':
+            items.column('#' + str(i), minwidth=250, width=400)
             temp = db.get_felagar(setup_dict)
             for k in range(len(innihald_tree)):
                 for felagi in temp:
                     if innihald_tree[k][i] == felagi[0]:
                         innihald_tree[k][i] = felagi[2] + ' (' + felagi[1] + ')'
+        elif j == 'mátingar.Embargo_til':
+            items.column('#' + str(i), minwidth=90, width=140)
+            temp = dt.datetime.now()
+            for k in range(len(innihald_tree)):
+                tid = innihald_tree[k][i] - temp
+                if tid.days > 500:
+                    innihald_tree[k][i] = str(tid.days//365) + ' Ár'
+                elif tid.days >= 0:
+                    innihald_tree[k][i] = str(tid.days) + ' Dagar'
+                elif tid.days < 0:
+                    innihald_tree[k][i] = 'ligut'
 
 
     for i in range(1, len(kolonnir)):
