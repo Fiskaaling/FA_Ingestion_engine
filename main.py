@@ -16,7 +16,7 @@ import Ingestion.seaguard.seaguard as seaguard
 import FA_DB_Interface.init
 import subprocess
 from Ingestion.Aanderaa import init as AADI
-
+import sys
 
 class Window(Frame):
     def __init__(self, master=None):
@@ -40,6 +40,11 @@ def OnDoubleClick(event, tree):
     minimize = 1
     item = tree.identify('item', event.x, event.y)
     item = tree.item(item, "text")
+    if clo:
+        item = sys.argv[1]
+    else:
+        item = tree.identify('item', event.x, event.y)
+        item = tree.item(item, "text")
     if item == 'Tekna Kort':
         Processing.tekna_kort.teknakort()
     elif item == 'Rokna quiver data':
@@ -147,6 +152,10 @@ condens = Button(ingestion_subframe, text='<', command=lambda: mintree())
 condens.pack(side=RIGHT, fill=Y)
 ingestion_listbox.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
 
+if sys.argv:
+    print(sys.argv)
+    print(sys.argv[1])
+    OnDoubleClick(0, 0, True)
 
 root.mainloop()
 
