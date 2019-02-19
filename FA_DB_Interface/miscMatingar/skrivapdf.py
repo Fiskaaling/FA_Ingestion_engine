@@ -2,8 +2,12 @@ import subprocess
 import os
 import tempfile
 import shutil
+import sys
+if sys.platform == 'win32':
+    import win32api
+    import time
 
-def makepdf(tex, pdfname, outputdir='.'):
+def makepdf(tex, pdfname, outputdir='.', printa=True):
     current = os.getcwd()
     temp = tempfile.mkdtemp()
     os.chdir(outputdir)
@@ -17,8 +21,20 @@ def makepdf(tex, pdfname, outputdir='.'):
     subprocess.call(['pdflatex', '-halt-on-error', 'cover.tex'], shell=False, stdout=subprocess.PIPE)
 
     if 'cover.pdf' in os.listdir():
+        #printa
+        if printa:
+            if sys.platform == 'linux':
+                subprocess.call(['lpr', 'cover.pdf'], shell=False)
+            elif sys.platform == 'win32':
+                try:
+                    #TODO dont sleep
+                    win32api.ShellExecute(0, 'print', 'cover.pdf', None, '.', 0)
+                    time.sleep(2)
+                except:
+                    win32api.ShellExecute(0, 'open', 'cover.pdf', None, '.', 0)
+                    time.sleep(2)
         os.rename('cover.pdf', pdfname)
-        shutil.copy(pdfname, outputdir)
+        shutil.copyfile(pdfname, outputdir + '/' + pdfname)
         os.chdir(current)
         shutil.rmtree(temp)
     else:
@@ -52,8 +68,8 @@ def midan():
     return out
 
 def kjekkasyntax(ID):
-    ID = str(ID).replace('%', r'\%').replace('$', r'\$').replace('{', r'\{').replace('_', r'\_')\
-        .replace('#', r'\#').replace('&', r'\&').replace('}', r'\}')
+    ID = str(ID).replace('\\', r'\backslash').replace('%', r'\%').replace('$', r'\$').replace('{', r'\{')\
+        .replace('_', r'\_').replace('#', r'\#').replace('&', r'\&').replace('}', r'\}')
     return ID
 
 def DepID(ID):
@@ -74,3 +90,11 @@ def eincol(parm, val):
 """ % (kjekkasyntax(parm), kjekkasyntax(val))
 
 
+def depLaTeX(setup_dict, id, navn, dir):
+    fil = birjan()
+    fil += DepID('  ' + str(id) + '   ')
+    fil += tveycol('typa:', setup_dict['typa'], 'Instroment', setup_dict['Instroment'])
+    for x in setup_dict['uppsetan_nøvn']:
+        fil += eincol(x[1] + ':', setup_dict['uppsetan'][x[0]])
+    fil += endi()
+    makepdf(fil, navn, dir, setup_dict['printadeb'].get())

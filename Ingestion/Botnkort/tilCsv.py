@@ -8,8 +8,12 @@ def init(ingestion_listbox):
 
 
 def check_click(item, RightFrame, root):
+    toReturn = 1
     if item == 'Til CSV':
         tilcsv(RightFrame, root)
+    else:
+        toReturn = 0
+    return toReturn
 
 def tilcsv(frame, root2):
     global root

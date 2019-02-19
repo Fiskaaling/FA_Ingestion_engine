@@ -15,7 +15,8 @@ import vatnstoduanalysa.vatnstoduanalysa
 import Ingestion.seaguard.seaguard as seaguard
 import FA_DB_Interface.init
 import subprocess
-
+from Ingestion.Aanderaa import init as AADI
+import sys
 
 class Window(Frame):
     def __init__(self, master=None):
@@ -36,8 +37,14 @@ class Window(Frame):
 
 
 def OnDoubleClick(event, tree):
+    minimize = 1
     item = tree.identify('item', event.x, event.y)
     item = tree.item(item, "text")
+    if clo:
+        item = sys.argv[1]
+    else:
+        item = tree.identify('item', event.x, event.y)
+        item = tree.item(item, "text")
     if item == 'Tekna Kort':
         Processing.tekna_kort.teknakort()
     elif item == 'Rokna quiver data':
@@ -55,15 +62,21 @@ def OnDoubleClick(event, tree):
     elif item == 'seaguard':
         seaguard.load(RightFrame, root)
     else:
-        Ingestion.oxygenkeda.check_click(item, RightFrame, root)
-        Ingestion.RDI.fra_botni.check_click(item, RightFrame, root)
-        Ingestion.Botnkort.tilCsv.check_click(item, RightFrame, root)
-        Ingestion.CTD.init.check_click(item, RightFrame, root)
-        FA_DB_Interface.init.check_click(item, RightFrame, root)
+        minimize = 0
+        minimize += Ingestion.oxygenkeda.check_click(item, RightFrame, root)
+        minimize += Ingestion.RDI.fra_botni.check_click(item, RightFrame, root)
+        minimize += Ingestion.Botnkort.tilCsv.check_click(item, RightFrame, root)
+        minimize += Ingestion.CTD.init.check_click(item, RightFrame, root)
+        minimize += FA_DB_Interface.init.check_click(item, RightFrame, root)
+        minimize += AADI.check_click(item, RightFrame, root)
 
 
+    if minimize:
+        mintree()
 
+def mintree():
     ingestion_listbox.pack_forget()
+    condens.pack_forget()
     expandButton = Button(ingestion_subframe, text='>', command=lambda: visTree(expandButton))
     expandButton.pack(side=LEFT, expand=1, fill=Y)
     Ingestion_frame.config(width=100)
@@ -71,9 +84,10 @@ def OnDoubleClick(event, tree):
 
 
 def visTree(expandButton):
+    expandButton.pack_forget()
+    condens.pack(side=RIGHT, fill=Y)
     ingestion_listbox.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
     Ingestion_frame.pack(expand=True)
-    expandButton.pack_forget()
     del expandButton
 
 # Teknar main gui
@@ -123,6 +137,7 @@ Ingestion.oxygenkeda.init(ingestion_listbox)
 Ingestion.Botnkort.tilCsv.init(ingestion_listbox)
 Ingestion.CTD.init.init(ingestion_listbox)
 FA_DB_Interface.init.init(ingestion_listbox)
+AADI.init(ingestion_listbox)
 
 alduboya = ingestion_listbox.insert("", 0, text='Alduboya')
 
@@ -133,8 +148,14 @@ ingestion_listbox.insert(LV, "end", text='Aldumátingar')
 ingestion_listbox.insert(LV, "end", text='Vatnstøða')
 
 #ingestion_listbox.insert(END, 'Test')
+condens = Button(ingestion_subframe, text='<', command=lambda: mintree())
+condens.pack(side=RIGHT, fill=Y)
 ingestion_listbox.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
 
+if sys.argv:
+    print(sys.argv)
+    print(sys.argv[1])
+    OnDoubleClick(0, 0, True)
 
 root.mainloop()
 

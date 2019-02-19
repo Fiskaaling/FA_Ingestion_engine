@@ -37,6 +37,7 @@ def init(ingestion_listbox):
 
 
 def check_click(item, RightFrame, root):
+    toReturn = 1
     if item == 'Decimering':
         decimering(RightFrame, root)
     elif item == 'Kalibrering':
@@ -51,6 +52,9 @@ def check_click(item, RightFrame, root):
         dat_fyrireking(RightFrame, root)
     elif item == 'Ger strikumynd':
         strikumynd(RightFrame, root)
+    else:
+        toReturn = 0
+    return toReturn
 
 
 ########################################################################################################################

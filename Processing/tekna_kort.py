@@ -19,6 +19,8 @@ from tkinter import font
 import tkinter.ttk as ttk
 import cartopy.crs as ccrs
 import cartopy.feature as cpf
+from geopy import distance
+import pyperclip # Kanska fjerna hettar seinni!
 import matplotlib.ticker as mticker
 from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
 
@@ -81,12 +83,7 @@ def teknakort():
     global ccrs_projection
     ccrs_projection = ccrs.PlateCarree()
     #ax = fig.add_axes([0, 0, 1, 1], projection=ccrs_projection, aspect=1, adjustable='box')
-    ax = fig.add_subplot(111, projection=ccrs_projection)
-    # ax = fig.add_subplot(1, 1, 1, projection=ccrs.InterruptedGoodeHomolosine())
-
-    #ax.set_global()
-    #ax.stock_img()
-    #ax.coastlines()
+    ax = fig.add_subplot(111, projection=ccrs_projection, adjustable='datalim')
 
     ax.add_feature(cpf.COASTLINE)
     ax.add_feature(cpf.BORDERS, lw=0.5)
@@ -95,11 +92,6 @@ def teknakort():
 
     canvas.draw()
     canvas.get_tk_widget().pack(fill=BOTH, expand=1)
-    # ax = fig2.gca(projection=ccrs.PlateCarree())
-    # ax = plt.axes(projection=ccrs.PlateCarree())
-
-
-
 
     list_frame = Frame(content_frame)
     list_frame.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
@@ -266,7 +258,7 @@ def innlesFil(text):
 
 def goymmynd(fig, canvas):
     log_b()
-    filnavn = filedialog.asksaveasfilename(parent=root, title="Goym mynd",  filetypes=(("png Fílur", "*.png"), ("jpg Fílur", "*.jpg")))
+    filnavn = filedialog.asksaveasfilename(parent=root, title="Goym mynd",  filetypes=(("pdf Fílur", "*.pdf"), ("png Fílur", "*.png"), ("jpg Fílur", "*.jpg")))
     print('Goymir mynd')
     global dpi
     fig.savefig(filnavn, dpi=dpi, bbox_inches='tight')
@@ -307,6 +299,8 @@ def zoom(mongd, textbox):
     textbox.insert(INSERT, raw_text)
 
 def les_og_tekna(text, fig, canvas, silent=False):
+    #TODO type á tekst
+    # TODO Ger varabil til max dýpið
     log_clear()
     log_b()
     global ax
@@ -346,12 +340,8 @@ def les_og_tekna(text, fig, canvas, silent=False):
     fontsize = 15
     tekstx = 0
     teksty = 0
+    siglignsferd = 0 # Um ikki null verður tíðin tað tekur at sigla eftir lin_fil rokna
     tekna_land = True
-    #ccrs_settings = {'central_longitude': 0, 'min_latitude': 61, 'max_latitude': 63, 'latitude_true_scale': 62}
-    ccrs_settings = {'central_longitude' : 0.0, 'globe': None, 'central_longitude': 0.0}
-    ccrs_settings = {'central_longitude': -7.0, 'central_latitude': 62}
-    ccrs_settings = {'central_longitude': 0, 'latitude_true_scale': 62, 'max_latitude': 63}#'central_longitude': -7, 'min_latitude': 61, 'max_latitude': 63,
-    #ccrs_projection = ccrs.PlateCarree(ccrs_settings)
     global ccrs_projection
     ccrs_projection = ccrs.PlateCarree(-7)
     for command in text:
@@ -394,7 +384,7 @@ def les_og_tekna(text, fig, canvas, silent=False):
                     D_lon = np.array(lis[0: i * j]).reshape((j, i))  # first  i*j instances
                     D_lat = np.array(lis[i * j: i * j * 2]).reshape((j, i))  # second i*j instances
                     D_dep = np.array(lis[i * j * 2: i * j * 3]).reshape((j, i))  # third  i*j instances
-                    levels = range(0, 200, 50)
+                    levels = range(0, 200, 10)
                     c = ax.contour(D_lon, D_lat, D_dep, levels=levels)
                     #MD_lon, MD_lat = m(D_lon, D_lat)
                     #c = m.contour(MD_lon, MD_lat, D_dep,
@@ -453,6 +443,7 @@ def les_og_tekna(text, fig, canvas, silent=False):
                 btn_striku_hvor= int(command[toindex::])
             elif variable == 'lin_fil':
                 lineData = pd.read_csv(command[toindex::])
+                avstandur = 0
                 if renderengine == '3D_botn':
                     line_x_hj = lineData['lon'].values
                     line_y_hj = lineData['lat'].values
@@ -472,6 +463,15 @@ def les_og_tekna(text, fig, canvas, silent=False):
                                 , color=lin_farv, linewidth=3
                                 , linestyle='solid')
                 else:
+                    lonLine = lineData['lon'].values
+                    latLine = lineData['lat'].values
+                    for i in range(len(lonLine)-1):
+                        print(distance.distance((latLine[i], lonLine[i]), (latLine[i+1], lonLine[i+1])).m)
+                        ax.text(latLine[i], lonLine[i], distance.distance((latLine[i], lonLine[i]), (latLine[i+1], lonLine[i+1])).m, zorder=1000000, fontsize=100)
+                        avstandur += distance.distance((latLine[i], lonLine[i]), (latLine[i+1], lonLine[i+1])).m
+                    print(str(avstandur) + ' m')
+                    if siglignsferd:
+                        print(str(avstandur/siglignsferd/60) + ' min')
                     ax.plot(lineData['lon'].values, lineData['lat'].values, lin_farv, linewidth=1, label=lin_legend)
             elif variable == 'scatter_std':
                 scatter_std = float(command[toindex::])
@@ -529,6 +529,8 @@ def les_og_tekna(text, fig, canvas, silent=False):
                     linjuSlag = 'solid'
                 else:
                     log_w('Ókent linjuslag')
+            elif variable == 'siglignsferd':
+                siglignsferd = float(command[toindex::])
             elif variable == 'breiddarlinjur':
                 if not renderengine == '3D_botn':
                     breiddarlinjur = np.linspace(latmin, latmax, int(command[toindex::]))
@@ -678,6 +680,7 @@ def les_og_tekna(text, fig, canvas, silent=False):
                 #ax = fig.add_subplot(111)
                 ax = fig.add_subplot(1, 1, 1, projection=ccrs_projection)
                 ax.coastlines('50m')
+                ax.set_aspect(1/np.cos(np.deg2rad(((latmax+latmin)/2))))
                 #ax.set_aspect('equal', adjustable='box')
                 #ax = plt.axes(projection=ccrs.PlateCarree())
             elif command == 'break':
@@ -698,13 +701,11 @@ def les_og_tekna(text, fig, canvas, silent=False):
                             #plt.plot(xpt, ypt, 'k', linewidth=1)
                             #ax.fill(xpt, ypt, landlitur, zorder=10)
                     ax.set_extent([lonmin, lonmax, latmin, latmax], ccrs_projection)
-                    #gl = ax.gridlines(crs=ccrs_projection, draw_labels=True,
-                    #                  linewidth=2, color='gray', alpha=0.5, linestyle='--')
 
             elif command == 'btn_contourf':
                 grid_z0 = griddata((btn_lon.values, btn_lat.values), dypid.values, (meshgridx, meshgridy), method=btn_interpolation)
                 #grid_z0 = interpolate.interp2d(btn_x, btn_y, dypid.values, kind='cubic')
-                vmin = min(-150, min([-y for x in grid_z0 for y in x]))
+                vmin = min(-70, min([-y for x in grid_z0 for y in x]))
                 lv = range(int(vmin/btn_striku_hvor)*btn_striku_hvor, int(btn_striku_hvor), int(btn_striku_hvor))
                 if renderengine == '3D_botn':
                     cmap = plt.cm.viridis
@@ -735,16 +736,17 @@ def les_og_tekna(text, fig, canvas, silent=False):
                     fig.colorbar(c, orientation='horizontal', ax=ax, ticks=confti, pad=0.02)
             elif command == 'btn_contour':
                 grid_z0 = griddata((btn_lon.values, btn_lat.values), dypid.values, (meshgridx, meshgridy), method=btn_interpolation)
-                vmin = min(-150, min([-y for x in grid_z0 for y in x]))
-                temp=btn_striku_hvor
+                vmin = min(-70, min([-y for x in grid_z0 for y in x]))
+                temp = btn_striku_hvor
                 lv = range(int(vmin/temp)*temp, int(btn_striku_hvor), int(btn_striku_hvor))
                 #grid_z0 = interpolate.interp2d(btn_x, btn_y, dypid.values, kind='cubic')
                 if renderengine == '3D_botn':
                     ax.contour3D(meshgridx, meshgridy, -1 * grid_z0, levels=lv,
                                  colors='k',vmax=0 , linestyles='solid')
                 else:
-                    c = ax.contourf(meshgridx, meshgridy, -grid_z0, lv, transform=ccrs_projection, colors='black', linestyles='solid', linewidths=0.2)
+                    c = ax.contour(meshgridx, meshgridy, -grid_z0, lv, transform=ccrs_projection, colors='black', linestyles='solid', linewidths=0.3)
                     if clabel:
+                        #ax.clabel(c, inline=1, fontsize=fontsize, fmt='%2.0f', manual=False)
                         ax.clabel(c, inline=1, fontsize=fontsize, fmt='%2.0f', manual=True)
             elif command == 's3':
                 s3 = float(command[toindex::])
@@ -785,7 +787,14 @@ def les_og_tekna(text, fig, canvas, silent=False):
         a, b = event.xdata, event.ydata
         ispressed = True
         zoom_x_fra, zoom_y_fra = event.xdata, event.ydata
-        print('%s click: lon=%f, lat=%f,' % ('double' if event.dblclick else 'single', event.xdata, event.ydata))
+        try:
+            print('%f, %f' % (event.xdata, event.ydata))
+        except TypeError:
+            pass
+        else:
+            string = str(event.xdata) + ',' + str(event.ydata)
+            print(string)
+            pyperclip.copy(string)
 
 
     def onmove(event):
@@ -799,7 +808,7 @@ def les_og_tekna(text, fig, canvas, silent=False):
         ispressed = False
 
 
-    bid = fig.canvas.mpl_connect('motion_notify_event', onmove)
+    #bid = fig.canvas.mpl_connect('motion_notify_event', onmove)
     cid = fig.canvas.mpl_connect('button_press_event', onclick)
 
     fig.canvas.mpl_connect('button_release_event', release)

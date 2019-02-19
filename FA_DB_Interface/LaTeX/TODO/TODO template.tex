@@ -1,0 +1,90 @@
+\documentclass[a4paper, 12pt]{article}
+\usepackage[margin=0cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{multirow}
+\usepackage{graphicx}
+\usepackage{nopageno}
+\usepackage{calc}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0cm}
+\addtolength{\hoffset}{2.5cm}
+\addtolength{\textwidth}{-4cm}
+\addtolength{\topmargin}{2cm}
+\addtolength{\textheight}{-2cm}
+
+\newcommand{\ting}[1]{\multicolumn{1}{ |l| }{#1}}
+\newcommand{\tveyr}[1]{\ting{#1} & \ting{} & \ting{} \\ \cline{1-3}}
+
+\newcommand{\checklist}{
+\begin{tabular}{l l l l l} \cline{2-5}
+& \ting{Klárt} & \ting{Lasta} & \ting{Startaður} & \ting{Bátarí}\\ \hline
+\ting{Mátari} & \ting{} & \ting{} & \ting{} & \ting{}\\ \hline
+\tveyr{Botnlína(\hspace{.7cm}m)}
+\tveyr{Standari(\hspace{.7cm}m)}
+\tveyr{Sjeklar}
+\tveyr{Strips/splittir}
+\tveyr{Tappe}
+\\\cline{1-3}
+\tveyr{Boya}
+\tveyr{Stongboya}
+\tveyr{- radarreflektor}
+\tveyr{- flagg}
+\tveyr{- ljós}
+\\\cline{1-3}
+\tveyr{Søkk á standara}
+\tveyr{Søkk/varp}
+\\\cline{1-3}
+\tveyr{GPS}
+\tveyr{Eyka báttarí}
+\\\cline{1-3}
+\tveyr{Deploymentskjal}
+\\\cline{1-3}
+\tveyr{Annað:}
+\tveyr{}
+\tveyr{}
+\tveyr{}
+\end{tabular}
+}
+\newcommand{\checklistt}{\begin{minipage}{\textwidth}
+\checklist
+\end{minipage}}
+
+\newcommand{\head}{\begin{minipage}{\textwidth}
+{\Large Áminningarlisti til útsetan av streymmátarum}\vspace{5mm}
+
+\underline{\Large Stað: \hspace{4cm}}\vspace{5mm}
+\end{minipage}
+}
+
+\newlength{\mylength}
+\setlength{\mylength}{\totalheightof\head}
+%definera variablar
+\newlength{\maxfactor}	%
+\newlength{\maxlen}		%
+\newlength{\maxhi}		%
+\newlength{\tablen}		%
+\newlength{\tabhi}		%
+\newlength{\calcfactor}	%
+%seta variablar
+\setlength{\maxfactor}{1.6pt}
+\setlength{\maxlen}{\textwidth}
+\setlength{\maxhi}{\textheight - \mylength - 2cm}
+\setlength{\tablen}{\widthof\checklist}
+\setlength{\tabhi}{\totalheightof\checklistt}
+\setlength{\calcfactor}{10pt}
+\setlength{\calcfactor}{\minof{\maxfactor}{1pt*\ratio{\maxhi}{\tabhi}}}
+%\setlength{\calcfactor}{\minof{\calcfactor}{1pt*\ratio{\maxlen}{\tablen}}}
+
+%set tabhi og tablen til tað sum tað skal verða
+%veit ikki heilt hvat munurinimillum height of og totalheightof er
+\setlength{\tablen}{\tablen*\ratio{\calcfactor}{1pt}}
+\setlength{\tabhi}{\heightof\checklistt*\ratio{\calcfactor}{1pt}}
+\begin{document}
+\head
+\begin{minipage}{\textwidth}
+\resizebox{\tablen}{\tabhi}{\checklist}
+\end{minipage}
+\end{document}
