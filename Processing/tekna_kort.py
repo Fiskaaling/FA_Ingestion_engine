@@ -124,7 +124,7 @@ def teknakort():
                 text_list.mark_set(INSERT, "1.0")
                 text_list.see(INSERT)
             elif event.keysym == 'Return':
-                les_og_tekna(text_list.get("1.0", END), fig, canvas)
+                les_og_tekna(text_list, fig, canvas)
         elif shift:
             if event.keysym == 'Left':
                 pan(-0.1, 0, canvas, True)
@@ -166,7 +166,7 @@ def teknakort():
     load_btn = Button(menu_frame, text='Les inn uppsetan', command=lambda: innlesFil(text_list)).pack(side=LEFT)
     save_btn = Button(menu_frame, text='Goym uppsetan', command=lambda: goymuppsetan(text_list)).pack(side=LEFT)
     nytt_kort = Button(menu_frame, text='Nýtt Kort', command=lambda: nyttkort(text_list, root)).pack(side=LEFT)
-    tekna_btn = Button(menu_frame, text='Tekna Kort', command=lambda: les_og_tekna(text_list.get("1.0", END), fig, canvas)).pack(side=LEFT)
+    tekna_btn = Button(menu_frame, text='Tekna Kort', command=lambda: les_og_tekna(text_list, fig, canvas)).pack(side=LEFT)
     teknaLinjur_btn = Button(menu_frame, text='Tekna Linjur', command=lambda: teknaLinjur(text_list, root)).pack(side=LEFT)
     teknaPrikkar_btn = Button(menu_frame, text='Tekna Prikkar', command=lambda: teknaPrikkar(text_list, root)).pack(side=LEFT)
     goymmynd_btn = Button(menu_frame, text='Goym Mynd', command=lambda: goymmynd(fig, canvas)).pack(side=LEFT)
@@ -305,7 +305,14 @@ def les_og_tekna(text, fig, canvas, silent=False):
     log_b()
     global ax
     global m
-    text = text.split('\n')
+    VisProgress = False
+    try:
+        strtext = text.get("1.0", END)
+    except AttributeError:
+        strtext = text
+    else:
+        VisProgress = True
+    strtext = strtext.split('\n')
     global dpi
     dpi = 400
     dybdarlinjur = False
@@ -344,7 +351,12 @@ def les_og_tekna(text, fig, canvas, silent=False):
     tekna_land = True
     global ccrs_projection
     ccrs_projection = ccrs.PlateCarree(-7)
-    for command in text:
+    for index, command in enumerate(strtext):
+        if VisProgress:
+            text.tag_add('aktiv_linja', str(index + 1.0), str(index + 2.0))
+            text.tag_config('aktiv_linja', foreground='black', background='darkorange')
+            text.tag_add('lidug_linja', '0.0', str(index+1.0))
+            text.tag_config('lidug_linja', foreground='black', background='lightgreen')
         if not silent:
             print(command)
         if "=" in command:
@@ -772,7 +784,9 @@ def les_og_tekna(text, fig, canvas, silent=False):
 
         ax.get_proj = short_proj
         print('hello')
-
+    if VisProgress:
+        text.tag_add('alt', '0.0', END)
+        text.tag_config('alt', foreground='black', background='white')
     canvas.draw()
     canvas.get_tk_widget().pack(fill=BOTH, expand=1)
     log_e()
@@ -793,7 +807,6 @@ def les_og_tekna(text, fig, canvas, silent=False):
             pass
         else:
             string = str(event.xdata) + ',' + str(event.ydata)
-            print(string)
             pyperclip.copy(string)
 
 
