@@ -1,0 +1,68 @@
+Rit
+	Standard Preamble
+	Standard Mappustruktur
+		Processed_Data?
+		Latex
+			Preamble/Setup
+				Preamble.tex
+				metadata.tex
+				...
+			Partar
+			Figurar
+			Talvur?
+			ritnavn.tex (master.tex)
+	Standard Import
+	Standard master.tex
+		Rename master.tex
+		Hvussu sær master út tá hann er liðugur
+		Specifikatiónir fyri import
+	
+	
+Standard til at Processera data
+	Ascii
+		Instumentir
+			RDI
+				WORKHORSE
+				SentelV
+			AWAC
+			CTD
+			Termistorkedur
+			Oxygenkedur
+			Trýstmátarir
+	Aftaná Ascii
+		Figurar
+			Finn tal fyri upploy
+			-	Preview
+			-	Háupploys mynd
+		Siður/Sections/Partar
+			Instument
+	Metadata um máting og instument
+		
+		
+Dátugrunnur klárur at innseta
+	Velja og Implementera Mappustruktur
+		Processed_Data
+		Raw_Data
+		Rit
+	Gui til
+		Mátingar
+			Innsetan
+				Deployment skjal
+				Checklisti
+				Fílhontering
+			Dagføring
+				Deployment skjal?
+			Leiting
+				Preview av máting
+			Rætting av feilum
+		Instumentir
+			Møguligar Uppsetanar
+		Økir
+			Aliøkið?
+		Orðalistar
+		Rit
+		
+Ymiskt annað
+	Sameina Økir við Mátingar
+		
+		
