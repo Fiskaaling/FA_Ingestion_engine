@@ -1,0 +1,66 @@
+Eyndamálið við hesum dokumentinum er at lýsa høvuðs leistin ið standarir í dátuskipanini nýta  
+Skriva av Jóhannus og Tróndur, 26 feb 2019
+Broytt av *, xx xxx 20xx
+* Allar broytingar av hesum dokumentinum mugu skrásetast saman við gomlu útgávuni og orðsøk fyri broyting!
+
+Sum útgangspunkt verður alt dátaði goymt sum tekstur, fyri at gera tað lætt at skriva kodu ið kann lesa dátai tvørtur um forrit og stýriskipanir.
+
+Hvør høvðustypa av instumentum, td. ADCP ella CTD, skulla fylgja einum høviðs leisti fyri instrument typuna, hereftir kalla Fysti-Leistur. Harafturat kann hvørt instument hava ein Annan-Leist ið kan taka til eftirtektar serlig viðurskifti.
+
+Hvør leistur ið fylgjir hesum leisti:
+Hoyrur til eina instument typu
+Lýsir hvussu dáta skal formatterast
+Arvar krøvini frá foreldurnum (Td. hesin leisturin sigur at dáta skal hava suffix '.csv', tí skulla allir leistir, gjørdir eftir hesum gera fílir við suffix '.csv')
+
+
+Hvør leistur(standarur) lýsu hvussu dáta verðru goymt:
+Fílar hava suffix '.csv'
+Er encodaur við UTF8
+Kolonnir eru (tab/komma) sepereraðir	#  Look at me
+Desimal tekni er '.' (Punktum) og tøl eru ikki túsundsepereraði
+Fyrsta linja í hvørjum fílui er ein headari við einari reglu, har allar kollonirnar verða navngivnar
+Frá næstu linju er dáta
+Linjuskift eru defineraði sum (\nl og \cr)
+Hvør kolonna hevur eitt unikt, sigandi navn, uttan millumrúm
+	--- Vanlig kolonnu nøvn ---
+	Dato við klokkutíð		dateTime
+	Dato 				date
+	Tíð				time
+	Broyting(delta) í tíð		dTime
+	Broyting í dateTime		dDateTime
+	Breiddargrad			lat
+	Longdargrad			lon
+	Dýpið				d
+	Tempraturur			temp
+	Trýst				pressure
+	Vinkul				deg, pitch, roll, yaw
+	Ætt				heading
+	Spenningur			(U/V)
+	Streymur			(I/A)
+
+
+
+Allar reglur hava líka nógv felt sum tal av kolonnum í fílinum
+NAN er definera sum (NaN/einki)		# Look at me
+Dato og Klokkutíðr fylgja ISO 8061, og verða skriva sum 'YYYY-mm-dd HH:MM:SS', og brøkpartar av sekund verða skriva sum desimal tal um neyðugt (UTC, Vetrartíð)
+Koordinatir verða skriva sum Desimal tøl. Positivt er N og E, negativt er S og W. Koordinat system er WGS84 um ikki anna er skriva. Dømi '62.111, -7.111'. Altíð í hvør sínari kolonnu.
+Dýpi verða goymd í metrum, og eru (Negativ/Positiv). Dýpi eru altið goymd saman við einum date/time, og skal verða avstandurin frá vatnyvirfladuni til nærmasta botn. 	# Look at me
+Tempraturur verður goymdur í °C, og um termiski massin á mátainum er kendur, verður kompensera fyri honum. 
+Trýst verðru goymt í (hPa/Bar/atm/?)
+Ferð verður goymd í m/s, um ikki stendur eindin í kolonnu headarinum, td: 'U[knot]', men hettar verður frámælt
+Vinkul verðru goymdur sum gradir (360 per umkreds), positiv tøl mala ímóti klokkuni
+Ættir verða goymdar sum gradir frá norður
+
+
+navn á kolonnum
+	#  TODO plz kjekka fyri stavifeilir
+	dato/tid/date/time/(Date and time)
+	lon
+	lat
+	
+
+
+
+
+
+# TODO hvat gera vit við eindir
