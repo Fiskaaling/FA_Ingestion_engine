@@ -1,0 +1,35 @@
+﻿# Standard Kort
+clf
+latmax=61.6265
+lonmax=-6.857547
+latmin=61.595
+lonmin=-6.901
+landlitur=green
+title=Føroyar
+Tekna kort
+breiddarlinjur=8
+longdarlinjur=2
+dpi=10
+
+
+siglignsferd=2.572223
+
+lin_farv=k
+lin_fil=/home/johannus/Documents/FA_Ingestion_engine/Kort_Data/hvalba_ramma.txt
+
+lin_farv=blue
+lin_fil=/home/johannus/Documents/FA_Ingestion_engine/Kort_Data/hvalba_aliokid.csv
+
+lin_farv=red
+scatter_std=30
+#scatter_fil=/home/johannus/Documents/FA_Ingestion_engine/Kort_Data/hvalba_siglileid.txt
+#lin_fil=/home/johannus/Documents/FA_Ingestion_engine/Kort_Data/hvalba_siglileid.txt
+
+scatter_fil=/home/johannus/Documents/FA_Ingestion_engine/Kort_Data/hvalba_siglileid2.txt
+lin_fil=/home/johannus/Documents/FA_Ingestion_engine/Kort_Data/hvalba_siglileid2.txt
+
+savefig=Kort_Data/hvalba2_5knot.pdf
+
+
+
+

@@ -16,28 +16,93 @@ Rit
 		Rename master.tex
 		Hvussu sær master út tá hann er liðugur
 		Specifikatiónir fyri import
-	
-	
+
+Mannagongdir
+	Ingestion
+	Nýggj Instrumentir
+	Projektir
+	Innsetan á wl
+
+Feilhontering
+	Feillog
+	Ábyrgdarhavara av modulum? (Kanska)
+		Hontering av at fólk ikki arbeiða í sama staði altíð
+	Report
+		Send Mail
+
 Standard til at Processera data
+	Botnkort Skipan
 	Ascii
+		Eindir
+		Lista av Dependent scriptum
 		Instumentir
-			RDI
-				WORKHORSE
-				SentelV
-			AWAC
+			Streymmátingar
+				RDI
+					WORKHORSE
+					SentelV
+				AWAC
+				SeaGuard
 			CTD
-			Termistorkedur
-			Oxygenkedur
-			Trýstmátarir
+			Tempraturmátingar
+				Seaguard
+				Termistorkeda
+			Oxygenmátingar
+				Seaguard
+				Oxygenkeda
+			Trýstmátingar
+				RDI
+				Seaguard
+				Trýstmátarir
 	Aftaná Ascii
-		Figurar
-			Finn tal fyri upploy
+		Figurar/Partar/Sections
+			Alda	
+			Botnkort
+			Landsverk
+				Veðurstøðir
+				Aldumátingar
+				Vatnstøða	
+			CTD
+				Multiaxis
+				Skurðar
+				Kort
+				Tíðarseriur
+			ADCP
+				UV Plot
+					StremRósa
+					Scatter
+						Dominerandi vinkul
+				Tíðarseriur
+					Vind og Streym vs tíð
+					Line
+					Contour
+				Streymmáting frá báti
+					Quiver plot
+						Fleiri dýpir
+					Miðal Streym
+				Seaguard
+					Miðal Vind og Miðal Streym á botni vs tið (kanska vs)
+					Line
+					Oxygenanalysa
+			Trýstmátarir
+				Tíðarseriur
+				Vatnstøðuanalysa
+			Termistorkedur
+				Tíðarseriur
+					Countour
+					Line
+			Oxygenkedur
+				Tíðarseriur
+					Countour
+					Line
+			
+			Finn tal fyri upployuligheit
 			-	Preview
 			-	Háupploys mynd
 		Siður/Sections/Partar
 			Instument
 	Metadata um máting og instument
-		
+		Tekna Kort
+		Katalog av standard uppsetanarfigurum
 		
 Dátugrunnur klárur at innseta
 	Velja og Implementera Mappustruktur
@@ -63,6 +128,9 @@ Dátugrunnur klárur at innseta
 		Rit
 		
 Ymiskt annað
+	Standard til Standard ASCII
 	Sameina Økir við Mátingar
+	Landsverk
+		Skriva script ið innsetur nýggjar veðurstøðumátingar + Aldumátingar
 		
 		

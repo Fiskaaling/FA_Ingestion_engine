@@ -1,5 +1,5 @@
 Eyndamálið við hesum dokumentinum er at lýsa høvuðs leistin ið standarir í dátuskipanini nýta  
-Skriva av Jóhannus og Tróndur, 26 feb 2019
+Skriva av Jóhannus og Tróndur, 26-27 feb 2019
 Broytt av *, xx xxx 20xx
 * Allar broytingar av hesum dokumentinum mugu skrásetast saman við gomlu útgávuni og orðsøk fyri broyting!
 
@@ -20,47 +20,87 @@ Kolonnir eru (tab/komma) sepereraðir	#  Look at me
 Desimal tekni er '.' (Punktum) og tøl eru ikki túsundsepereraði
 Fyrsta linja í hvørjum fílui er ein headari við einari reglu, har allar kollonirnar verða navngivnar
 Frá næstu linju er dáta
-Linjuskift eru defineraði sum (\nl og \cr)
-Hvør kolonna hevur eitt unikt, sigandi navn, uttan millumrúm
+Linjuskift eru defineraði sum newline og carrage return
+
+
+
+Hvør kolonna hevur eitt unikt, sigandi navn, uttan millumrúm, og uttan serlig tekn (Fylgjandi eru loyvd a-z, A-Z, _, -, 0-9). 
 	--- Vanlig kolonnu nøvn ---
-	Dato við klokkutíð		dateTime
-	Dato 				date
-	Tíð				time
+	Dato við klokkutíð		dateTime - Um fleiri er hettar miðal mátitíðin
+	Dato 				date - Um fleiri er hettar miðal mátitíðin
+	Tíð				time - Um fleiri er hettar miðal mátitíðin
 	Broyting(delta) í tíð		dTime
 	Broyting í dateTime		dDateTime
-	Breiddargrad			lat
-	Longdargrad			lon
-	Dýpið				d
+	Breiddargrad			lat - Um fleiri er hettar miðal máti positiónin
+	Longdargrad			lon - Um fleiri er hettar miðal máti positiónin
+	Dýpið				d - m - Avstandur frá vatnyvurfladu til botn tá mátingin er gjørd
 	Tempraturur			temp
 	Trýst				pressure
-	Vinkul				deg, pitch, roll, yaw
+	Relativur vinkul		deg
+	Vinkur í mun til horizont 	pitch, roll, yaw
 	Ætt				heading
-	Spenningur			(U/V)
-	Streymur			(I/A)
+	Elektriskur spenningur		voltage
+	Elektriskur streymur		current
+	---- Hesi skulla í undirleistar ----
+	Streymur í N/S			v1 - Um fleiri tel upp
+	Streymur í E/V			u1 - Um fleiri tel upp
+	Streymur Upp/Niður		w1 - Um fleiri tel upp
+	Flourescence 			flu
+	Salinitet			sal
+	Massafylla			dens
+	Oxygenmetningur			ox_prc
+	Oxygenkonsentratión		ox_mgl
+	Ljósstyrki			par
+	Mátidýpi			sD1 - Um fleiri tel upp (Avstandur frá máting til vatnyvurfladu)
+	
 
 
+Fluorescence er máta í mg/m3
+Salinitetur er máta í g/kg
+Massafylla er máta í kg/m3
+Oxygenmetningur er máta í % av fullmettaðun sjógvi
+Oxygenkonsentratión er máta í mg/l
+Ljósstyrki er máta í µmol photons/m2/s
 
-Allar reglur hava líka nógv felt sum tal av kolonnum í fílinum
-NAN er definera sum (NaN/einki)		# Look at me
 Dato og Klokkutíðr fylgja ISO 8061, og verða skriva sum 'YYYY-mm-dd HH:MM:SS', og brøkpartar av sekund verða skriva sum desimal tal um neyðugt (UTC, Vetrartíð)
 Koordinatir verða skriva sum Desimal tøl. Positivt er N og E, negativt er S og W. Koordinat system er WGS84 um ikki anna er skriva. Dømi '62.111, -7.111'. Altíð í hvør sínari kolonnu.
 Dýpi verða goymd í metrum, og eru (Negativ/Positiv). Dýpi eru altið goymd saman við einum date/time, og skal verða avstandurin frá vatnyvirfladuni til nærmasta botn. 	# Look at me
 Tempraturur verður goymdur í °C, og um termiski massin á mátainum er kendur, verður kompensera fyri honum. 
-Trýst verðru goymt í (hPa/Bar/atm/?)
-Ferð verður goymd í m/s, um ikki stendur eindin í kolonnu headarinum, td: 'U[knot]', men hettar verður frámælt
+Trýst verðru goymt í (hPa/Bar/atm/?) # Look at me
+	Ferð verður goymd í m/s, um ikki stendur eindin í kolonnu headarinum, td: 'U[knot]', men hettar verður frámælt
 Vinkul verðru goymdur sum gradir (360 per umkreds), positiv tøl mala ímóti klokkuni
 Ættir verða goymdar sum gradir frá norður
 
 
-navn á kolonnum
-	#  TODO plz kjekka fyri stavifeilir
-	dato/tid/date/time/(Date and time)
-	lon
-	lat
-	
+			kopy av hvat stendur longri uppi
+-------------------------------------------------------------------------------------------------------
+	Fluorescence 		mg/m3
+	Salinitetur 		g/kg
+	Massafylla 		kg/m3
+	Oxygenmetningur		% av fullmettaðun sjógvi
+	Oxygenkonsentratión 	mg/l
+	Ljósstyrki		µmol photons/m2/s
+
+Dato og Klokkutíðr fylgja ISO 8061, og verða skriva sum 'YYYY-mm-dd HH:MM:SS', og brøkpartar av sekund verða skriva sum desimal tal um neyðugt (UTC, Vetrartíð)
+Koordinatir verða skriva sum Desimal tøl. Positivt er N og E, negativt er S og W. Koordinat system er WGS84 um ikki anna er skriva. Dømi '62.111, -7.111'. Altíð í hvør sínari kolonnu.
+Dýpi verða goymd í metrum, og eru (Negativ/Positiv). Dýpi eru altið goymd saman við einum date/time, og skal verða avstandurin frá vatnyvirfladuni til nærmasta botn. 	# Look at me
+Tempraturur verður goymdur í °C, og um termiski massin á mátainum er kendur, verður kompensera fyri honum. 
+Trýst verðru goymt í (hPa/Bar/atm/?) # Look at me
+	Ferð verður goymd í m/s, um ikki stendur eindin í kolonnu headarinum, td: 'U[knot]', men hettar verður frámælt
+Vinkul verðru goymdur sum gradir (360 per umkreds), positiv tøl mala ímóti klokkuni
+Ættir verða goymdar sum gradir frá norður
 
 
 
+Navni á kollonunum á streymmátingum er u ella v og eitt tal. Lægsta tali er nærmast við mátarin
+Fílarnir frá RDI streymmátingum eru U, V, W, dir, mag, anc
+
+Allar reglur hava líka nógv felt sum tal av kolonnum í fílinum
+
+NAN er definera sum (NaN/einki)		# Look at me
+óendaligt definera sum (inf)
 
 
+
+# Look at me
 # TODO hvat gera vit við eindir
