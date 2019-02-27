@@ -1,0 +1,6 @@
+
+
+--- Standard Kolonnir ---
+	Streymur í N/S			v1 - Um fleiri tel upp
+	Streymur í E/V			u1 - Um fleiri tel upp
+	Streymur Upp/Niður		w1 - Um fleiri tel upp

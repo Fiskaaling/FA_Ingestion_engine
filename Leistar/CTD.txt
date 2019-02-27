@@ -1,3 +1,13 @@
+
+Standard Kolonnir:
+	Flourescence 			flu
+	Salinitet			sal
+	Massafylla			dens
+	Oxygenmetningur			ox_prc
+	Oxygenkonsentratión		ox_mgl
+	Ljósstyrki			par
+	Mátidýpi			sD1 - Um fleiri tel upp (Avstandur frá máting til vatnyvurfladu)
+
 PrdM - Trýst decibar
 T068C - Tempraturur eftir ITS-68 standard
 FlECO-AFL - Flouruscence mg/m3
