@@ -1,0 +1,22 @@
+Eyndamálið við hesum dokumenti er at definera mappustruktur á dátaðinum goymt á hesari skipan
+Skriva av Jóhannus og Tróndur 28 Feb. 2019
+Broytt av xx, dd MM. YYYY
+
+Í mappuni har skipanin arbeiðir út frá krevur hendan at fylgjandi mappur eru til
+
+Raw_Data
+	Er til dáta ið ikki er prosessera
+Processed_Data
+	Er til prosessera data og figurar	
+Rit
+	Er til arbeiðsmappur har rit verða gjørd.
+
+Dáta ið kemur inn í hesa skipan fer ígjøgnum mappurnar í rekkjufylgjuni tær eru nevndar.
+
+
+Í Raw_Data mappuni er ein undirmappa fyri hvørt instument. Hvørt instument hevur eitt unikt navn, í inniheldur eina stytting av navninum hjá fabrikantinum og instument slagi. Um tað eru fleiri instumentir av sama slagi verður endin á seriunummarinum á instumentinum eisini ein partur av navninum. Til dømis:
+RDI_WH_14282
+RDI_WH_0568::
+AADI_SeaGuard_265
+
+

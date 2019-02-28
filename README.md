@@ -1,6 +1,5 @@
 # Fiskaaling Ingestion engine
-
-Til innlesing og processering av data frá ymskum instrumentum
+Hettar er ein samling av forritum ið kann nýtast til at innlesa, goyma og behandla dáta frá ymskum instrumentum
 
 <h5> Møguleikar </h5>  
 <OL>
