@@ -28,7 +28,7 @@ Allar reglur hava líka nógv felt sum tal av kolonnum í fílinum
 NAN er definera sum 'NaN'
 óendaligt definera sum 'inf'
 
-1) Dato og Klokkutíðr fylgja ISO 8061, og verða skriva sum 'YYYY-mm-dd HH:MM:SS', og brøkpartar av sekund verða skriva sum desimal tal um neyðugt (UTC, Vetrartíð)
+1) Dato og Klokkutíðr fylgja ISO 8061 (Extended 4.4.4.1, 3'rd edition), og verða skriva sum 'YYYY-MM-DDThh:mm:ss', og brøkpartar av sekund verða skriva sum desimal tal um neyðugt (UTC, Vetrartíð)
 2) Koordinatir verða skriva sum Desimal tøl. Positivt er N og E, negativt er S og W. Koordinat system er WGS84 um ikki anna er skriva. Dømi '62.111, -7.111'. Altíð í hvør sínari kolonnu.
 3) Dýpi verða goymd í metrum, og eru (Negativ/Positiv). Dýpi eru altið goymd saman við einum date/time, og skal verða avstandurin frá vatnyvirfladuni til nærmasta botn. 	# Look at me
 4) Á veg norð er 0°
