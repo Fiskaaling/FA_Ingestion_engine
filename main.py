@@ -36,10 +36,8 @@ class Window(Frame):
         exit()
 
 
-def OnDoubleClick(event, tree):
+def OnDoubleClick(event, tree, clo):
     minimize = 1
-    item = tree.identify('item', event.x, event.y)
-    item = tree.item(item, "text")
     if clo:
         item = sys.argv[1]
     else:
@@ -141,7 +139,7 @@ AADI.init(ingestion_listbox)
 
 alduboya = ingestion_listbox.insert("", 0, text='Alduboya')
 
-ingestion_listbox.bind("<Double-1>", lambda event, arg=ingestion_listbox: OnDoubleClick(event, arg))
+ingestion_listbox.bind("<Double-1>", lambda event, arg=ingestion_listbox: OnDoubleClick(event, arg, False))
 
 ingestion_listbox.insert(LV, "end", text='Veðurstøðir')
 ingestion_listbox.insert(LV, "end", text='Aldumátingar')

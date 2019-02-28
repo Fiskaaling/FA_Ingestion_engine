@@ -1,0 +1,87 @@
+Eyndamálið við hesum dokumentinum er at lýsa høvuðs leistin ið standarir í dátuskipanini nýta  
+Skriva av Jóhannus og Tróndur, 26-27 feb 2019
+Broytt av *, xx xxx 20xx
+* Allar broytingar av hesum dokumentinum mugu skrásetast saman við gomlu útgávuni og orðsøk fyri broyting!
+____________________________________________________________________________________________________
+Sum útgangspunkt verður alt dátaði goymt sum tekstur, fyri at gera tað lætt at skriva kodu ið kann lesa dátai tvørtur um forrit og stýriskipanir.
+
+Hvør høvðustypa av instumentum, td. ADCP ella CTD, skulla fylgja einum høviðs leisti fyri instrument typuna, hereftir kalla Fysti-Leistur. Harafturat kann hvørt instument hava ein Annan-Leist ið kan taka til eftirtektar serlig viðurskifti.
+
+Hvør leistur ið fylgjir hesum leisti:
+Hoyrur til eina instument typu
+Lýsir hvussu dáta skal formatterast
+Arvar krøvini frá foreldurnum (Td. hesin leisturin sigur at dáta skal hava suffix '.csv', tí skulla allir leistir, gjørdir eftir hesum gera fílir við suffix '.csv')
+____________________________________________________________________________________________________
+
+Hvør leistur(standarur) lýsu hvussu dáta verðru goymt:
+Fílar hava suffix '.csv'
+Er encodaur við UTF8
+Kolonnir eru ',','\t'  (comma, tab) sepereraði	# Look at me
+Desimal tekni er '.' (Punktum) og tøl eru ikki túsundsepereraði
+Fyrsta linja í hvørjum fílui er ein headari við einari reglu, har allar kollonirnar verða navngivnar
+Frá næstu linju er dáta
+Um tað eru fleiri kolonnir ið hava sama navn so skal tann kolonnan í best lýsir virði nýta navni lýst í tabellini niðanfyri. td. um vit hava eina start mátitíð og eina stop mátitíð skal dateTime verða miðal av hesum. 
+Kollonunøvn sum enda við einum talið telja uppeftir. Lægsta talið er 1 og vit telja uppeftir. Mátinini sum er nærmast við instromenti ella fysta mátingin hevur tal 1. Dømi u1, u2, ... u9, u10, ...
+Linjuskift eru defineraði sum newline og carrage return
+vit hava ongantíð index á rekkinum
+Allar reglur hava líka nógv felt sum tal av kolonnum í fílinum
+NAN er definera sum 'NaN'
+óendaligt definera sum 'inf'
+
+1) Dato og Klokkutíðr fylgja ISO 8061, og verða skriva sum 'YYYY-mm-dd HH:MM:SS', og brøkpartar av sekund verða skriva sum desimal tal um neyðugt (UTC, Vetrartíð)
+2) Koordinatir verða skriva sum Desimal tøl. Positivt er N og E, negativt er S og W. Koordinat system er WGS84 um ikki anna er skriva. Dømi '62.111, -7.111'. Altíð í hvør sínari kolonnu.
+3) Dýpi verða goymd í metrum, og eru (Negativ/Positiv). Dýpi eru altið goymd saman við einum date/time, og skal verða avstandurin frá vatnyvirfladuni til nærmasta botn. 	# Look at me
+4) Á veg norð er 0°
+5) Vinkul verðru goymdur sum gradir (360 per umkreds), positiv tøl mala ímóti klokkuni
+
+Eindin sum verður brúkt skal standa í standa í standardinum um ikki brúka SI
+
+Hvør kolonna hevur eitt unikt, sigandi navn, uttan millumrúm, og uttan serlig tekn (Fylgjandi eru loyvd a-z, A-Z, _, -, 0-9). 
+____________________________________________________________________________________________________
+
+	Dato við klokkutíð		dateTime		YYYY-mm-dd HH:MM:SS (1)
+	Dato 				date			YYYY-mm-dd (1)	
+	Tíð				time			HH:MM:SS (1)
+	Broyting í dateTime		dDateTime		(-)dd
+	Breiddargrad			lat			61.0 (2)
+	Longdargrad			lon			-7.0 (2)
+	Dýpið				d			[m] (3)
+	Tempraturur			temp			[°C]
+	Trýst				pressure		[dbar]
+	Relativur vinkul		deg			[°] (5)
+	Pitch (horozont)		pitch			[°] (5)
+	Roll (horozont)			roll			[°] (5)
+	Yaw (horozont)			yaw			[°] (5)
+	Hedding				hedding			[°] (4,5)
+	Ætt				dir			[°] (4,5)
+	Elektriskur spenningur		voltage			[V]
+	Elektriskur streymur		current			[A]
+	Flourescence 			flu			[mg/m³]
+	Salinitet			sal			[g/kg]
+	Massafylla			dens			[kg/m³]
+	Oxygenmetningur			ox_prc			[%]
+	Oxygenkonsentratión		ox_mgl			[mg/L]
+	Ljósstyrki			par			[µmol photons/m²/s]
+	Mátidýpi			sD1			[m]
+	Ferð abs			mag1			[m/s]
+	Ferð í N/S			v1			[m/s]
+	Ferð í E/V			u1			[m/s]
+	Streymur Upp/Niður		w1			[m/s]
+	Miðal vindferð			wind_mean1		[m/s]
+	Vindferð á hvirlum		gust			[m/s]
+	Døggpunkt			dew			[m]
+	Lufttrýst			press1			[dbar]
+	luftfuktiheit			hum			[%]
+	Alduhædd			hm0			[m]
+	Hægsta alda			hmax			[m]
+	Miðal perioda			tz			[s]
+	Dominerandi perioda*		tp			[s]
+	Ratning hjá tp			dirp			[°] (4)
+
+
+
+*periodan hjá alduni við mestu orkuni í einum mátitíðarbili.
+____________________________________________________________________________________________________
+# Fílarnir frá RDI streymmátingum eru U, V, W, dir, mag, anc
+# Look at me
+# TODO hvat gera vit við eindir

@@ -1,0 +1,136 @@
+Rit
+	Standard Preamble
+	Standard Mappustruktur
+		Processed_Data?
+		Latex
+			Preamble/Setup
+				Preamble.tex
+				metadata.tex
+				...
+			Partar
+			Figurar
+			Talvur?
+			ritnavn.tex (master.tex)
+	Standard Import
+	Standard master.tex
+		Rename master.tex
+		Hvussu sær master út tá hann er liðugur
+		Specifikatiónir fyri import
+
+Mannagongdir
+	Ingestion
+	Nýggj Instrumentir
+	Projektir
+	Innsetan á wl
+
+Feilhontering
+	Feillog
+	Ábyrgdarhavara av modulum? (Kanska)
+		Hontering av at fólk ikki arbeiða í sama staði altíð
+	Report
+		Send Mail
+
+Standard til at Processera data
+	Botnkort Skipan
+	Ascii
+		Eindir
+		Lista av Dependent scriptum
+		Instumentir
+			Streymmátingar
+				RDI
+					WORKHORSE
+					SentelV
+				AWAC
+				SeaGuard
+			CTD
+			Tempraturmátingar
+				Seaguard
+				Termistorkeda
+			Oxygenmátingar
+				Seaguard
+				Oxygenkeda
+			Trýstmátingar
+				RDI
+				Seaguard
+				Trýstmátarir
+	Aftaná Ascii
+		Figurar/Partar/Sections
+			Alda	
+			Botnkort
+			Landsverk
+				Veðurstøðir
+				Aldumátingar
+				Vatnstøða	
+			CTD
+				Multiaxis
+				Skurðar
+				Kort
+				Tíðarseriur
+			ADCP
+				UV Plot
+					StremRósa
+					Scatter
+						Dominerandi vinkul
+				Tíðarseriur
+					Vind og Streym vs tíð
+					Line
+					Contour
+				Streymmáting frá báti
+					Quiver plot
+						Fleiri dýpir
+					Miðal Streym
+				Seaguard
+					Miðal Vind og Miðal Streym á botni vs tið (kanska vs)
+					Line
+					Oxygenanalysa
+			Trýstmátarir
+				Tíðarseriur
+				Vatnstøðuanalysa
+			Termistorkedur
+				Tíðarseriur
+					Countour
+					Line
+			Oxygenkedur
+				Tíðarseriur
+					Countour
+					Line
+			
+			Finn tal fyri upployuligheit
+			-	Preview
+			-	Háupploys mynd
+		Siður/Sections/Partar
+			Instument
+	Metadata um máting og instument
+		Tekna Kort
+		Katalog av standard uppsetanarfigurum
+		
+Dátugrunnur klárur at innseta
+	Velja og Implementera Mappustruktur
+		Processed_Data
+		Raw_Data
+		Rit
+	Gui til
+		Mátingar
+			Innsetan
+				Deployment skjal
+				Checklisti
+				Fílhontering
+			Dagføring
+				Deployment skjal?
+			Leiting
+				Preview av máting
+			Rætting av feilum
+		Instumentir
+			Møguligar Uppsetanar
+		Økir
+			Aliøkið?
+		Orðalistar
+		Rit
+		
+Ymiskt annað
+	Standard til Standard ASCII
+	Sameina Økir við Mátingar
+	Landsverk
+		Skriva script ið innsetur nýggjar veðurstøðumátingar + Aldumátingar
+		
+		

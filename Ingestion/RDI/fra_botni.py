@@ -90,7 +90,7 @@ def UVtekna(canvas, ax):
     slope, intercept, r_value, p_value, std_err = stats.linregress(x, y)
     xvals = range(-20, 20)
     print(intercept)
-    ax.plot(xvals, intercept + a * xvals, label=str(round(-np.rad2deg(np.arctan(a))+90,2))+ '$^\circ$', color='orange')
+    ax.plot(xvals, a * xvals, label=str(round(-np.rad2deg(np.arctan(a))+90,2))+ '$^\circ$', color='orange')
     ax.legend()
     canvas.draw()
 
