@@ -200,8 +200,8 @@ def tekna_dist_rose(bins, magdf, dirdf, N, umax, fultdypid, Bin_Size, firstbinra
     caption = 'Distribution of velocity vectors: ' \
               'a) Bin %s at %2.0f m depth, b) Bin %s at %2.0f m depth, and c) Bin %s at %2.0f m depth.' \
               % (bins[0], get_dypid(bins[0], fultdypid, Bin_Size, firstbinrange),
-                 bins[1], get_dypid(bins[0], fultdypid, Bin_Size, firstbinrange),
-                 bins[2], get_dypid(bins[0], fultdypid, Bin_Size, firstbinrange))
+                 bins[1], get_dypid(bins[1], fultdypid, Bin_Size, firstbinrange),
+                 bins[2], get_dypid(bins[2], fultdypid, Bin_Size, firstbinrange))
 
     plt.gca().set_aspect('equal', adjustable='box')
     plt.subplots_adjust(left=0.05, bottom=0.05, right=0.95, top=0.95, wspace=0.0, hspace=0.5)
@@ -236,8 +236,8 @@ def tekna_confidens_rose(bins, magdf, dirdf, N, umax, fultdypid, Bin_Size, first
     caption = 'Confidens space of velocity vectors: ' \
               'a) Bin %s at %2.0f m depth, b) Bin %s at %2.0f m depth, and c) Bin %s at %2.0f m depth.' \
               % (bins[0], get_dypid(bins[0], fultdypid, Bin_Size, firstbinrange),
-                 bins[1], get_dypid(bins[0], fultdypid, Bin_Size, firstbinrange),
-                 bins[2], get_dypid(bins[0], fultdypid, Bin_Size, firstbinrange))
+                 bins[1], get_dypid(bins[1], fultdypid, Bin_Size, firstbinrange),
+                 bins[2], get_dypid(bins[2], fultdypid, Bin_Size, firstbinrange))
 
     plt.gca().set_aspect('equal', adjustable='box')
     plt.subplots_adjust(left=0.05, bottom=0.05, right=0.95, top=0.95, wspace=0.0, hspace=0.5)
@@ -271,8 +271,8 @@ def speedbins(bins, dato, magdf, fultdypid, Bin_Size, firstbinrange, dpi=200,
     caption = 'Timeseries of speed at three selected bins: a) Bin %s at %2.0f m depth, b) Bin %s at %2.0f m depth' \
               ' and c) Bin %s at %2.0f m depth.' \
               % (bins[0], get_dypid(bins[0], fultdypid, Bin_Size, firstbinrange),
-                 bins[1], get_dypid(bins[0], fultdypid, Bin_Size, firstbinrange),
-                 bins[2], get_dypid(bins[0], fultdypid, Bin_Size, firstbinrange))
+                 bins[1], get_dypid(bins[1], fultdypid, Bin_Size, firstbinrange),
+                 bins[2], get_dypid(bins[2], fultdypid, Bin_Size, firstbinrange))
 
     plt.subplots_adjust(left=0.1, bottom=0.05, right=0.95, top=0.95, wspace=0.0, hspace=0.2)
     fig.savefig('myndir/%s' % navn, dpi=dpi)
@@ -320,8 +320,8 @@ def progressive_vector(bins, dato, magdf, dirdf, fultdypid, Bin_Size, firstbinra
     caption = 'Progressive vector diagrams at three selected layers: Surface (Bin %s at %2.0f m depth),' \
               ' center (Bin %s at %2.0f m depth) and bottom layer (Bin %s at %2.0f m depth).' \
               % (bins[0], get_dypid(bins[0], fultdypid, Bin_Size, firstbinrange),
-                 bins[1], get_dypid(bins[0], fultdypid, Bin_Size, firstbinrange),
-                 bins[2], get_dypid(bins[0], fultdypid, Bin_Size, firstbinrange))
+                 bins[1], get_dypid(bins[1], fultdypid, Bin_Size, firstbinrange),
+                 bins[2], get_dypid(bins[2], fultdypid, Bin_Size, firstbinrange))
 
     return '\n\\newpage\n\\section{%s}\n\\begin{figure}[h!]\n\\includegraphics[scale=1]{myndir/%s}' \
            '\n\\caption{%s}\n\\end{figure}\n\\newpage' % (section, navn, caption)
@@ -329,6 +329,8 @@ def progressive_vector(bins, dato, magdf, dirdf, fultdypid, Bin_Size, firstbinra
 
 def frequencytabellir(magdf, fultdypid, Bin_Size, firstbinrange,
               navn='Frqtabel.tex', sections=['Frequency of high speeds', 'Frequency of low speeds']):
+    # TODO her manglar ein hline
+
     #  Freequency of high speeds
     inforows = ['no.', 'm']
     #  TODO skal eg koyra hettar inn sum eitt input til funktiónina
@@ -336,7 +338,7 @@ def frequencytabellir(magdf, fultdypid, Bin_Size, firstbinrange,
     inforows += infospeed
     #  gera klárt til tabellina
     highstr = '\\begin{tabular}{|' + len(inforows)*'r|' + '}\n\\hline\n Bin&\tDepth&\t' \
-                                                          '\multicolumn{%s}{|c|}{Speed [mm/s]}\\\\\\hline\n'\
+                                                          '\multicolumn{%s}{c|}{Speed [mm/s]}\\\\\\hline\n'\
               % (len(inforows)-2,)
     highstr += (4-len(inforows[0]))*' ' + inforows[0]
     for x in inforows[1::]:
@@ -418,7 +420,7 @@ def frequencytabellir(magdf, fultdypid, Bin_Size, firstbinrange,
            '\n\\newpage' % (sections[0], navn, caption[0], sections[1], navn, caption[1])
 
 
-def duration_speed(bins, dato, magdf, fultdypid, Bin_Size, firstbinrange,
+def duration_high_speed(bins, dato, magdf, fultdypid, Bin_Size, firstbinrange,
               navn='Duration_high.tex', section='Duration of high speed periods'):
     if len(bins) != 3:
         raise ValueError('bins skal hava 3 bins')
@@ -456,7 +458,7 @@ def duration_speed(bins, dato, magdf, fultdypid, Bin_Size, firstbinrange,
                         tabell[s][d] += 1
         #  skriva tex tabell
         texstr = '\\begin{tabular}{|' + (1 + len(duration))*'r|' + '}\n'
-        texstr += '\\hline\nSpeed&\t\\multicolumn{%s}{|c|}{Duration (minutes)}\\\\\\hline\n' % (len(duration),)
+        texstr += '\\hline\nSpeed&\t\\multicolumn{%s}{c|}{Duration (minutes)}\\\\\\hline\n' % (len(duration),)
         texstr += 'mm/s'
         for x in duration:
             texstr += '&\t' + (4-len(str(x)))*' ' + str(x)
@@ -491,7 +493,6 @@ def duration_speed(bins, dato, magdf, fultdypid, Bin_Size, firstbinrange,
            '\n\\section{%s}' \
            '\nOccurrence (in parts per thousand) of contiguous periods longer than or equal to ' \
            'specified duration with speeds equal to or exceeding specified threshold values (Speed). ' \
-           'Flagged ensembles are ignored.' \
            '\n\\begin{table}[h!]' \
            '\n\\centering' \
            '\n\\resizebox{\\textwidth}{!}{' \
@@ -517,3 +518,103 @@ def duration_speed(bins, dato, magdf, fultdypid, Bin_Size, firstbinrange,
            '\n\\end{table}' \
            '\n\\newpage' % (section, filnovn[0], caption[0], filnovn[1], caption[1], filnovn[2], caption[2])
 
+
+def duration_low_speed(bins, dato, magdf, fultdypid, Bin_Size, firstbinrange,
+              navn='Duration_low.tex', section='Duration of low speed periods'):
+    if len(bins) != 3:
+        raise ValueError('bins skal hava 3 bins')
+    duration = list(range(60, 1080, 60))
+    speed = [50, 100, 150, 200, 300, 400, 500, 600, 800, 1000]
+    filnovn = []
+    caption = []
+    for (rekkja_i_bin, bin) in enumerate(bins):
+        data = magdf[str(bin)].values
+        total = 0
+        tabell = np.zeros((len(speed), len(duration)))
+        #  TODO hettar skal vera undir
+        #  heldur eyða við hvussu langt síðan tað var at vit vóru yvir forskelligum speeds
+        durationspeeds = [0 for _ in speed]
+        i = 0
+        #  ignoera øll nan í byrjanini set upp inisial value fyri loopið kanska skal dato flytast eitt
+        while i < len(data):
+            if ~np.isnan(data[i]):
+                break
+            i += 1
+        dato0 = dato[i]
+        for (i, magnetude) in enumerate(data):
+            if np.isnan(magnetude):
+                continue
+            total += 1
+            delta_tid = (dato[i] - dato0) * (24 * 60)       #  min
+            dato0 = dato[i]
+            #  uppdatera durationspeeds
+            for k in range(len(speed)):
+                if speed[k] >= magnetude:
+                    durationspeeds[k] += delta_tid
+                else:
+                    durationspeeds[k] = 0
+            for d in range(len(duration)):
+                for s in range(len(speed)):
+                    if durationspeeds[s] >= duration[d]:
+                        tabell[s][d] += 1
+        #  skriva tex tabell
+        texstr = '\\begin{tabular}{|' + (1 + len(duration))*'r|' + '}\n'
+        texstr += '\\hline\nSpeed&\t\\multicolumn{%s}{c|}{Duration (minutes)}\\\\\\hline\n' % (len(duration),)
+        texstr += 'mm/s'
+        for x in duration:
+            texstr += '&\t' + (4-len(str(x)))*' ' + str(x)
+        texstr += '\\\\\\hline\n'
+        for s in range(len(speed)):
+            texstr += (4-len(str(speed[s])))*' ' + str(speed[s])
+            for d in range(len(duration)):
+                #  temp er tað nasta talið sum skal inní tabellina
+                temp = 1000 * tabell[s][d]/total
+                if 0.005 < temp < 1:
+                    temp = np.round(temp, 2)
+                else:
+                    temp = int(np.round(temp, 0))
+                texstr += '&\t' + (4-len(str(temp)))*' ' + str(temp)
+            texstr += '\\\\\n'
+        texstr += '\\hline'
+        texstr += '\n\\end{tabular}'
+
+        if rekkja_i_bin == 0:
+            prelabel = 'Surface layer'
+        elif rekkja_i_bin == 1:
+            prelabel = 'Center layer'
+        else:
+            prelabel = 'Buttom layer'
+        filnovn.append(prelabel.replace(' ', '_') + '_' + navn)
+        texfil = open('Talvur/' + filnovn[-1], 'w')
+        texfil.write(texstr)
+        texfil.close()
+        caption.append('%s, bin no: %s. at %2.0fm Depth'
+                       % (prelabel, bin, get_dypid(int(bin), fultdypid, Bin_Size, firstbinrange)))
+    return '\n\\newpage' \
+           '\n\\section{%s}' \
+           '\nOccurrence (in parts per thousand) of contiguous periods longer than or equal to ' \
+           'specified duration with speeds less than specified threshold values (Speed)' \
+           '\n\\begin{table}[h!]' \
+           '\n\\centering' \
+           '\n\\resizebox{\\textwidth}{!}{' \
+           '\n\\input{Talvur/%s}' \
+           '\n}' \
+           '\n\\caption{%s}' \
+           '\n\\end{table}' \
+           '\n' \
+           '\n\\begin{table}[h!]' \
+           '\n\\centering' \
+           '\n\\resizebox{\\textwidth}{!}{' \
+           '\n\\input{Talvur/%s}' \
+           '\n}' \
+           '\n\\caption{%s}' \
+           '\n\\end{table}' \
+           '\n' \
+           '\n\\begin{table}[h!]' \
+           '\n\\centering' \
+           '\n\\resizebox{\\textwidth}{!}{' \
+           '\n\\input{Talvur/%s}' \
+           '\n}' \
+           '\n\\caption{%s}' \
+           '\n\\end{table}' \
+           '\n\\newpage' % (section, filnovn[0], caption[0], filnovn[1], caption[1], filnovn[2], caption[2])

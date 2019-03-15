@@ -12,7 +12,8 @@ from Hovmuller_diagrams import tekna_dist_rose
 from Hovmuller_diagrams import speedbins
 from Hovmuller_diagrams import progressive_vector
 from Hovmuller_diagrams import frequencytabellir
-from Hovmuller_diagrams import duration_speed
+from Hovmuller_diagrams import duration_high_speed
+from Hovmuller_diagrams import duration_low_speed
 
 
 #  inlesData
@@ -29,7 +30,7 @@ for _ in [0]:
     axcolor = 'k'
     axline = 0.5
     alpha = 0.5
-    fultdypid = 100
+    fultdypid = 53.53054533662
     treebins = [9, 5, 1]
 
     font = 8
@@ -98,10 +99,17 @@ if True:
     a = frequencytabellir(magdf, fultdypid, Bin_Size, firstbinrange)
     file.write(a)
 
-#  tekna duration_speed
+#  tekna high duration_speed
 if True:
-    a = duration_speed(treebins, dato, magdf, fultdypid, Bin_Size, firstbinrange)
+    a = duration_high_speed(treebins, dato, magdf, fultdypid, Bin_Size, firstbinrange)
     file.write(a)
+
+
+#  tekna low duration_speed
+if True:
+    a = duration_low_speed(treebins, dato, magdf, fultdypid, Bin_Size, firstbinrange)
+    file.write(a)
+
 
 #  enda texdocument
 if True:
