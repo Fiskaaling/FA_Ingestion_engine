@@ -336,6 +336,7 @@ def les_og_tekna(text, fig, canvas, silent=False):
     lin_legend=''
     scatter_farv = 'b'
     scatter_legend=''
+    scatter_MarkerStyle = "o"
     show_legend = False
     quiverf_threshold = 1
     circle_stodd = 0.05
@@ -525,11 +526,11 @@ def les_og_tekna(text, fig, canvas, silent=False):
                                 ax.text(line_x[i]-350, line_y[i]-350, lables[i], zorder=1000000)
                     else:
                         if Samla:
-                            ax.scatter(line_x, line_y, zorder=100, color=scatter_farv, label=scatter_legend, s=scatter_std)
+                            ax.scatter(line_x, line_y, zorder=100, color=scatter_farv, label=scatter_legend, s=scatter_std, marker=scatter_MarkerStyle)
                         else:
                             lables = scatterData['legend'].values
                             for i in range(len(line_x)):
-                                ax.scatter(line_x[i], line_y[i], zorder=100, label=lables[i], s=scatter_std)
+                                ax.scatter(line_x[i], line_y[i], zorder=100, label=lables[i], s=scatter_std, marker=scatter_MarkerStyle)
                                 print('Funni legend :' + str(lables[i]))
                             show_legend = True
             elif variable == 'linjuSlag':
@@ -682,6 +683,8 @@ def les_og_tekna(text, fig, canvas, silent=False):
                 lat = float(pos[0])
                 lon = float(pos[1])
                 ax.scatter(lon, lat, zorder=100, color=scatter_farv, label=scatter_legend, s=scatter_std)
+            elif variable == 'scatter_MarkerStyle':
+                scatter_MarkerStyle = command[toindex::]
             else:
                 if '#' not in variable and command != '':
                     log_w('Ókend stýriboð ' + variable)
