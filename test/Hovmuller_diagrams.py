@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdate
 import matplotlib.cm as cm
 import matplotlib.patches as mpatches
+import utide
 from scipy.interpolate import griddata
 
 
@@ -110,7 +111,7 @@ def plotrose2(ax, N, umax, lv, Es, Ns, eind='mm/s', axline=.5, axcolor='k', alph
         Ebin = int(N * ((Es[k] + umax) / (2 * umax)) + .5)
         Nbin = int(N * ((Ns[k] + umax) / (2 * umax)) + .5)
         if 0 <= Ebin < N and 0 <= Nbin < N:
-            F[Ebin][Nbin] += 1
+            F[Nbin][Ebin] += 1
     #  Normalisera fyri øll ikki NaN elementini har Note alti alt gevur hettar sikkurt ikki 100% tí at okkurt liggur
     #  uttan fyri ásarnar
     F /= len(Ns)
@@ -185,7 +186,7 @@ def tekna_dist_rose(bins, magdf, dirdf, N, umax, fultdypid, Bin_Size, firstbinra
         elif i == 1:
             prelabel = 'b) Center layer'
         else:
-            prelabel = 'c) Buttom layer'
+            prelabel = 'c) Bottom layer'
         tempdf = pd.concat([magdf[str(bin)], dirdf[str(bin)]], axis=1)
         tempdf.columns = ['mag', 'dir']
         tempdf.dropna(inplace=True)
@@ -222,7 +223,7 @@ def tekna_confidens_rose(bins, magdf, dirdf, N, umax, fultdypid, Bin_Size, first
         elif i == 1:
             prelabel = 'b) Center layer'
         else:
-            prelabel = 'c) Buttom layer'
+            prelabel = 'c) Bottom layer'
         tempdf = pd.concat([magdf[str(bin)], dirdf[str(bin)]], axis=1)
         tempdf.columns = ['mag', 'dir']
         tempdf.dropna(inplace=True)
@@ -259,7 +260,7 @@ def speedbins(bins, dato, magdf, fultdypid, Bin_Size, firstbinrange, dpi=200,
         elif i == 1:
             prelabel = 'b) Center layer'
         else:
-            prelabel = 'c) Buttom layer'
+            prelabel = 'c) Bottom layer'
         axs[i].plot(dato, magdf[str(bin)], linewidth=.5, c='k')
         axs[i].xaxis.set_major_formatter(date_fmt)
         axs[i].set_ylabel('speed [mm/t]')
@@ -308,7 +309,7 @@ def progressive_vector(bins, dato, magdf, dirdf, fultdypid, Bin_Size, firstbinra
         elif i == 1:
             prelabel = 'Center layer'
         else:
-            prelabel = 'Buttom layer'
+            prelabel = 'Bottom layer'
         axs.plot(*plots[i], linewidth=.5, label=prelabel)
     axs.legend()
     plt.subplots_adjust(left=0.1, bottom=0.075, right=0.95, top=0.95, wspace=0.0, hspace=0.2)
@@ -343,8 +344,9 @@ def frequencytabellir(magdf, fultdypid, Bin_Size, firstbinrange,
     highstr += (4-len(inforows[0]))*' ' + inforows[0]
     for x in inforows[1::]:
         highstr += '&\t' + (4-len(x))*' ' + x
+    highstr += '\\\\\\hline'
     lowstr = highstr
-    for key in magdf.keys():
+    for nyggregla, key in enumerate(magdf.keys()):
         #  TODO tá eg brúki ordiligar csv fílar skal eg higgja eftir hesum
         try:
             Depth = get_dypid(int(key), fultdypid, Bin_Size, firstbinrange)
@@ -376,7 +378,12 @@ def frequencytabellir(magdf, fultdypid, Bin_Size, firstbinrange,
             else:
                 highspeedtabelround[i] = int(np.round(x, 0))
         #  skriva eina reglu til highspeed tabellina
-        highstr += '\\\\\n' + (4-len(key))*' ' + key + '&\t' + (4-len(str(int(Depth))))*' ' + str(int(Depth))
+        if nyggregla == 0:
+            highstr += '\n' + (4-len(key))*' ' + key + '&\t' + (4-len(str(int(Depth))))*' ' + str(int(Depth))
+        else:
+            highstr += '\\\\\n' + (4 - len(key)) * ' ' + key + '&\t' + (4 - len(str(int(Depth)))) * ' ' + str(
+                int(Depth))
+
         for x in highspeedtabelround[0:-1]:
             highstr += '&\t' + (4-len(str(x)))*' ' + str(x)
         #  finn tølini sum skullu í lowspeed tabellina
@@ -387,7 +394,10 @@ def frequencytabellir(magdf, fultdypid, Bin_Size, firstbinrange,
             else:
                 lowspeedtabelround[i] = int(np.round(x, 0))
         #  skriva tølini sum skullu í lowspeed tabellina
-        lowstr += '\\\\\n' + (4-len(key))*' ' + key + '&\t' + (4-len(str(int(Depth))))*' ' + str(int(Depth))
+        if nyggregla == 0:
+            lowstr += '\n' + (4-len(key))*' ' + key + '&\t' + (4-len(str(int(Depth))))*' ' + str(int(Depth))
+        else:
+            lowstr += '\\\\\n' + (4 - len(key)) * ' ' + key + '&\t' + (4 - len(str(int(Depth)))) * ' ' + str(int(Depth))
         for x in lowspeedtabelround[0:-1]:
             lowstr += '&\t' + (4-len(str(x)))*' ' + str(x)
     highstr += '\\\\\\hline\n\\end{tabular}'
@@ -482,7 +492,7 @@ def duration_high_speed(bins, dato, magdf, fultdypid, Bin_Size, firstbinrange,
         elif rekkja_i_bin == 1:
             prelabel = 'Center layer'
         else:
-            prelabel = 'Buttom layer'
+            prelabel = 'Bottom layer'
         filnovn.append(prelabel.replace(' ', '_') + '_' + navn)
         texfil = open('Talvur/' + filnovn[-1], 'w')
         texfil.write(texstr)
@@ -583,7 +593,7 @@ def duration_low_speed(bins, dato, magdf, fultdypid, Bin_Size, firstbinrange,
         elif rekkja_i_bin == 1:
             prelabel = 'Center layer'
         else:
-            prelabel = 'Buttom layer'
+            prelabel = 'Bottom layer'
         filnovn.append(prelabel.replace(' ', '_') + '_' + navn)
         texfil = open('Talvur/' + filnovn[-1], 'w')
         texfil.write(texstr)
@@ -618,3 +628,217 @@ def duration_low_speed(bins, dato, magdf, fultdypid, Bin_Size, firstbinrange,
            '\n\\caption{%s}' \
            '\n\\end{table}' \
            '\n\\newpage' % (section, filnovn[0], caption[0], filnovn[1], caption[1], filnovn[2], caption[2])
+
+def Tidal_analysis_for_depth(tin, uin, vin, lat=62,
+              navn='tide.tex', caption='one layer'):
+    #TODO tjekka um u og v eru røtt
+    coef = utide.solve(tin, uin, vin, lat=lat)
+    col = ['Const', 'Freq', 'E-ampl', 'E-gpl', 'N-ampl', 'N-gpl', 'Major', 'minor', 'Theta', 'Graphl']
+    supcol = ['', 'c/hr', 'mm/sec', 'deg', 'mm/sec', 'deg', 'mm/sec', 'mm/sec', 'deg', 'deg']
+    a = list(coef.name)
+    rekkjur = min(len(coef.name), 15)
+    coefE = utide.solve(tin, uin, lat=lat, constit=a)
+    coefN = utide.solve(tin, vin, lat=lat, constit=a)
+
+    tabel = '\\begin{tabular}{|' + (len(col)) * 'r|' + '}\n\\hline\n'
+    tabel += col[0]
+    for x in col[1:]:
+        tabel += '&\t%s' % (x,)
+    tabel += '\\\\'
+    tabel += supcol[0]
+    for x in supcol[1:]:
+        tabel += '&\t%s' % (x,)
+    tabel += '\\\\\\hline\n'
+
+    for i in range(rekkjur):
+        ei = np.argwhere(coefE.name == coef.name[i])[0][0]
+        ni = np.argwhere(coefN.name == coef.name[i])[0][0]
+        tabel += (4-len(coef.name[i]))*' ' + coef.name[i]
+        tabel += '&\t%.8f' % (coef.aux.frq[i],)
+        tabel += '&\t%5.0f' % (coefE.A[ei],)
+        tabel += '&\t%5.0f' % (coefE.g[ei],)
+        tabel += '&\t%5.0f' % (coefN.A[ni],)
+        tabel += '&\t%5.0f' % (coefN.g[ni],)
+        tabel += '&\t%5.0f' % (coef.Lsmaj[i],)
+        tabel += '&\t%5.0f' % (coef.Lsmin[i],)
+        tabel += '&\t%3.0f' % (coef.theta[i],)
+        tabel += '&\t%3.0f' % (coef.g[i],)
+        tabel += '\\\\\n'
+    tabel += '\\hline\n'
+    tabel += '\\end{tabular}'
+    texfil = open('Talvur/%s' % (navn,), 'w')
+    texfil.write(tabel)
+    texfil.close()
+
+    tide = utide.reconstruct(tin, coef)
+    figwidth = 6
+    figheight = 9
+    fig, axs = plt.subplots(ncols=1, nrows=4, figsize=(figwidth, figheight))
+    axs[0].plot(tin, uin, linewidth=.5)
+    axs[0].plot(tin, tide.u, linewidth=.5)
+    axs[1].plot(tin, uin - tide.u, linewidth=.5)
+    axs[2].plot(tin, vin, linewidth=.5)
+    axs[2].plot(tin, tide.v, linewidth=.5)
+    axs[3].plot(tin, vin - tide.v, linewidth=.5)
+    #plt.show()
+
+    return '\n\\begin{table}[!ht]' \
+           '\n\\centering' \
+           '\n\\resizebox{\\textwidth}{!}{' \
+           '\n\\input{Talvur/%s}' \
+           '\n}' \
+           '\n\\caption{%s}' \
+           '\n\\end{table}' % (navn, caption)
+
+def Tidal_analysis_for_depth_bins(bins, dato, dirdf, magdf, fultdypid, Bin_Size, firstbinrange, lat=62,
+                                  section='Tidal analysis for selected depths'):
+    out = '\\newpage\n\\section{%s}\n' % (section,)
+    for i, mytempbin in enumerate(bins):
+        if i == 0:
+            prelabel = 'Surface layer'
+        elif i == 1:
+            prelabel = 'Center layer'
+        else:
+            prelabel = 'Bottom layer'
+            out += '\\newpage\n'
+        u = magdf[str(mytempbin)].values * np.sin(np.deg2rad(dirdf[str(mytempbin)].values))
+        v = magdf[str(mytempbin)].values * np.cos(np.deg2rad(dirdf[str(mytempbin)].values))
+        caption = '%s, bin no: %s. at %2.0fm Depth' % (prelabel, mytempbin, get_dypid(mytempbin, fultdypid, Bin_Size, firstbinrange))
+        out += Tidal_analysis_for_depth(np.array(dato), u, v, lat=lat,
+                                     navn='tide%s.tex' % (mytempbin,), caption=caption)
+    out += '\n\\newpage\n'
+    return out
+
+def Tital_oll_dypir(dato, bins, Frqs, dirdf, magdf, fultdypid, Bin_Size, firstbinrange, lat=62, verbose = True,
+                    Section = 'Tidal variation with depth', caption='Harmonic constants for constituent ',
+                    tabel_navn='tital_variation_with_depth'):
+    coefs = [None for _ in range(len(bins))]
+    coefsE = coefs.copy()
+    coefsN = coefs.copy()
+    tin = np.array(dato)
+    for i in range(len(coefs)):
+        u = magdf[str(i + 1)].values * np.sin(np.deg2rad(dirdf[str(i + 1)].values))
+        v = magdf[str(i + 1)].values * np.cos(np.deg2rad(dirdf[str(i + 1)].values))
+        coefs[i] = utide.solve(tin, u, v, lat=lat, constit=Frqs, verbose=verbose)
+        coefsE[i] = utide.solve(tin, u, lat=lat, constit=Frqs, verbose=verbose)
+        coefsN[i] = utide.solve(tin, v, lat=lat, constit=Frqs, verbose=verbose)
+    depts = [get_dypid(x, fultdypid, Bin_Size, firstbinrange) for x in bins]
+
+
+    out = '\n\\newpage\n\\section{%s}' % (Section,)
+    col = ['Bin', 'Depth', 'E-ampl', 'E-gpl', 'N-ampl', 'N-gpl', 'Major', 'minor', 'Theta', 'Graphl']
+    supcol = ['', 'm', 'mm/sec', 'deg', 'mm/sec', 'deg', 'mm/sec', 'mm/sec', 'deg', 'deg']
+
+    for i, frq in enumerate(Frqs):
+        tabel = '\\begin{tabular}{|' + (len(col)) * 'r|' + '}\n\\hline\n'
+        tabel += col[0]
+        for x in col[1:]:
+            tabel += '&\t%s' % (x,)
+        tabel += '\\\\'
+        tabel += supcol[0]
+        for x in supcol[1:]:
+            tabel += '&\t%s' % (x,)
+        tabel += '\\\\\\hline\n'
+        master_index = np.argwhere(coefs[i].name == frq)[0][0]
+        e_index = np.argwhere(coefsE[i].name == frq)[0][0]
+        n_index = np.argwhere(coefsN[i].name == frq)[0][0]
+        for j, bin in enumerate(bins):
+            tabel += str(bin)
+            tabel += '&\t%s' % (int(depts[j]),)
+            tabel += '&\t%5.0f' % (coefsE[j].A[e_index],)
+            tabel += '&\t%5.0f' % (coefsE[j].g[e_index],)
+            tabel += '&\t%5.0f' % (coefsN[j].A[n_index],)
+            tabel += '&\t%5.0f' % (coefsN[j].g[n_index],)
+            tabel += '&\t%5.0f' % (coefs[j].Lsmaj[master_index],)
+            tabel += '&\t%5.0f' % (coefs[j].Lsmin[master_index],)
+            tabel += '&\t%5.0f' % (coefs[j].theta[master_index],)
+            tabel += '&\t%5.0f' % (coefs[j].g[master_index],)
+            tabel += '\\\\\n'
+        tabel += '\\hline\n\\end{tabular}'
+        tabel_fil = open('Talvur/%s_%s.tex' % (tabel_navn, frq), 'w')
+        tabel_fil.write(tabel)
+        tabel_fil.close()
+        #  TODO tjekka hvussu nógvar tabellir skullu á hvørja síðu lat okkum siga 3 men tað skala avhana av nr av bins
+        if i % 2 == 0 and i != 0:
+            out += '\n\\newpage'
+        out += '\n\\begin{table}[!ht]'
+        out += '\n\\centering'
+        out += '\n\\resizebox{\\textwidth}{!}{'
+        out += '\n\\input{Talvur/%s_%s.tex}' % (tabel_navn, frq)
+        out += '\n}'
+        out += '\n\\caption{%s}' % (caption + frq,)
+        out += '\n\\end{table}'
+    out += '\n\\newpage'
+    return out
+
+def tidal_non_tidal_plot(dato, direct, mag, figwidth=6, figheight=7.1, dpi=200,
+                         lat=62, verbose=True, figname='tidal_and_nontidal.pdf'):
+    """
+    plottar tíðar seriuna í Eystur og Norð, á einum dýpið (goymur eina mynd inni á myndir)
+    :param dato: ein list like inniheldur mdate dato fyri tíðarseriuna
+    :param dirdf: eitt list like inniheldur dir data í °
+    :param magdf: eitt list like inniheldur mag í mm/s abs
+    :param fultdypid: float/int hvussu djúpt tað er
+    :param Bin_Size: Bin_Size á mátingunum
+    :param firstbinrange: 1st Bin Range (m) á mátingini
+    :param figwidth: breiddin á figurinum
+    :param figheight: hæddin á figurinum
+    :param dpi: dpi á figurinum
+    :param lat: breiddarstig
+    :param verbose: skal utide sleppa at tosa
+    :param figname: navnið á fýlini sum verður goymd
+    """
+
+
+    tin = np.array(dato)
+    u = mag * np.sin(np.deg2rad(direct))
+    v = mag * np.cos(np.deg2rad(direct))
+    coef = utide.solve(tin, u, v, lat=lat, verbose=verbose, trend=True)
+    #  TODO skal eg fjerna mean
+    coef.umean = float(0)
+    coef.vmean = float(0)
+    reconstruckt = utide.reconstruct(tin, coef=coef, verbose=verbose)
+    fig, axs = plt.subplots(ncols=1, nrows=2, figsize=(figwidth, figheight), dpi=dpi)
+    date_fmt = mdate.DateFormatter('%d %b')
+    axs[0].plot(tin, u, linewidth=.2, label='Original time series')
+    axs[0].plot(tin, u - reconstruckt.u, linewidth=.2, label='Original time series minus prediction')
+    axs[0].set_ylabel('E [mm/s]')
+    axs[0].xaxis.set_major_formatter(date_fmt)
+    axs[0].set_xlim([tin[0], tin[-1]])
+    axs[0].legend()
+    axs[1].plot(tin, v, linewidth=.2, label='Original time series')
+    axs[1].plot(tin, v - reconstruckt.v, linewidth=.2, label='Original time series minus prediction')
+    axs[1].xaxis.set_major_formatter(date_fmt)
+    axs[1].set_ylabel('N [mm/s]')
+    axs[1].set_xlim([tin[0], tin[-1]])
+    axs[1].legend()
+    mpl.rcParams['font.size'] = 7
+    plt.subplots_adjust(left=0.1, bottom=0.05, right=0.95, top=0.95, wspace=0.1, hspace=0.1)
+    fig.savefig('myndir/' + figname)
+
+
+def tidal_non_tidal_bins(bins, dato, dirdf, magdf, fultdypid, Bin_Size, firstbinrange,
+                         lat=62, verbose=True, section='Tidal and non-tidal currents'):
+    out = '\n\\newpage'
+    out += '\n\\section{%s}' % (section,)
+    #  TODO partur av analysini er í caption ??? :/
+    for i, bin in enumerate(bins):
+        figname = 'tidal_and_nontidal_%s.pdf' % (bin,)
+        caption = 'this is a caption'  # TODO del me
+        if i == 0:
+            prelabel = 'Surface layer'
+        elif i == 1:
+            prelabel = 'Center layer'
+        else:
+            prelabel = 'Bottom layer'
+        caption = '%s bin %s at %3.0f m' % (prelabel, bin, get_dypid(int(bin), fultdypid, Bin_Size, firstbinrange))
+        tidal_non_tidal_plot(dato, dirdf[str(bin)].values, magdf[str(bin)].values, lat=lat, verbose=verbose,
+                             figname=figname)
+        out += '\n\\begin{figure}[!ht]'
+        out += '\n\\centering'
+        out += '\n\\includegraphics[scale=1]{myndir/%s}' % (figname,)
+        out += '\n\\caption{%s}' % (caption,)
+        out += '\n\\end{figure}'
+        out += '\n\\newpage\n'
+    return out
+

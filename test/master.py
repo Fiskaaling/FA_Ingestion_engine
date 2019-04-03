@@ -6,14 +6,15 @@ import os
 import pandas as pd
 import datetime as dt
 from Hovmuller_diagrams import tegnahovmuller
-from Hovmuller_diagrams import plotrose2 as test
-from Hovmuller_diagrams import get_dypid
 from Hovmuller_diagrams import tekna_dist_rose
 from Hovmuller_diagrams import speedbins
 from Hovmuller_diagrams import progressive_vector
 from Hovmuller_diagrams import frequencytabellir
 from Hovmuller_diagrams import duration_high_speed
 from Hovmuller_diagrams import duration_low_speed
+from Hovmuller_diagrams import Tidal_analysis_for_depth_bins
+from Hovmuller_diagrams import Tital_oll_dypir
+from Hovmuller_diagrams import tidal_non_tidal_bins
 
 
 #  inlesData
@@ -50,10 +51,11 @@ for _ in [0]:
     file = open('master.tex', 'w')
     file.write(r"""\include{dokumentstilur}
 \usepackage{calc}
-\begin{document}""")
+\begin{document}
+""")
 
 #  Setup Hovmuller
-if False:
+if True:
     hadd = 40
 
     #  TODO kjekka um eg fái tí røttu hæddina set tey røtto variablarnar inn her
@@ -104,15 +106,28 @@ if True:
     a = duration_high_speed(treebins, dato, magdf, fultdypid, Bin_Size, firstbinrange)
     file.write(a)
 
-
 #  tekna low duration_speed
 if True:
     a = duration_low_speed(treebins, dato, magdf, fultdypid, Bin_Size, firstbinrange)
     file.write(a)
 
+#  rokna utide fyri 3 dýpir
+if True:
+    a = Tidal_analysis_for_depth_bins(treebins, dato, dirdf, magdf, fultdypid, Bin_Size, firstbinrange, lat=62)
+    file.write(a)
+
+#  sama frequens fyri øll dýpir
+if True:
+    Frqs = ['M2', 'S2', 'N2', 'O1', 'K1', ]
+    a = Tital_oll_dypir(dato, list(range(1, 13)), Frqs, dirdf, magdf, fultdypid, Bin_Size, firstbinrange, lat=62)
+    file.write(a)
+
+if True:
+    a = tidal_non_tidal_bins(treebins, dato, dirdf, magdf, fultdypid, Bin_Size, firstbinrange, lat=62)
+    file.write(a)
 
 #  enda texdocument
 if True:
-    file.write('\nDýpini skullu líka eftirhiggjast')
+    file.write('\nHettar er endin')
     file.write('\n\\end{document}')
     file.close()
