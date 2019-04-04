@@ -28,7 +28,8 @@ def vedurstodirPlt(frame, root2):
     velMappuBtn.pack(side=LEFT)
 
     teknaPltBtn = Button(menuFrame, text='Tekna Plot', command=lambda: tekna(fig, canvas, markeraTidvar.get(),
-                                                                             fraEntry.get(), tilEntry.get()))
+                                                                             fraEntry.get(), tilEntry.get(),
+                                                                             ylimEntry.get()))
     teknaPltBtn.pack(side=LEFT)
     markeraTidvar = IntVar()
     markeraTid = Checkbutton(menuFrame, text='Markera tíðarinterval', variable=markeraTidvar)
@@ -41,8 +42,16 @@ def vedurstodirPlt(frame, root2):
     Label(menuFrame, text='Til:').pack(side=LEFT)
     tilEntry = Entry(menuFrame, width=3)
     tilEntry.pack(side=LEFT)
+    Label(menuFrame, text='Ylim:').pack(side=LEFT)
+    ylimEntry = Entry(menuFrame, width=3)
+    ylimEntry.pack(side=LEFT)
+    ylimEntry.insert(0, '15')
 
-    goymmynd_btn = Button(menuFrame, text='Goym Mynd', command=lambda: goymmynd(fig, canvas)).pack(side=LEFT)
+    Label(menuFrame, text='DPI:').pack(side=LEFT)
+    dpiEntry = Entry(menuFrame, width=3)
+    dpiEntry.pack(side=LEFT)
+    dpiEntry.insert(0, '300')
+    goymmynd_btn = Button(menuFrame, text='Goym Mynd', command=lambda: goymmynd(fig, canvas, dpiEntry.get())).pack(side=LEFT)
 
     fig = Figure(figsize=(12, 8), dpi=100)
     plot_frame = Frame(frame, borderwidth=1, highlightbackground="green", highlightcolor="green", highlightthickness=1)
@@ -55,7 +64,7 @@ def velFil():
     filnavn = filedialog.askopenfile(title='Vel fíl', filetypes = (("csv Fílir", "*.csv"), ("all files", "*.*"))).name
     print(filnavn)
 
-def tekna(fig, canvas, tekna, fra, til):
+def tekna(fig, canvas, tekna, fra, til, ylim):
     fig.clf()
     ax = fig.add_subplot(111)
     print(tekna)
@@ -96,7 +105,7 @@ def tekna(fig, canvas, tekna, fra, til):
     #plt.xticks(np.linspace(0, len(data), 10), rotation='vertical')
     if tekna:
         ax.fill_between(xax, -100, 100, where=farts, facecolor='green', alpha=0.2)
-    ax.set_ylim(0, 15)
+    ax.set_ylim(0, int(ylim))
     ax.legend()
     fig.savefig('tmp.png',bbox_inches='tight')
     #plt.legend()
@@ -106,8 +115,8 @@ def tekna(fig, canvas, tekna, fra, til):
     canvas.get_tk_widget().pack(fill=BOTH, expand=1)
     print('done')
 
-def goymmynd(fig, canvas):
-    filnavn = filedialog.asksaveasfilename(parent=root, title="Goym mynd",  filetypes=(("png Fílur", "*.png"), ("jpg Fílur", "*.jpg")))
+def goymmynd(fig, canvas, dpisetting):
+    filnavn = filedialog.asksaveasfilename(parent=root, title="Goym mynd",  filetypes=(("pdf Fílur", "*.pdf"), ("png Fílur", "*.png"), ("jpg Fílur", "*.jpg")))
     print('Goymir mynd')
-    fig.savefig(filnavn, dpi=1200, bbox_inches='tight')
+    fig.savefig(filnavn, dpi=int(dpisetting), bbox_inches='tight')
     print('Liðugt')

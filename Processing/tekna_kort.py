@@ -419,7 +419,9 @@ def les_og_tekna(text, fig, canvas, silent=False):
                     plat=[]
                     for iiiio, dep in enumerate(D_dep):
                         for i2o, depe in enumerate(dep):
-                            if((61.839 > D_lat[iiiio, i2o] > 61.745) and (-6.912 < D_lon[iiiio, i2o] < -6.68)):
+                            if((61.62799 > D_lat[iiiio, i2o] > 61.59211) and (-6.9192 < D_lon[iiiio, i2o] < -6.80300)):
+                                #-6.919201789386688,61.627996265608594
+                                #-6.830079612480041,61.59211109814448
                                 plon.append(D_lon[iiiio, i2o])
                                 plat.append(D_lat[iiiio, i2o])
                                 if D_dep[iiiio, i2o] == float(-99.9):
@@ -802,7 +804,7 @@ def les_og_tekna(text, fig, canvas, silent=False):
                     ax.contour3D(meshgridx, meshgridy, -1 * grid_z0, levels=lv,
                                  colors='k',vmax=0 , linestyles='solid')
                 else:
-                    c = ax.contour(meshgridx, meshgridy, -grid_z0, lv, transform=ccrs_projection, colors='black', linestyles='solid', linewidths=0.3)
+                    c = ax.contour(meshgridx, meshgridy, -grid_z0, lv, transform=ccrs_projection, colors='gray', linestyles='solid', linewidths=0.3)
                     if clabel:
                         #ax.clabel(c, inline=1, fontsize=fontsize, fmt='%2.0f', manual=False)
                         ax.clabel(c, inline=1, fontsize=fontsize, fmt='%2.0f', manual=True)
