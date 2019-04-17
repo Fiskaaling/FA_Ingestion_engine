@@ -1,5 +1,6 @@
 Eyndamálið við hesum dokumentinum er at lýsa høvuðs leistin ið standarir í dátuskipanini nýta  
 Skriva av Jóhannus og Tróndur, 26-28 feb 2019
+Broytt av Tróndur T, 15 apr 2019
 Broytt av *, xx xxx 20xx
 * Allar broytingar av hesum dokumentinum mugu skrásetast saman við gomlu útgávuni og orðsøk fyri broyting!
 ____________________________________________________________________________________________________
@@ -78,6 +79,9 @@ ________________________________________________________________________________
 	Miðal perioda			tz			[s]
 	Dominerandi perioda*		tp			[s]
 	Ratning hjá tp			dirp			[°] (4)
+	Vendur márarin rætt		ori			[bit]
+	Er okkur galið við mátarinum	bit			[bit]
+	RDI battarí			bat			[cnt]
 
 
 
