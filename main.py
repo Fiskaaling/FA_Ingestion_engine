@@ -92,7 +92,7 @@ def visTree(expandButton):
 root = Tk()
 root.geometry("1200x800")
 
-if subprocess.check_output('whoami') == b'johannus\n': # 4K bullshit, Alt er forbanna lítið
+if subprocess.check_output('whoami') == b'johannus2\n': # 4K bullshit, Alt er forbanna lítið
     root.geometry("3000x1600")
     print(root.tk.call('tk', 'scaling', 3))
     f = font.Font(size=10)
@@ -150,7 +150,7 @@ condens = Button(ingestion_subframe, text='<', command=lambda: mintree())
 condens.pack(side=RIGHT, fill=Y)
 ingestion_listbox.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
 
-if sys.argv:
+if len(sys.argv) > 1:
     print(sys.argv)
     print(sys.argv[1])
     OnDoubleClick(0, 0, True)

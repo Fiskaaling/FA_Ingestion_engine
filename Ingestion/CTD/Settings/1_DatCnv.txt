@@ -1,0 +1,2 @@
+@ Vit prøva
+datcnv /i%1 /c"C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/25-1158.xmlcon" /o%2 /p"C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/DatCnv.psa"

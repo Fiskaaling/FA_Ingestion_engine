@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Align_CTD >
+  <Version value="7.26.7.118" />
+  <ServerName value="Align CTD" />
+  <InputDir value="Z:\home\johannus\Documents\Projektir\CTD\cru1902\1 - Filter" />
+  <InputFileArray size="4" GrowBy="-1" >
+    <ArrayItem index="0" value="1902000.cnv" />
+    <ArrayItem index="1" value="1902001.cnv" />
+    <ArrayItem index="2" value="1902002.cnv" />
+    <ArrayItem index="3" value="1902003.cnv" />
+  </InputFileArray>
+  <OutputDir value="Z:\home\johannus\Documents\Projektir\CTD\cru1902\2 - Align CTD" />
+  <NameAppend value="" />
+  <OutputFile value="" />
+  <LastProcessed value="0" />
+  <CalcArray Size="7" >
+    <CalcArrayItem index="0" CalcID="95" >
+      <Calc UnitID="3" Ordinal="0" >
+        <FullName value="Pressure, Strain Gauge [db]" />
+      </Calc>
+    </CalcArrayItem>
+    <CalcArrayItem index="1" CalcID="81" >
+      <Calc UnitID="5" Ordinal="0" >
+        <FullName value="Temperature [IPTS-68, deg C]" />
+      </Calc>
+    </CalcArrayItem>
+    <CalcArrayItem index="2" CalcID="12" >
+      <Calc UnitID="41" Ordinal="0" >
+        <FullName value="Conductivity [mS/cm]" />
+      </Calc>
+    </CalcArrayItem>
+    <CalcArrayItem index="3" CalcID="93" >
+      <Calc UnitID="38" Ordinal="0" >
+        <FullName value="Fluorescence, WET Labs ECO-AFL/FL [mg/m^3]" />
+      </Calc>
+    </CalcArrayItem>
+    <CalcArrayItem index="4" CalcID="57" >
+      <Calc UnitID="63" Ordinal="0" >
+        <FullName value="Oxygen raw, SBE 43 [V]" />
+        <ApplyHysteresisCorrection value="1" />
+      </Calc>
+    </CalcArrayItem>
+    <CalcArrayItem index="5" CalcID="55" >
+      <Calc UnitID="47" Ordinal="0" >
+        <FullName value="Oxygen, SBE 43 [% saturation]" />
+        <WindowSize value="2.000000" />
+        <ApplyHysteresisCorrection value="1" />
+        <ApplyTauCorrection value="1" />
+      </Calc>
+    </CalcArrayItem>
+    <CalcArrayItem index="6" CalcID="201" >
+      <Calc UnitID="-1" Ordinal="0" >
+        <FullName value="PAR/Logarithmic, Satlantic" />
+        <PAR_Units value="0" />
+      </Calc>
+    </CalcArrayItem>
+  </CalcArray>
+  <ValArray size="7" >
+    <ValArrayItem index="0" value="0.000000" variable_name="Pressure, Strain Gauge" />
+    <ValArrayItem index="1" value="0.000000" variable_name="Temperature" />
+    <ValArrayItem index="2" value="0.100000" variable_name="Conductivity" />
+    <ValArrayItem index="3" value="0.000000" variable_name="Fluorescence, WET Labs ECO-AFL/FL" />
+    <ValArrayItem index="4" value="5.000000" variable_name="Oxygen raw, SBE 43" />
+    <ValArrayItem index="5" value="0.000000" variable_name="Oxygen, SBE 43" />
+    <ValArrayItem index="6" value="-1.000000" variable_name="PAR/Logarithmic, Satlantic" />
+  </ValArray>
+</Align_CTD>

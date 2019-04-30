@@ -1,8 +1,10 @@
 Eyndamálið við hesum dokumentinum er at lýsa høvuðs leistin ið standarir í dátuskipanini nýta  
-Skriva av Jóhannus og Tróndur, 26-27 feb 2019
+Skriva av Jóhannus og Tróndur, 26-28 feb 2019
+Broytt av Tróndur T, 15 apr 2019
 Broytt av *, xx xxx 20xx
 * Allar broytingar av hesum dokumentinum mugu skrásetast saman við gomlu útgávuni og orðsøk fyri broyting!
 ____________________________________________________________________________________________________
+Í øllum leistum verða mappur verða skrivaðar sum: '-Mappunavn', og fílir sum: 'filnavn.xyz', har 'xyz' er fíluending
 Sum útgangspunkt verður alt dátaði goymt sum tekstur, fyri at gera tað lætt at skriva kodu ið kann lesa dátai tvørtur um forrit og stýriskipanir.
 
 Hvør høvðustypa av instumentum, td. ADCP ella CTD, skulla fylgja einum høviðs leisti fyri instrument typuna, hereftir kalla Fysti-Leistur. Harafturat kann hvørt instument hava ein Annan-Leist ið kan taka til eftirtektar serlig viðurskifti.
@@ -28,7 +30,7 @@ Allar reglur hava líka nógv felt sum tal av kolonnum í fílinum
 NAN er definera sum 'NaN'
 óendaligt definera sum 'inf'
 
-1) Dato og Klokkutíðr fylgja ISO 8061, og verða skriva sum 'YYYY-mm-dd HH:MM:SS', og brøkpartar av sekund verða skriva sum desimal tal um neyðugt (UTC, Vetrartíð)
+1) Dato og Klokkutíðr fylgja ISO 8061 (Extended 4.4.4.1, 3'rd edition), og verða skriva sum 'YYYY-MM-DDThh:mm:ss', og brøkpartar av sekund verða skriva sum desimal tal um neyðugt (UTC, Vetrartíð)
 2) Koordinatir verða skriva sum Desimal tøl. Positivt er N og E, negativt er S og W. Koordinat system er WGS84 um ikki anna er skriva. Dømi '62.111, -7.111'. Altíð í hvør sínari kolonnu.
 3) Dýpi verða goymd í metrum, og eru (Negativ/Positiv). Dýpi eru altið goymd saman við einum date/time, og skal verða avstandurin frá vatnyvirfladuni til nærmasta botn. 	# Look at me
 4) Á veg norð er 0°
@@ -39,8 +41,8 @@ Eindin sum verður brúkt skal standa í standa í standardinum um ikki brúka S
 Hvør kolonna hevur eitt unikt, sigandi navn, uttan millumrúm, og uttan serlig tekn (Fylgjandi eru loyvd a-z, A-Z, _, -, 0-9). 
 ____________________________________________________________________________________________________
 
-	Dato við klokkutíð		dateTime		YYYY-mm-dd HH:MM:SS (1)
-	Dato 				date			YYYY-mm-dd (1)	
+	Dato við klokkutíð		dateTime		YYYY-MM-DDThh:mm:ss (1)
+	Dato 				date			YYYY-MM-DD (1)
 	Tíð				time			HH:MM:SS (1)
 	Broyting í dateTime		dDateTime		(-)dd
 	Breiddargrad			lat			61.0 (2)
@@ -77,6 +79,9 @@ ________________________________________________________________________________
 	Miðal perioda			tz			[s]
 	Dominerandi perioda*		tp			[s]
 	Ratning hjá tp			dirp			[°] (4)
+	Vendur márarin rætt		ori			[bit]
+	Er okkur galið við mátarinum	bit			[bit]
+	RDI battarí			bat			[cnt]
 
 
 

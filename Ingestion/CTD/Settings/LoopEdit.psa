@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Loop_Edit >
+  <Version value="7.26.7.118" />
+  <ServerName value="Loop Edit" />
+  <InputDir value="Z:\home\johannus\Documents\Projektir\CTD\cru1902\3 - CTM" />
+  <InputFileArray size="4" GrowBy="-1" >
+    <ArrayItem index="0" value="1902000.cnv" />
+    <ArrayItem index="1" value="1902001.cnv" />
+    <ArrayItem index="2" value="1902002.cnv" />
+    <ArrayItem index="3" value="1902003.cnv" />
+  </InputFileArray>
+  <OutputDir value="Z:\home\johannus\Documents\Projektir\CTD\cru1902\4 - Loop Edit" />
+  <NameAppend value="" />
+  <OutputFile value="" />
+  <LastProcessed value="0" />
+  <MinVelocityType value="0" high="1" low="0" initialValue="0" />
+  <MinCTD_Velocity value="0.250000" />
+  <TimeWindowSize value="300.000000" />
+  <PercentMeanSpeed value="20.000000" />
+  <ExcludeMarkedBad value="1" />
+  <RemoveSurfaceSoak value="1" />
+  <UseDeckPressure value="1" />
+  <SurfaceSoakDepth value="10.000000" />
+  <SurfaceSoakDepthMin value="5.000000" />
+  <SurfaceSoakDepthMax value="20.000000" />
+</Loop_Edit>

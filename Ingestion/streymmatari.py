@@ -147,6 +147,7 @@ def rokna_Midalstreym(punktir, fig, canvas):
     ax1.set_xlabel('Tíð')
     ax2.set_xlabel('Tíð')
     ax2.set_ylabel('Miðal ætt')
+    ax2.set_yticks([0, 90, 180, 270, 360])
     canvas.draw()
     canvas.get_tk_widget().pack(fill=BOTH, expand=1)
     log_e()
@@ -154,7 +155,7 @@ def rokna_Midalstreym(punktir, fig, canvas):
 
 def goymmynd(fig, canvas):
     log_b()
-    filnavn = filedialog.asksaveasfilename(parent=root, title="Goym mynd",  filetypes=(("png Fílur", "*.png"), ("jpg Fílur", "*.jpg")))
+    filnavn = filedialog.asksaveasfilename(parent=root, title="Goym mynd",  filetypes=(("pdf Fílur", "*.pdf"), ("png Fílur", "*.png"), ("jpg Fílur", "*.jpg")))
     print('Goymir mynd')
     fig.savefig(filnavn, dpi=600, bbox_inches='tight')
     print('Liðugt')

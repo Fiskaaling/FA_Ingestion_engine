@@ -8,14 +8,17 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 from scipy import stats
 from scipy.interpolate import interp1d
+from Ingestion.RDI.Fra_botni import mag_plot
 #import statsmodels.api as sm
 #import windrose
+
 def init(ingestion_listbox):
     streymmatingar_stationert = ingestion_listbox.insert("", 0, text="RDI streymmátinar frá botni")
     ingestion_listbox.insert(streymmatingar_stationert, "end", text='Vind korrilation')
     ingestion_listbox.insert(streymmatingar_stationert, "end", text='Countour plot')
     ingestion_listbox.insert(streymmatingar_stationert, "end", text='UV Plot')
     ingestion_listbox.insert(streymmatingar_stationert, "end", text='Windrose')
+    ingestion_listbox.insert(streymmatingar_stationert, "end", text='Magnitude plot')
 
 
 def check_click(item, RightFrame, root):
@@ -27,6 +30,8 @@ def check_click(item, RightFrame, root):
     elif item == 'Windrose':
         #wrose(RightFrame, root)
         print('ok')
+    elif item == 'Magnitude plot':
+        mag_plot.mag_plot(RightFrame, root)
     else:
         toReturn = 0
     return toReturn

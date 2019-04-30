@@ -1,0 +1,70 @@
+Eyndamálið við hesum dokumenti er at lýsa mappustruktur á dátaðinum goymt á hesari skipan
+Skriva av Jóhannus og Tróndur, 28-28 feb 2019
+Broytt av *, xx xxx 20xx
+* Allar broytingar av hesum dokumentinum mugu skrásetast saman við gomlu útgávuni og orðsøk fyri broyting!
+________________________________________________________________________________________________________________________
+
+Í mappuni har skipanin arbeiðir út frá krevur hendan at fylgjandi mappur eru til
+
+-Raw_Data
+	Er til dáta ið ikki er prosessera
+-Processed_Data
+	Er til prosessera data og figurar	
+-Rit
+	Er til arbeiðsmappur har rit verða gjørd.
+
+Dáta ið kemur inn í hesa skipan fer ígjøgnum mappurnar í rekkjufylgjuni tær eru nevndar.
+
+________________________________________________________________________________________________________________________
+------------------------------------------------------- Raw_Data -------------------------------------------------------
+Hendan mappan inniheldur alt rá dátaði í skipanini. Hendan mappan skal metast sum heilagasta mappan, hvørs innihald
+ikki verðrur strika ella broytt eftir innsetan. Tað verður tí staðiliga heitt á tann ið setur skipanina upp at seta
+serlig rættindi til hesa mappu, og at hendan mappan altíð hevur prioritet tá trygdaravrik verða tikin.
+
+Í Raw_Data mappuni er ein undirmappa fyri hvørt instument.
+Hvørt instument hevur eitt unikt navn, í inniheldur eina stytting av navninum hjá fabrikantinum og instument slagi.
+Um tað eru fleiri instumentir av sama slagi verður endin á seriunummarinum á instumentinum eisini ein partur av
+navninum.
+
+Til dømis:
+-RDI_WH_14282
+-RDI_WH_0568
+-RDI_SENTELV_012345
+-AADI_SeaGuard_265
+-
+
+Í hvørjari av hesum mappunum er ein mappa fyri hvørja máting gjørd við tilhoyrandi instrumenti.
+Hvør av mappunum til mátingina hevur navn YYYY-MM-DD, har dato er datoið á fysta mátipunkti.
+Um fleiri mátingar eru gjørda sama dag við sama instumenti verður '_' og eitt tal lagt afturat navninum.
+Tali byrja við 1 og telur uppeftir. Harafturat er ein mappa ið inniheldur eventuellar setup fílar, lisensar, skript osv.
+ið skulla nýtast fyri at eksportera dataði til Ascii
+
+Til dømis:
+
+-2001-01-01
+-2001-01-01_1
+-2001-01-01_2
+...
+-2001-01-01_9
+-2001-01-01_10
+-Setup
+
+Í hvørjari av mappunum ið hoyra saman við mátinum eru fylgjandi mappur og fílar
+
+-Data
+-fylgiskjøl
+    Deployment.pdf
+    Deployment2.pdf (Ella Deployment_end.pdf)
+    Deployment.txt
+    Deployment2.txt (Same)
+    Checklist.pdf?
+
+Í Data mappuni er rádataði. Tað vil siga '.000' fílarnir frá RDI, '.xml' fílarir frá CTD'ini osf.
+
+---------------------------------------------------- Processed_Data ----------------------------------------------------
+Fysta og næsta lagi(level) í Processed data mappuni er tað sama sum Raw_Data mappan.
+
+
+
+
+--------------------------------------------------------- Rit ----------------------------------------------------------
