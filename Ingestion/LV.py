@@ -101,6 +101,7 @@ def tekna(fig, canvas, tekna, fra, til, ylim):
     fig.autofmt_xdate()
     ax.plot(xax, data['wind_mean1'], label='Miðal vindur')
     ax.plot(xax, data['gust2'], label='Hvirla')
+    ax.set(ylabel='Vindferð [m/s]')
     #ax.set_xticklabels(xax, rotation=40)
     #plt.xticks(np.linspace(0, len(data), 10), rotation='vertical')
     if tekna:

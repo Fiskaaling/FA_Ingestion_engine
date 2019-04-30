@@ -147,6 +147,7 @@ def rokna_Midalstreym(punktir, fig, canvas):
     ax1.set_xlabel('Tíð')
     ax2.set_xlabel('Tíð')
     ax2.set_ylabel('Miðal ætt')
+    ax2.set_yticks([0, 90, 180, 270, 360])
     canvas.draw()
     canvas.get_tk_widget().pack(fill=BOTH, expand=1)
     log_e()
