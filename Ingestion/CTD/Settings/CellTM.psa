@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Cell_Thermal_Mass >
+  <Version value="7.26.7.118" />
+  <ServerName value="Cell Thermal Mass" />
+  <InputDir value="Z:\home\johannus\Documents\Projektir\CTD\cru1902\2 - Align CTD" />
+  <InputFileArray size="4" GrowBy="-1" >
+    <ArrayItem index="0" value="1902000.cnv" />
+    <ArrayItem index="1" value="1902001.cnv" />
+    <ArrayItem index="2" value="1902002.cnv" />
+    <ArrayItem index="3" value="1902003.cnv" />
+  </InputFileArray>
+  <OutputDir value="Z:\home\johannus\Documents\Projektir\CTD\cru1902\3 - CTM" />
+  <NameAppend value="" />
+  <OutputFile value="" />
+  <LastProcessed value="0" />
+  <Primary >
+    <Correct value="1" />
+    <TempSensor value="0" />
+    <TA_Amplitude value="0.040000" />
+    <TA_TimeConstant value="8.000000" />
+  </Primary>
+  <Secondary >
+    <Correct value="0" />
+    <TempSensor value="1" />
+    <TA_Amplitude value="0.030000" />
+    <TA_TimeConstant value="7.000000" />
+  </Secondary>
+</Cell_Thermal_Mass>

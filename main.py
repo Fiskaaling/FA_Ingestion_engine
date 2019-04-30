@@ -92,7 +92,7 @@ def visTree(expandButton):
 root = Tk()
 root.geometry("1200x800")
 
-if subprocess.check_output('whoami') == b'johannus\n': # 4K bullshit, Alt er forbanna lítið
+if subprocess.check_output('whoami') == b'johannus2\n': # 4K bullshit, Alt er forbanna lítið
     root.geometry("3000x1600")
     print(root.tk.call('tk', 'scaling', 3))
     f = font.Font(size=10)

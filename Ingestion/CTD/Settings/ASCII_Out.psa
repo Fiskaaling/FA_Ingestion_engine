@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ASCII_Out >
+  <Version value="7.26.7.118" />
+  <ServerName value="ASCII Out" />
+  <InputDir value="Z:\home\johannus\Documents\Projektir\CTD\sbe1874\7 - Bin Average" />
+  <InputFileArray size="9" GrowBy="-1" >
+    <ArrayItem index="0" value="1874000.cnv" />
+    <ArrayItem index="1" value="1874001.cnv" />
+    <ArrayItem index="2" value="1874002.cnv" />
+    <ArrayItem index="3" value="1874003.cnv" />
+    <ArrayItem index="4" value="1874004.cnv" />
+    <ArrayItem index="5" value="1874005.cnv" />
+    <ArrayItem index="6" value="1874006.cnv" />
+    <ArrayItem index="7" value="1874007.cnv" />
+    <ArrayItem index="8" value="1874008.cnv" />
+  </InputFileArray>
+  <OutputDir value="Z:\home\johannus\Documents\Projektir\CTD\sbe1874\8 - ASCII Out" />
+  <NameAppend value="" />
+  <OutputFile value="" />
+  <LastProcessed value="0" />
+  <HeaderFile value="0" />
+  <DataFile value="1" />
+  <ExcludedMarkedBad value="1" />
+  <LinesPerPage value="60" />
+  <LabelColumns value="0" high="2" low="0" initialValue="2" />
+  <ColumnSeparator value="4" high="4" low="0" initialValue="0" />
+  <JulianDaysConvFmt value="4" />
+  <ElapsedTimeConvFmt value="0" />
+  <NMEA_TimeConvFmt value="0" />
+  <SystemTimeConvFmt value="0" />
+  <InstrumentTimeConvFmt value="0" />
+  <AddFirstColumn value="0" />
+  <FirstColumnName value="" />
+  <FirstColumnValue value="" />
+  <ReplaceBadFlag value="0" />
+  <BadFlagValue value="999000000000000020146215190528.000000" />
+  <CalcArray Size="12" >
+    <CalcArrayItem index="0" CalcID="72" >
+      <Calc UnitID="-1" Ordinal="0" >
+        <FullName value="Scan Count" />
+      </Calc>
+    </CalcArrayItem>
+    <CalcArrayItem index="1" CalcID="95" >
+      <Calc UnitID="3" Ordinal="0" >
+        <FullName value="Pressure, Strain Gauge [db]" />
+      </Calc>
+    </CalcArrayItem>
+    <CalcArrayItem index="2" CalcID="81" >
+      <Calc UnitID="5" Ordinal="0" >
+        <FullName value="Temperature [IPTS-68, deg C]" />
+      </Calc>
+    </CalcArrayItem>
+    <CalcArrayItem index="3" CalcID="12" >
+      <Calc UnitID="41" Ordinal="0" >
+        <FullName value="Conductivity [mS/cm]" />
+      </Calc>
+    </CalcArrayItem>
+    <CalcArrayItem index="4" CalcID="93" >
+      <Calc UnitID="38" Ordinal="0" >
+        <FullName value="Fluorescence, WET Labs ECO-AFL/FL [mg/m^3]" />
+      </Calc>
+    </CalcArrayItem>
+    <CalcArrayItem index="5" CalcID="57" >
+      <Calc UnitID="63" Ordinal="0" >
+        <FullName value="Oxygen raw, SBE 43 [V]" />
+        <ApplyHysteresisCorrection value="1" />
+      </Calc>
+    </CalcArrayItem>
+    <CalcArrayItem index="6" CalcID="17" >
+      <Calc UnitID="31" Ordinal="0" >
+        <FullName value="Depth [salt water, m]" />
+        <Latitude value="0.000000" />
+      </Calc>
+    </CalcArrayItem>
+    <CalcArrayItem index="7" CalcID="70" >
+      <Calc UnitID="49" Ordinal="0" >
+        <FullName value="Salinity, Practical [PSU]" />
+      </Calc>
+    </CalcArrayItem>
+    <CalcArrayItem index="8" CalcID="15" >
+      <Calc UnitID="53" Ordinal="0" >
+        <FullName value="Density [sigma-theta, kg/m^3]" />
+      </Calc>
+    </CalcArrayItem>
+    <CalcArrayItem index="9" CalcID="55" >
+      <Calc UnitID="37" Ordinal="0" >
+        <FullName value="Oxygen, SBE 43 [mg/l]" />
+        <WindowSize value="2.000000" />
+        <ApplyHysteresisCorrection value="1" />
+        <ApplyTauCorrection value="1" />
+      </Calc>
+    </CalcArrayItem>
+    <CalcArrayItem index="10" CalcID="73" >
+      <Calc UnitID="-1" Ordinal="0" >
+        <FullName value="Scans Per Bin" />
+      </Calc>
+    </CalcArrayItem>
+    <CalcArrayItem index="11" CalcID="20" >
+      <Calc UnitID="-1" Ordinal="0" >
+        <FullName value="Flag" />
+      </Calc>
+    </CalcArrayItem>
+  </CalcArray>
+  <SelectArray >
+    <ArrayItem index="0" value="0" />
+    <ArrayItem index="1" value="1" />
+    <ArrayItem index="2" value="1" />
+    <ArrayItem index="3" value="0" />
+    <ArrayItem index="4" value="1" />
+    <ArrayItem index="5" value="0" />
+    <ArrayItem index="6" value="1" />
+    <ArrayItem index="7" value="1" />
+    <ArrayItem index="8" value="1" />
+    <ArrayItem index="9" value="1" />
+    <ArrayItem index="10" value="1" />
+    <ArrayItem index="11" value="1" />
+  </SelectArray>
+</ASCII_Out>

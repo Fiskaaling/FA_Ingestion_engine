@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Window_Filter >
+  <Version value="7.26.7.118" />
+  <ServerName value="Window Filter" />
+  <InputDir value="Z:\home\johannus\Documents\Projektir\CTD\cru1902\5 - Derive" />
+  <InputFileArray size="4" GrowBy="-1" >
+    <ArrayItem index="0" value="1902000.cnv" />
+    <ArrayItem index="1" value="1902001.cnv" />
+    <ArrayItem index="2" value="1902002.cnv" />
+    <ArrayItem index="3" value="1902003.cnv" />
+  </InputFileArray>
+  <OutputDir value="Z:\home\johannus\Documents\Projektir\CTD\cru1902\6 - Window Filter" />
+  <NameAppend value="" />
+  <OutputFile value="" />
+  <LastProcessed value="0" />
+  <ExcludeMarkedBad value="1" />
+  <CalcArray Size="12" >
+    <CalcArrayItem index="0" CalcID="95" >
+      <Calc UnitID="3" Ordinal="0" >
+        <FullName value="Pressure, Strain Gauge [db]" />
+      </Calc>
+    </CalcArrayItem>
+    <CalcArrayItem index="1" CalcID="81" >
+      <Calc UnitID="5" Ordinal="0" >
+        <FullName value="Temperature [IPTS-68, deg C]" />
+      </Calc>
+    </CalcArrayItem>
+    <CalcArrayItem index="2" CalcID="12" >
+      <Calc UnitID="41" Ordinal="0" >
+        <FullName value="Conductivity [mS/cm]" />
+      </Calc>
+    </CalcArrayItem>
+    <CalcArrayItem index="3" CalcID="93" >
+      <Calc UnitID="38" Ordinal="0" >
+        <FullName value="Fluorescence, WET Labs ECO-AFL/FL [mg/m^3]" />
+      </Calc>
+    </CalcArrayItem>
+    <CalcArrayItem index="4" CalcID="57" >
+      <Calc UnitID="63" Ordinal="0" >
+        <FullName value="Oxygen raw, SBE 43 [V]" />
+        <ApplyHysteresisCorrection value="1" />
+      </Calc>
+    </CalcArrayItem>
+    <CalcArrayItem index="5" CalcID="55" >
+      <Calc UnitID="47" Ordinal="0" >
+        <FullName value="Oxygen, SBE 43 [% saturation]" />
+        <WindowSize value="2.000000" />
+        <ApplyHysteresisCorrection value="1" />
+        <ApplyTauCorrection value="1" />
+      </Calc>
+    </CalcArrayItem>
+    <CalcArrayItem index="6" CalcID="201" >
+      <Calc UnitID="-1" Ordinal="0" >
+        <FullName value="PAR/Logarithmic, Satlantic" />
+        <PAR_Units value="0" />
+      </Calc>
+    </CalcArrayItem>
+    <CalcArrayItem index="7" CalcID="17" >
+      <Calc UnitID="31" Ordinal="0" >
+        <FullName value="Depth [salt water, m]" />
+        <Latitude value="0.000000" />
+      </Calc>
+    </CalcArrayItem>
+    <CalcArrayItem index="8" CalcID="70" >
+      <Calc UnitID="49" Ordinal="0" >
+        <FullName value="Salinity, Practical [PSU]" />
+      </Calc>
+    </CalcArrayItem>
+    <CalcArrayItem index="9" CalcID="15" >
+      <Calc UnitID="53" Ordinal="0" >
+        <FullName value="Density [sigma-theta, kg/m^3]" />
+      </Calc>
+    </CalcArrayItem>
+    <CalcArrayItem index="10" CalcID="55" >
+      <Calc UnitID="37" Ordinal="0" >
+        <FullName value="Oxygen, SBE 43 [mg/l]" />
+        <WindowSize value="2.000000" />
+        <ApplyHysteresisCorrection value="1" />
+        <ApplyTauCorrection value="1" />
+      </Calc>
+    </CalcArrayItem>
+    <CalcArrayItem index="11" CalcID="55" >
+      <Calc UnitID="47" Ordinal="0" >
+        <FullName value="Oxygen, SBE 43 [% saturation]" />
+        <WindowSize value="2.000000" />
+        <ApplyHysteresisCorrection value="1" />
+        <ApplyTauCorrection value="1" />
+      </Calc>
+    </CalcArrayItem>
+  </CalcArray>
+  <FilterParamArray size="12" >
+    <ArrayItem index="0" >
+      <FilterType value="4" name="MEDIAN" />
+      <WindowSize value="7" />
+      <HalfWidth value="1.000000" />
+      <Offset value="0.000000" />
+    </ArrayItem>
+    <ArrayItem index="1" >
+      <FilterType value="4" name="MEDIAN" />
+      <WindowSize value="7" />
+      <HalfWidth value="1.000000" />
+      <Offset value="0.000000" />
+    </ArrayItem>
+    <ArrayItem index="2" >
+      <FilterType value="4" name="MEDIAN" />
+      <WindowSize value="7" />
+      <HalfWidth value="1.000000" />
+      <Offset value="0.000000" />
+    </ArrayItem>
+    <ArrayItem index="3" >
+      <FilterType value="4" name="MEDIAN" />
+      <WindowSize value="7" />
+      <HalfWidth value="1.000000" />
+      <Offset value="0.000000" />
+    </ArrayItem>
+    <ArrayItem index="4" >
+      <FilterType value="4" name="MEDIAN" />
+      <WindowSize value="7" />
+      <HalfWidth value="1.000000" />
+      <Offset value="0.000000" />
+    </ArrayItem>
+    <ArrayItem index="5" >
+      <FilterType value="0" name="NO_FILTER" />
+      <WindowSize value="5" />
+      <HalfWidth value="1.000000" />
+      <Offset value="0.000000" />
+    </ArrayItem>
+    <ArrayItem index="6" >
+      <FilterType value="0" name="NO_FILTER" />
+      <WindowSize value="5" />
+      <HalfWidth value="1.000000" />
+      <Offset value="0.000000" />
+    </ArrayItem>
+    <ArrayItem index="7" >
+      <FilterType value="4" name="MEDIAN" />
+      <WindowSize value="7" />
+      <HalfWidth value="1.000000" />
+      <Offset value="0.000000" />
+    </ArrayItem>
+    <ArrayItem index="8" >
+      <FilterType value="4" name="MEDIAN" />
+      <WindowSize value="7" />
+      <HalfWidth value="1.000000" />
+      <Offset value="0.000000" />
+    </ArrayItem>
+    <ArrayItem index="9" >
+      <FilterType value="4" name="MEDIAN" />
+      <WindowSize value="7" />
+      <HalfWidth value="1.000000" />
+      <Offset value="0.000000" />
+    </ArrayItem>
+    <ArrayItem index="10" >
+      <FilterType value="4" name="MEDIAN" />
+      <WindowSize value="7" />
+      <HalfWidth value="1.000000" />
+      <Offset value="0.000000" />
+    </ArrayItem>
+    <ArrayItem index="11" >
+      <FilterType value="0" name="NO_FILTER" />
+      <WindowSize value="5" />
+      <HalfWidth value="1.000000" />
+      <Offset value="0.000000" />
+    </ArrayItem>
+  </FilterParamArray>
+</Window_Filter>
