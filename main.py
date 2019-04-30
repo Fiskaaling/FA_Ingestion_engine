@@ -150,7 +150,7 @@ condens = Button(ingestion_subframe, text='<', command=lambda: mintree())
 condens.pack(side=RIGHT, fill=Y)
 ingestion_listbox.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
 
-if sys.argv:
+if len(sys.argv) > 1:
     print(sys.argv)
     print(sys.argv[1])
     OnDoubleClick(0, 0, True)
