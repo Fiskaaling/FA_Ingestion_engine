@@ -560,10 +560,7 @@ def les_og_tekna(text, fig, canvas, silent=False):
                         lables = scatterData['legend'].values
                         for i in range(len(line_x)):
                             ax.scatter(line_x[i], line_y[i], zorder=100, c='k', s=scatter_std)
-                            if i==7 or i==3 or i==5 or i ==2:
-                                ax.text(line_x[i] - 350, line_y[i] + 150, lables[i], zorder=1000000)
-                            else:
-                                ax.text(line_x[i]-350, line_y[i]-350, lables[i], zorder=1000000)
+                            ax.text(line_x[i], line_y[i], lables[i], horizontalalignment='left', zorder=1000000)
                     else:
                         if Samla:
                             ax.scatter(line_x, line_y, zorder=100, color=scatter_farv, label=scatter_legend, s=scatter_std, marker=scatter_MarkerStyle)
