@@ -41,8 +41,8 @@ Eindin sum verður brúkt skal standa í standa í standardinum um ikki brúka S
 Hvør kolonna hevur eitt unikt, sigandi navn, uttan millumrúm, og uttan serlig tekn (Fylgjandi eru loyvd a-z, A-Z, _, -, 0-9). 
 ____________________________________________________________________________________________________
 
-	Dato við klokkutíð		dateTime		YYYY-MM-DDThh:mm:ss (1)
-	Dato 				date			YYYY-MM-DD (1)
+	Dato við klokkutíð		dateTime		yyyy-mm-ddTHH:MM:SS (1)
+	Dato 				date			yyyy-mm-dd (1)
 	Tíð				time			HH:MM:SS (1)
 	Broyting í dateTime		dDateTime		(-)dd
 	Breiddargrad			lat			61.0 (2)
