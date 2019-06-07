@@ -44,11 +44,7 @@ def bin_average_frame(frame, root2):
     log_frame.pack(fill=X, expand=False, side=BOTTOM, anchor=W)
     gerlog(log_frame, root)
 
-    def yourFunction(event):
-        print('left')
 
-    frame.bind("<Left>", yourFunction)
-    frame.pack()
 
 def velFil():
     global mappunavn
@@ -107,7 +103,7 @@ def processera(mappunavn, fig, canvas, Quality_frame):
     downcast_start = -1
     downcast_stop = -1
     upcast_stop = -1
-    for i, d in enumerate(depth):
+    for i, d in enumerate(depth): # Hettar er kodan ið finnur nær tey ymsku tingini henda
         if current_stat == "PreSoak": # Bíða 5 sek áðrenn byrja verður at leita eftir hvar soak byrjar
             print(time_fulllength[i])
             if time_fulllength[i] > 5:
@@ -207,11 +203,81 @@ def processera(mappunavn, fig, canvas, Quality_frame):
     ax.plot([time_fulllength[downcast_stop], time_fulllength[downcast_stop]], [-100, 100])
     ax.plot([time_fulllength[upcast_stop], time_fulllength[upcast_stop]], [-100, 100])
 
-    ax.annotate('This is awesome!',
-                 xy=(time_fulllength[soak_start], 0),
-                 xycoords='data',
-                 textcoords='offset points',
-                 arrowprops=dict(arrowstyle="->"))
+    global selected_event
+    selected_event = 0
+    global annotation
+    annotation = ax.annotate('Soak Start',
+                             xy=(time_fulllength[soak_start], maxd + 1),
+                             xytext=(time_fulllength[soak_start], maxd + 2),
+                             xycoords='data',
+                             textcoords='data',
+                             ha='center',
+                             arrowprops=dict(arrowstyle="->"))
+
+    def key(event):
+        print(event)
+        global selected_event
+        update_annotations = False
+        if event.keysym == 'l':
+            print('Next event')
+            selected_event += 1
+            update_annotations = True
+        if event.keysym == 'h':
+            print('Next event')
+            selected_event -= 1
+            update_annotations = True
+        if selected_event == -1:
+            selected_event = 0
+        elif selected_event == 5:
+            selected_event = 4
+        if update_annotations:
+            global annotation
+            annotation.remove()
+            if selected_event == 0:
+                annotation = ax.annotate('Soak Start',
+                                         xy=(time_fulllength[soak_start], maxd+1),
+                                         xytext=(time_fulllength[soak_start], maxd+2),
+                                         xycoords='data',
+                                         textcoords='data',
+                                         ha='center',
+                                         arrowprops=dict(arrowstyle="->"))
+            elif selected_event == 1:
+                annotation = ax.annotate('Soak Stop',
+                                         xy=(time_fulllength[soak_stop], maxd+1),
+                                         xytext=(time_fulllength[soak_stop], maxd+2),
+                                         xycoords='data',
+                                         textcoords='data',
+                                         ha='center',
+                                         arrowprops=dict(arrowstyle="->"))
+            elif selected_event == 2:
+                annotation = ax.annotate('Downcast\nStart',
+                                         xy=(time_fulllength[downcast_start], maxd+1),
+                                         xytext=(time_fulllength[downcast_start], maxd+2),
+                                         xycoords='data',
+                                         textcoords='data',
+                                         ha='center',
+                                         arrowprops=dict(arrowstyle="->"))
+            elif selected_event == 3:
+                annotation = ax.annotate('Downcast\nStop',
+                                         xy=(time_fulllength[downcast_start], maxd+1),
+                                         xytext=(time_fulllength[downcast_start], maxd+2),
+                                         xycoords='data',
+                                         textcoords='data',
+                                         ha='center',
+                                         arrowprops=dict(arrowstyle="->"))
+            elif selected_event == 4:
+                annotation = ax.annotate('Upcast\nStop',
+                                         xy=(time_fulllength[downcast_start], maxd+1),
+                                         xytext=(time_fulllength[downcast_start], maxd+2),
+                                         xycoords='data',
+                                         textcoords='data',
+                                         ha='center',
+                                         arrowprops=dict(arrowstyle="->"))
+            canvas.draw()
+
+
+
+    root.bind('<Key>', key)
 
     #ax.scatter(farts, np.ones([1, len(farts)])*-3, color = 'green')
     #ax.scatter(upcast, np.ones([1, len(upcast)]) * -3, color='red')
