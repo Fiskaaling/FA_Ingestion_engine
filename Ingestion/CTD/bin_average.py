@@ -17,7 +17,8 @@ from matplotlib.figure import Figure
 def bin_average_frame(frame, root2):
     global root
     global mappunavn
-    mappunavn = './Ingestion/CTD/Lokalt_Data/2019-01-31/75_All_ASCII_Out'
+    #mappunavn = './Ingestion/CTD/Lokalt_Data/2019-01-31/75_All_ASCII_Out'
+    mappunavn = './Ingestion/CTD/Lokalt_Data/2019-05-06/75_All_ASCII_Out'
     root = root2
     for widget in frame.winfo_children():
         widget.destroy()
@@ -43,29 +44,34 @@ def bin_average_frame(frame, root2):
     log_frame = Frame(Right_frame, height=300, width=600, borderwidth=1, highlightbackground="green", highlightcolor="green", highlightthickness=1)
     log_frame.pack(fill=X, expand=False, side=BOTTOM, anchor=W)
     gerlog(log_frame, root)
+    global filur
+    filur = 0
 
-    def yourFunction(event):
-        print('left')
-
-    frame.bind("<Left>", yourFunction)
-    frame.pack()
+    processera(mappunavn, fig, canvas, Quality_frame)
 
 def velFil():
     global mappunavn
     mappunavn = filedialog.askdirectory(title='Vel túramappu', initialdir='./Ingestion/CTD/Lokalt_Data/')
 
 def processera(mappunavn, fig, canvas, Quality_frame):
-
-    for widget in Quality_frame.winfo_children(): # Tømur quality frame
-        widget.destroy()
-
+    log_b()
     midlingstid = 2 # sek
     fig.clf()
     ax = fig.subplots()
     filnavn = os.listdir(mappunavn)
-    filur = 2
+    global filur
     data = pd.read_csv(mappunavn + '/' + filnavn[filur], encoding='latin-1') # Les fíl
-    Label(Quality_frame, text=filnavn[filur], font=("Courier", 22)).pack(side=TOP, anchor=W) # Vís fílnavn í Gui
+
+    for widget in Quality_frame.winfo_children(): # Tømur quality frame
+        widget.destroy()
+    list_of_casts = os.listdir(mappunavn)
+    for cast in list_of_casts:
+        if cast == filnavn[filur]:
+            Label(Quality_frame, text=cast, font=("Courier", 18), bg="Green").pack(side=TOP, anchor=W)
+        else:
+            Label(Quality_frame, text=cast, font=("Courier", 18)).pack(side=TOP, anchor=W)
+
+    Label(Quality_frame, text=('―'*100), font=("Courier", 18)).pack(side=TOP, anchor=W)
 
     depth = data[data.columns[0]]
     time_fulllength = data['TimeS']
@@ -81,8 +87,8 @@ def processera(mappunavn, fig, canvas, Quality_frame):
     ax.set_ylim(-1, maxd+1)
     ax.set_xlabel('Tíð [?]')
     ax.set_ylabel('Dýpið', color='k')
-    ax2 = ax.twinx()
-    ax2.tick_params('y', colors='b')
+    #ax2 = ax.twinx()
+    #ax2.tick_params('y', colors='b')
     myvar = []
     n_midlingspunktir = int(np.ceil(midlingstid / (max(data.TimeS) / len(data))))
     dypid = data[data.columns[0]]
@@ -94,12 +100,13 @@ def processera(mappunavn, fig, canvas, Quality_frame):
     for i in range(1, len(depth)):
         diff_d.append((depth[i-1]-depth[i])/(time_fulllength.iloc[i-1]-time_fulllength.iloc[i]))
     #ax2.plot(timeAx, myvar)
-    ax2.plot(time_fulllength[1:], diff_d)
-    ax2.set_ylim([-1, 1])
+    #ax2.plot(time_fulllength[1:], diff_d)
+    #ax2.set_ylim([-1, 1])
     #diff_d = np.diff(data[data.columns[0]])
     states = ["PreSoak", "soak_start", "soak_stop", "downcast_start", "downcast_stop", "upcast_start", "upcast_stop"]
     current_stat = states[0]
     print(current_stat)
+    global soak_start, soak_stop, downcast_start, downcast_stop, upcast_stop
     soak_start = -1
     soak_stop = -1
     soaktime = -1
@@ -107,7 +114,7 @@ def processera(mappunavn, fig, canvas, Quality_frame):
     downcast_start = -1
     downcast_stop = -1
     upcast_stop = -1
-    for i, d in enumerate(depth):
+    for i, d in enumerate(depth): # Hettar er kodan ið finnur nær tey ymsku tingini henda
         if current_stat == "PreSoak": # Bíða 5 sek áðrenn byrja verður at leita eftir hvar soak byrjar
             print(time_fulllength[i])
             if time_fulllength[i] > 5:
@@ -153,17 +160,14 @@ def processera(mappunavn, fig, canvas, Quality_frame):
     if os.path.isdir(parent_folder + '/0_RAW_DATA'):
         raw_filar = os.listdir(parent_folder + '/0_RAW_DATA/')
         raw_filnavn = raw_filar[filur]
-        print('Lesur raw fíl: ' +  raw_filnavn[filur])
-        #raw_file = open(parent_folder + '/0_RAW_DATA/' + raw_filnavn, "r").read()
+        print('Lesur raw fíl: ' + raw_filnavn)
         with open(parent_folder + '/0_RAW_DATA/' + raw_filnavn, 'r') as raw_file:
             raw_data = raw_file.read()
         raw_data = raw_data.split('*END*')
         raw_data = raw_data[1].split('\n')
         pump_on = -1
         pump_off = -1
-        lastLine = 0;
-        print(raw_data)
-        print(raw_data[1])
+        lastLine = 0
         for i in range(len(raw_data)):
             line = raw_data[i]
             if line:
@@ -175,6 +179,7 @@ def processera(mappunavn, fig, canvas, Quality_frame):
         print('Pump ' + str(pump_on))
         if not pump_on == -1:
             ax.plot([time_fulllength[pump_on], time_fulllength[pump_on]], [-100, 100], ':')
+            print('Pumpan tendraði aftaná: ' + str(time_fulllength[pump_on]) + ' sek')
         if not pump_off == -1:
             ax.plot([time_fulllength[pump_off], time_fulllength[pump_off]], [-100, 100], ':')
         bin_stodd = 1 # [m]
@@ -201,17 +206,175 @@ def processera(mappunavn, fig, canvas, Quality_frame):
     print('soak_stop : '+ str(soak_stop))
     print('soak_time :' + str(soaktime) + ' sec')
     print('soak_depth : ' + str(soak_depth) + ' m')
-    ax.plot([time_fulllength[soak_start], time_fulllength[soak_start]], [-100, 100])
-    ax.plot([time_fulllength[soak_stop], time_fulllength[soak_stop]], [-100, 100])
-    ax.plot([time_fulllength[downcast_start], time_fulllength[downcast_start]], [-100, 100])
-    ax.plot([time_fulllength[downcast_stop], time_fulllength[downcast_stop]], [-100, 100])
-    ax.plot([time_fulllength[upcast_stop], time_fulllength[upcast_stop]], [-100, 100])
+    global soak_start_line, soak_stop_line, downcast_start_line, downcast_stop_line, upcast_stop_line
+    soak_start_line = ax.plot([time_fulllength[soak_start], time_fulllength[soak_start]], [-100, 100], 'k')
+    soak_stop_line = ax.plot([time_fulllength[soak_stop], time_fulllength[soak_stop]], [-100, 100], 'k')
+    downcast_start_line = ax.plot([time_fulllength[downcast_start], time_fulllength[downcast_start]], [-100, 100], 'k')
+    downcast_stop_line = ax.plot([time_fulllength[downcast_stop], time_fulllength[downcast_stop]], [-100, 100], 'k')
+    upcast_stop_line = ax.plot([time_fulllength[upcast_stop], time_fulllength[upcast_stop]], [-100, 100], 'k')
 
-    ax.annotate('This is awesome!',
-                 xy=(time_fulllength[soak_start], 0),
-                 xycoords='data',
-                 textcoords='offset points',
-                 arrowprops=dict(arrowstyle="->"))
+    global selected_event
+    selected_event = 0
+    global annotation
+    annotation = ax.annotate('Soak Start',
+                             xy=(time_fulllength[soak_start], maxd + 1),
+                             xytext=(time_fulllength[soak_start], maxd + 2),
+                             xycoords='data',
+                             textcoords='data',
+                             ha='center',
+                             arrowprops=dict(arrowstyle="->"))
+
+    global zoomed_in
+    zoomed_in = False
+
+    def key(event):
+        global soak_start, soak_stop, downcast_start, downcast_stop, upcast_stop
+        global selected_event, filur
+        print(event.keysym)
+        update_annotations = False
+        update_qframe = False
+        global zoomed_in
+        if zoomed_in:
+            move_amount = 1
+        else:
+            move_amount = 8
+        if event.keysym == 'w':
+            if filur < len(filnavn)-1:
+                filur += 1
+                update_qframe = True
+        elif event.keysym == 'q':
+            if filur != 0:
+                filur -= 1
+                update_qframe = True
+        elif event.keysym == 'l':
+            if not zoomed_in:
+                selected_event += 1
+                update_annotations = True
+        elif event.keysym == 'h':
+            if not zoomed_in:
+                selected_event -= 1
+                update_annotations = True
+        elif event.keysym == 'j':
+            if selected_event == 0:
+                soak_start -= move_amount
+            elif selected_event == 1:
+                soak_stop -= move_amount
+            elif selected_event == 2:
+                downcast_start -= move_amount
+            elif selected_event == 3:
+                downcast_stop -= move_amount
+            elif selected_event == 4:
+                upcast_stop -= move_amount
+        elif event.keysym == 'k':
+            if selected_event == 0:
+                soak_start += move_amount
+            elif selected_event == 1:
+                soak_stop += move_amount
+            elif selected_event == 2:
+                downcast_start += move_amount
+            elif selected_event == 3:
+                downcast_stop += move_amount
+            elif selected_event == 4:
+                upcast_stop += move_amount
+        elif event.keysym == 'i':
+            if not zoomed_in:
+                zoomed_in = True
+                if selected_event == 0:
+                    ax.set_xlim(time_fulllength[soak_start]-5, time_fulllength[soak_start] + 5)
+                    ax.set_ylim(np.min(depth[soak_start-(5*16):soak_start+(5*16)])-0.5, np.max(depth[soak_start-(5*16):soak_start+(5*16)])+0.5)
+                if selected_event == 1:
+                    ax.set_xlim(time_fulllength[soak_stop] - 5, time_fulllength[soak_stop] + 5)
+                    ax.set_ylim(np.min(depth[soak_stop - (5 * 16):soak_stop + (5 * 16)]) - 0.5,
+                                    np.max(depth[soak_stop - (5 * 16):soak_stop + (5 * 16)]) + 0.5)
+                canvas.draw()
+        elif event.keysym == 'o':
+            ax.set_xlim(0, time_fulllength[len(time_fulllength)-1])
+            ax.set_ylim(-1, maxd + 1)
+            zoomed_in = False
+            canvas.draw()
+        elif event.keysym == 'Return':
+            processera(mappunavn, fig, canvas, Quality_frame)
+        if selected_event == -1: # Fyri at ikki kunna velja eina linju ið ikki er til
+            selected_event = 0
+        elif selected_event == 5:
+            selected_event = 4
+
+        if event.keysym == 'j' or event.keysym == 'k':
+            global soak_start_line, soak_stop_line, downcast_start_line, downcast_stop_line, upcast_stop_line
+            if selected_event == 0:
+                soak_start_line.pop(0).remove()
+                soak_start_line = ax.plot([time_fulllength[soak_start], time_fulllength[soak_start]], [-100, 100], 'k')
+            if selected_event == 1:
+                soak_stop_line.pop(0).remove()
+                soak_stop_line = ax.plot([time_fulllength[soak_stop], time_fulllength[soak_stop]], [-100, 100], 'k')
+            if selected_event == 2:
+                downcast_start_line.pop(0).remove()
+                downcast_start_line = ax.plot([time_fulllength[downcast_start], time_fulllength[downcast_start]], [-100, 100], 'k')
+            if selected_event == 3:
+                downcast_stop_line.pop(0).remove()
+                downcast_stop_line = ax.plot([time_fulllength[downcast_stop], time_fulllength[downcast_stop]], [-100, 100], 'k')
+            if selected_event == 4:
+                upcast_stop_line.pop(0).remove()
+                upcast_stop_line = ax.plot([time_fulllength[upcast_stop], time_fulllength[upcast_stop]], [-100, 100], 'k')
+            update_annotations = True
+            canvas.draw()
+        if update_annotations:
+            global annotation
+            annotation.remove()
+            if selected_event == 0:
+                annotation = ax.annotate('Soak Start',
+                                         xy=(time_fulllength[soak_start], maxd+1),
+                                         xytext=(time_fulllength[soak_start], maxd+2),
+                                         xycoords='data',
+                                         textcoords='data',
+                                         ha='center',
+                                         arrowprops=dict(arrowstyle="->"))
+            elif selected_event == 1:
+                annotation = ax.annotate('Soak Stop',
+                                         xy=(time_fulllength[soak_stop], maxd+1),
+                                         xytext=(time_fulllength[soak_stop], maxd+2),
+                                         xycoords='data',
+                                         textcoords='data',
+                                         ha='center',
+                                         arrowprops=dict(arrowstyle="->"))
+            elif selected_event == 2:
+                annotation = ax.annotate('Downcast Start',
+                                         xy=(time_fulllength[downcast_start], maxd+1),
+                                         xytext=(time_fulllength[downcast_start], maxd+2),
+                                         xycoords='data',
+                                         textcoords='data',
+                                         ha='center',
+                                         arrowprops=dict(arrowstyle="->"))
+            elif selected_event == 3:
+                annotation = ax.annotate('Downcast Stop',
+                                         xy=(time_fulllength[downcast_stop], maxd+1),
+                                         xytext=(time_fulllength[downcast_stop], maxd+2),
+                                         xycoords='data',
+                                         textcoords='data',
+                                         ha='center',
+                                         arrowprops=dict(arrowstyle="->"))
+            elif selected_event == 4:
+                annotation = ax.annotate('Upcast Stop',
+                                         xy=(time_fulllength[upcast_stop], maxd+1),
+                                         xytext=(time_fulllength[upcast_stop], maxd+2),
+                                         xycoords='data',
+                                         textcoords='data',
+                                         ha='center',
+                                         arrowprops=dict(arrowstyle="->"))
+            canvas.draw()
+        if update_qframe:
+            print('Valdur filur: ' + str(filur))
+            for widget in Quality_frame.winfo_children():  # Tømur quality frame
+                widget.destroy()
+            list_of_casts = os.listdir(mappunavn)
+            for cast in list_of_casts:
+                if cast == filnavn[filur]:
+                    Label(Quality_frame, text=cast, font=("Courier", 18), bg="Green").pack(side=TOP, anchor=W)
+                else:
+                    Label(Quality_frame, text=cast, font=("Courier", 18)).pack(side=TOP, anchor=W)
+            Label(Quality_frame, text=('―' * 100), font=("Courier", 18)).pack(side=TOP, anchor=W)
+
+    root.bind('<Key>', key)
 
     #ax.scatter(farts, np.ones([1, len(farts)])*-3, color = 'green')
     #ax.scatter(upcast, np.ones([1, len(upcast)]) * -3, color='red')
@@ -220,3 +383,4 @@ def processera(mappunavn, fig, canvas, Quality_frame):
     #ax2.set_ylabel(data.columns[1], color='b')
     canvas.draw()
     canvas.get_tk_widget().pack(fill=BOTH, expand=1)
+    log_e()

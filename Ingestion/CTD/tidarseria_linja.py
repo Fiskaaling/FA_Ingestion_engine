@@ -71,7 +71,6 @@ def tekna(fig, canvas, mappunavn, valdstod):
         datapoints = []
         dates = []
         for tur in turar:
-            print(tur)
             turnummar = tur[3:]
             stodfil = pd.read_csv(mappunavn + '/' + tur + '/stodfil' + turnummar + '.csv', skiprows=14)
             stodnames = stodfil.stodname
@@ -80,31 +79,37 @@ def tekna(fig, canvas, mappunavn, valdstod):
             for i, stodnavn in enumerate(stodnames):
                 if stodnavn == stodir[valdstod]:
                     ascii_filnavn = ctd_filnames[i]
+                    break
             if ascii_filnavn == '':
                 log_w('Fann ongan fíl til ' + str(tur))
             else:
                 # Dato
+                #print('Opnar fíl: ' + mappunavn + '/' + tur + '/ascii/' + str(ascii_filnavn) + '.asc')
                 hydrfil = pd.read_csv(mappunavn + '/' + tur + '/hydr' + turnummar + '.dat')
                 if '-' in hydrfil.iloc[0, 10]:
                     dates.append(md.date2num(datetime.strptime(hydrfil.iloc[0, 10], '%d-%m-%Y')))
                 else:
                     dates.append(md.date2num(datetime.strptime(hydrfil.iloc[0, 10], '%d/%m/%y')))
+                #print('Dato: ' + hydrfil.iloc[0, 10])
                 # Data
                 data = pd.read_csv(mappunavn + '/' + tur + '/ascii/' + str(ascii_filnavn) + '.asc', encoding='latin')
-                #ox_mgl = data['Sbeox0Mg/L'] # Sbeox0Mg/L
+                ox_mgl = data['Sbeox0Mg/L'] # Sbeox0Mg/L
 
                 #ox_mgl = data['Sbeox0PS']
-                ox_mgl = data['T068C']
+                #ox_mgl = data['T068C']
                 depth = data['DepSM']
                 if dypi > max(depth):
                     log_w(tur + ' Max dypi ' + str(max(depth)) + ' er minni enn ' + str(dypi) + ' m')
                 if dypi == -1:
                     datapoints.append(ox_mgl[len(ox_mgl) - 1])
+                    #print('1 m frá botni er: ' + str(depth[len(depth) - 1]))
                 else:
                     for d_index, d in enumerate(depth):
                         if np.round(d) >= np.round(dypi):
+                            print(ox_mgl[d_index])
                             datapoints.append(ox_mgl[d_index])
                             break
+            print(str(tur) + ' - ' + str(ox_mgl[d_index]))
         ax.set_title(stodir[valdstod])
         try:
             dates, datapoints = zip(*sorted(zip(dates, datapoints)))
@@ -119,11 +124,11 @@ def tekna(fig, canvas, mappunavn, valdstod):
             dates_string.append(datetime.strftime(md.num2date(dates[index]), '%d-%m-%Y'))
         pandas_dataframe = pd.DataFrame({'dato': dates_string, 'virdi': datapoints})
 
-        pandas_dataframe.to_csv('temp' +str(dypi) + ' ' + stodir[valdstod] + '.csv')
+        pandas_dataframe.to_csv('ox' +str(dypi) + ' ' + stodir[valdstod] + '.csv')
         ax.legend()
         ax.set_xticks(dates)
-        ax.set(ylabel='Hiti [C]')
-        #ax.set(ylabel='Oxygen [mg/l]')
+        #ax.set(ylabel='Hiti [C]')
+        ax.set(ylabel='Oxygen [mg/l]')
         ax.set_title(stodir[valdstod])
         ax.set_xlim(min(dates), max(dates))
         plt.setp(ax.xaxis.get_majorticklabels(), rotation=45)
