@@ -5,6 +5,7 @@ Ingestion/CTD/Lokalt_Data/
 .idea/
 venv/
 data/
+work/
 
 *temp.*
 

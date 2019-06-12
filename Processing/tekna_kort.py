@@ -45,6 +45,9 @@ class Window(Frame):
         exit()
 
 def teknakort():
+    #  TODO hettar skal implomenterast ordiligt
+    global path_to_nytt_kort
+    path_to_nytt_kort = 'Kort_Data/kort_uppsetan.upp'
     global root
     root = Tk()
     root.geometry("1200x800")
@@ -177,7 +180,9 @@ def teknakort():
 
     load_btn = Button(menu_frame, text='Les inn uppsetan', command=lambda: innlesFil(text_list)).pack(side=LEFT)
     save_btn = Button(menu_frame, text='Goym uppsetan', command=lambda: goymuppsetan(text_list)).pack(side=LEFT)
-    nytt_kort = Button(menu_frame, text='Nýtt Kort', command=lambda: nyttkort(text_list, root)).pack(side=LEFT)
+
+    nytt_kort = Button(menu_frame, text='Nýtt Kort', command=lambda: nyttkort(text_list, fig, canvas, root)).pack(side=LEFT)
+
     tekna_btn = Button(menu_frame, text='Tekna Kort', command=lambda: les_og_tekna(text_list, fig, canvas)).pack(side=LEFT)
     teknaLinjur_btn = Button(menu_frame, text='Tekna Linjur', command=lambda: teknaLinjur(text_list, root)).pack(side=LEFT)
     teknaPrikkar_btn = Button(menu_frame, text='Tekna Prikkar', command=lambda: teknaPrikkar(text_list, root)).pack(side=LEFT)
@@ -192,7 +197,6 @@ def teknakort():
     Label(controls_frame, text=' ').pack(side=TOP)
     zoomin_btn = Button(controls_frame, text='+', command=lambda: zoom(0.01, text_list)).pack(side=TOP)
     zoomout_btn = Button(controls_frame, text='-', command=lambda: zoom(-0.01, text_list)).pack(side=TOP)
-
 
 def innsetPan(text_list, fig, canvas):
     print('Innsetur nýggj pan virðir')
@@ -222,7 +226,6 @@ def innsetPan(text_list, fig, canvas):
     text_list.delete(1.0, END)
     text_list.insert(INSERT, raw_text)
     les_og_tekna(text_list.get("1.0", END), fig, canvas)
-
 
 def pan(x, y, canvas, ccrs_projection, relative=False):
     global ax
@@ -266,7 +269,6 @@ def innlesFil(text):
         nyttkort_text = F.read()
         F.close()
         text.insert(INSERT, nyttkort_text)
-
 
 def goymmynd(fig, canvas, figsize):
     log_b()
@@ -727,6 +729,9 @@ def les_og_tekna(text, fig, canvas, silent=False):
                     wh_mode = True
                 else:
                     wh_mode = False
+            elif variable == 'nyttkortdir':
+                global path_to_nytt_kort
+                path_to_nytt_kort = command[toindex::]
             else:
                 if '#' not in variable and command != '':
                     log_w('Ókend stýriboð ' + variable)
@@ -871,9 +876,10 @@ def les_og_tekna(text, fig, canvas, silent=False):
 
     fig.canvas.mpl_connect('button_release_event', release)
 
-
-def nyttkort(text, root):
-    F = open('Kort_Data/kort_uppsetan.upp', 'r')
+def nyttkort(text, fig, canvas, root):
+    global path_to_nytt_kort
+    print(path_to_nytt_kort)
+    F = open(path_to_nytt_kort, 'r')
     nyttkort_text = F.read()
     F.close()
     if len(text.get("1.0", END)) > 1:
@@ -882,3 +888,5 @@ def nyttkort(text, root):
             text.insert(INSERT, nyttkort_text)
     else:
         text.insert(INSERT, nyttkort_text)
+    les_og_tekna(text, fig, canvas)
+    print(path_to_nytt_kort)
