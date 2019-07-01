@@ -697,6 +697,7 @@ def les_og_tekna(text, fig, canvas, silent=False):
                 scatter_farv=command[toindex::]
             elif variable == 'scatter_legend':
                 scatter_legend = command[toindex::]
+                show_legend = True
             elif variable == 'scatter_tekst':
                 if command[toindex::] == 'True':
                     scatter_tekst = True
