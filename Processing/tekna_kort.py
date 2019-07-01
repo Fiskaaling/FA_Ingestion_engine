@@ -696,6 +696,7 @@ def les_og_tekna(text, fig, canvas, silent=False):
             elif variable == 'scatter_farv':
                 scatter_farv=command[toindex::]
             elif variable == 'scatter_legend':
+                # Gevur næstu scatter plottunum eitt legend
                 scatter_legend = command[toindex::]
                 show_legend = True
             elif variable == 'scatter_tekst':
