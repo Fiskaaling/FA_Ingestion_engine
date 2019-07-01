@@ -700,6 +700,7 @@ def les_og_tekna(text, fig, canvas, silent=False):
                 scatter_legend = command[toindex::]
                 show_legend = True
             elif variable == 'scatter_tekst':
+                # Ger tað møguligt at tendra og sløkka legend
                 if command[toindex::] == 'True':
                     scatter_tekst = True
                 else:
