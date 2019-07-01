@@ -490,7 +490,7 @@ def les_og_tekna(text, fig, canvas, silent=False):
             elif variable == 'btn_gridsize':
                 btn_gridsize = command[toindex::]
             elif variable == 'btn_striku_hvor':
-                btn_striku_hvor= int(command[toindex::])
+                btn_striku_hvor= float(command[toindex::])
             elif variable == 'lin_fil':
                 if wh_mode:
                     wh_data = pd.read_csv(command[toindex::], skiprows=16, sep='\t', index_col=0, decimal=",")
@@ -767,8 +767,14 @@ def les_og_tekna(text, fig, canvas, silent=False):
             elif command == 'btn_contourf':
                 grid_z0 = griddata((btn_lon.values, btn_lat.values), dypid.values, (meshgridx, meshgridy), method=btn_interpolation)
                 #grid_z0 = interpolate.interp2d(btn_x, btn_y, dypid.values, kind='cubic')
-                vmin = min(-70, min([-y for x in grid_z0 for y in x]))
-                lv = range(int(vmin/btn_striku_hvor)*btn_striku_hvor, int(btn_striku_hvor), int(btn_striku_hvor))
+                #vmin = min(-70, min([-y for x in grid_z0 for y in x]))
+                #vmin = min([-y for x in grid_z0 for y in x])
+                vmin = 30 # og hetta
+                vmax = 36 # Sletta hettar!
+                lv = np.round(list(frange(vmin, vmax, float(btn_striku_hvor))), 3)
+                print(lv)
+                #lv = list(frange(int(vmin/btn_striku_hvor)*btn_striku_hvor, int(btn_striku_hvor), int(btn_striku_hvor)))
+
                 if renderengine == '3D_botn':
                     cmap = plt.cm.viridis
                     for i in range(250, 256):
@@ -788,25 +794,30 @@ def les_og_tekna(text, fig, canvas, silent=False):
                     v2 = max([y for x in grid_z0 for y in x])
                     ax.set_aspect(scalefactor * v2 / v1)
                 else:
-                    c = ax.contourf(meshgridx, meshgridy, -grid_z0, lv, transform=ccrs_projection)
+                    c = ax.contourf(meshgridx, meshgridy, grid_z0, lv, transform=ccrs_projection)
                     #ax.clabel(c, inline=1, fontsize=15, fmt='%2.0f')
                     #fig.colorbar(c)
                     if vmin >= -150:
                         confti=list(range(int(vmin/10)*10, int(10), int(10)))
                     else:
                         confti = list(range(int(vmin / 20) * 20, int(20), int(20)))
-                    fig.colorbar(c, orientation='horizontal', ax=ax, ticks=confti, pad=0.02)
+                    #fig.colorbar(c, orientation='horizontal', ax=ax, ticks=confti, pad=0.02)
+                    fig.colorbar(c, ax=ax, pad=0.02)
             elif command == 'btn_contour':
                 grid_z0 = griddata((btn_lon.values, btn_lat.values), dypid.values, (meshgridx, meshgridy), method=btn_interpolation)
                 vmin = min(-70, min([-y for x in grid_z0 for y in x]))
                 temp = btn_striku_hvor
-                lv = range(int(vmin/temp)*temp, int(btn_striku_hvor), int(btn_striku_hvor))
+                lv = list(frange(int(vmin/temp)*temp, float(btn_striku_hvor), float(btn_striku_hvor)))
+                vmin = 28 # og hetta
+                vmax = 35.1 # Sletta hettar!
+                lv = np.round(list(frange(vmin, vmax, float(btn_striku_hvor))), 3)
+                print(lv)
                 #grid_z0 = interpolate.interp2d(btn_x, btn_y, dypid.values, kind='cubic')
                 if renderengine == '3D_botn':
                     ax.contour3D(meshgridx, meshgridy, -1 * grid_z0, levels=lv,
                                  colors='k',vmax=0 , linestyles='solid')
                 else:
-                    c = ax.contour(meshgridx, meshgridy, -grid_z0, lv, transform=ccrs_projection, colors='gray', linestyles='solid', linewidths=0.3)
+                    c = ax.contour(meshgridx, meshgridy, grid_z0, lv, transform=ccrs_projection, colors='gray', linestyles='solid', linewidths=0.3)
                     if clabel:
                         #ax.clabel(c, inline=1, fontsize=fontsize, fmt='%2.0f', manual=False)
                         ax.clabel(c, inline=1, fontsize=fontsize, fmt='%2.0f', manual=True)
@@ -890,3 +901,8 @@ def nyttkort(text, fig, canvas, root):
         text.insert(INSERT, nyttkort_text)
     les_og_tekna(text, fig, canvas)
     print(path_to_nytt_kort)
+
+def frange(x, y, jump):
+  while x < y:
+    yield x
+    x += jump

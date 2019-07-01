@@ -1,0 +1,8 @@
+from tkinter import filedialog
+from misc.faLog import *
+
+def plot_axis_root(frame, root2):
+    for widget in frame.winfo_children():
+        widget.destroy()
+    Label(frame, text='Seabird SBE 25 CTD', font='Helvetica 18 bold').pack(side=TOP)
+    Label(frame, text='Bin Average').pack(side=TOP, anchor=W)

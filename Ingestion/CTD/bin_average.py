@@ -29,7 +29,7 @@ def bin_average_frame(frame, root2):
     velMappuBtn = Button(controlsFrame, text='Vel Fílir', command=lambda: velFil())
     velMappuBtn.pack(side=LEFT, anchor=W)
 
-    processBtn = Button(controlsFrame, text='Processera', command=lambda: processera(mappunavn, fig, canvas, Quality_frame))
+    processBtn = Button(controlsFrame, text='Processera', command=lambda: processera(fig, canvas, Quality_frame))
     processBtn.pack(side=LEFT, anchor=W)
 
     fig = Figure(figsize=(12, 8), dpi=100)
@@ -47,13 +47,14 @@ def bin_average_frame(frame, root2):
     global filur
     filur = 0
 
-    processera(mappunavn, fig, canvas, Quality_frame)
+    processera(fig, canvas, Quality_frame)
 
 def velFil():
     global mappunavn
     mappunavn = filedialog.askdirectory(title='Vel túramappu', initialdir='./Ingestion/CTD/Lokalt_Data/')
 
-def processera(mappunavn, fig, canvas, Quality_frame):
+def processera(fig, canvas, Quality_frame):
+    global mappunavn
     log_b()
     midlingstid = 2 # sek
     fig.clf()
@@ -159,7 +160,18 @@ def processera(mappunavn, fig, canvas, Quality_frame):
     parent_folder = os.path.dirname(mappunavn)
     if os.path.isdir(parent_folder + '/0_RAW_DATA'):
         raw_filar = os.listdir(parent_folder + '/0_RAW_DATA/')
-        raw_filnavn = raw_filar[filur]
+        raw_filnavn = '-1'
+        hesin_filur = filnavn[filur].upper()
+        for raw_file in raw_filar: # Hettar finnur rætta xml fílin
+            print(raw_file)
+            print(hesin_filur)
+            if raw_file[0:17].upper() == hesin_filur[0:17]:
+                print('Alright')
+                raw_filnavn = raw_file
+        if raw_filnavn == '-1':
+            log_w('Eingin raw fílur funnin')
+            return
+        #raw_filnavn = raw_filar[filur]
         print('Lesur raw fíl: ' + raw_filnavn)
         with open(parent_folder + '/0_RAW_DATA/' + raw_filnavn, 'r') as raw_file:
             raw_data = raw_file.read()
@@ -178,13 +190,18 @@ def processera(mappunavn, fig, canvas, Quality_frame):
                 lastLine = line[0]
         print('Pump ' + str(pump_on))
         if not pump_on == -1:
-            ax.plot([time_fulllength[pump_on], time_fulllength[pump_on]], [-100, 100], ':')
-            print('Pumpan tendraði aftaná: ' + str(time_fulllength[pump_on]) + ' sek')
+            ax.plot([pump_on/16, pump_on/16], [-100, 100], ':')
+            print('Pumpan tendraði aftaná: ' + str(pump_on/16) + ' sek')
+
         if not pump_off == -1:
-            ax.plot([time_fulllength[pump_off], time_fulllength[pump_off]], [-100, 100], ':')
+            print('Pumpan sløknaði aftaná: ' + str(pump_off/16) + ' sek')
+            ax.plot([pump_off/16, pump_off/16], [-100, 100], ':')
         bin_stodd = 1 # [m]
-    downcast_start_d = dypid[downcast_start]
-    downcast_stop_d = dypid[downcast_stop]
+    if downcast_start != -1:
+        downcast_start_d = dypid[downcast_start]
+    if downcast_stop != -1:
+        downcast_stop_d = dypid[downcast_stop]
+        #downcast_stop_line = ax.plot([time_fulllength[downcast_stop], time_fulllength[downcast_stop]], [-100, 100], 'k')
     bins = np.arange(1,5+.2,.2)
 
     #for i, d in enumerate(depth[downcast_start:downcast_stop_d]):
@@ -292,8 +309,8 @@ def processera(mappunavn, fig, canvas, Quality_frame):
             ax.set_ylim(-1, maxd + 1)
             zoomed_in = False
             canvas.draw()
-        elif event.keysym == 'Return':
-            processera(mappunavn, fig, canvas, Quality_frame)
+        elif event.keysym == 'space':
+            processera(fig, canvas, Quality_frame)
         if selected_event == -1: # Fyri at ikki kunna velja eina linju ið ikki er til
             selected_event = 0
         elif selected_event == 5:
@@ -366,6 +383,7 @@ def processera(mappunavn, fig, canvas, Quality_frame):
             print('Valdur filur: ' + str(filur))
             for widget in Quality_frame.winfo_children():  # Tømur quality frame
                 widget.destroy()
+            global mappunavn
             list_of_casts = os.listdir(mappunavn)
             for cast in list_of_casts:
                 if cast == filnavn[filur]:
