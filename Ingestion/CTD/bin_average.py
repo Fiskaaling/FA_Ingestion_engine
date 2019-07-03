@@ -206,46 +206,42 @@ def processera(fig, canvas, Quality_frame):
         #downcast_stop_line = ax.plot([time_fulllength[downcast_stop], time_fulllength[downcast_stop]], [-100, 100], 'k')
     bins = np.arange(1,5+.2,.2)
 
-    #for i, d in enumerate(depth[downcast_start:downcast_stop_d]):
-    #    if
-
-
-    #bins_per_meter = 1
-    #bins = np.linspace(bins_per_meter, np.ceil(maxd), np.ceil(maxd*bins_per_meter))
-    #for bin in bins:
-    #    bin_data = []
-    #    for i, d in enumerate(dypid[downcast_start:downcast_stop]):
-    #        if abs(bin - d) < bin_stodd:
-    #            print(str(d) + " - " + str(bin))
-
     print(bins)
     print('maxd : ' + str(maxd) + ' m')
     print('n_midlingspunktir : ' + str(n_midlingspunktir))
     print('soak_start : ' + str(soak_start))
-    print('soak_stop : '+ str(soak_stop))
+    print('soak_stop : ' + str(soak_stop))
     print('soak_time :' + str(soaktime) + ' sec')
     print('soak_depth : ' + str(soak_depth) + ' m')
     global soak_start_line, soak_stop_line, downcast_start_line, downcast_stop_line, upcast_stop_line
+    if soak_start == -1:
+        log_w('Ávaring! Soak Start er ikki funnið')
+        soak_start = 50
+    if soak_stop == -1:
+        log_w('Ávaring! Soak Stop er ikki funnið')
+        soak_stop = 100
+    if downcast_start == -1:
+        log_w('Ávaring! Downcast Start er ikki funnið')
+        downcast_start = 150
+    if downcast_stop == -1:
+        log_w('Ávaring! Downcast Stop er ikki funnið')
+        downcast_stop = 200
+    if upcast_stop == -1:
+        log_w('Ávaring! Upcast Stop er ikki funnið')
+        upcast_stop = 250
+
     soak_start_line = ax.plot([time_fulllength[soak_start], time_fulllength[soak_start]], [-100, 100], 'k')
     soak_stop_line = ax.plot([time_fulllength[soak_stop], time_fulllength[soak_stop]], [-100, 100], 'k')
-    if downcast_start != -1:
-        downcast_start_line = ax.plot([time_fulllength[downcast_start], time_fulllength[downcast_start]], [-100, 100], 'k')
-    else:
-        log_w('Ávaring! Downcast Start er ikki funnið')
-        downcast_start_line = ax.plot([time_fulllength[50], time_fulllength[50]], [-100, 100], 'k')
-    if downcast_stop != -1:
-        downcast_stop_line = ax.plot([time_fulllength[downcast_stop], time_fulllength[downcast_stop]], [-100, 100], 'k')
-    else:
-        log_w('Ávaring! Downcast Stop er ikki funnið')
-        downcast_stop_line = ax.plot([time_fulllength[100], time_fulllength[100]], [-100, 100], 'k')
-    if upcast_stop != -1:
-        upcast_stop_line = ax.plot([time_fulllength[upcast_stop], time_fulllength[upcast_stop]], [-100, 100], 'k')
-    else:
-        log_w('Ávaring! Upcast Stop er ikki funnið')
-        upcast_stop_line = ax.plot([time_fulllength[150], time_fulllength[150]], [-100, 100], 'k')
+    downcast_start_line = ax.plot([time_fulllength[downcast_start], time_fulllength[downcast_start]], [-100, 100], 'k')
+    downcast_stop_line = ax.plot([time_fulllength[downcast_stop], time_fulllength[downcast_stop]], [-100, 100], 'k')
+    upcast_stop_line = ax.plot([time_fulllength[upcast_stop], time_fulllength[upcast_stop]], [-100, 100], 'k')
 
     global selected_event
     selected_event = 0
+
+    global zoomed_in
+    zoomed_in = False
+
     global annotation
     annotation = ax.annotate('Soak Start',
                              xy=(time_fulllength[soak_start], maxd + 1),
@@ -254,9 +250,6 @@ def processera(fig, canvas, Quality_frame):
                              textcoords='data',
                              ha='center',
                              arrowprops=dict(arrowstyle="->"))
-
-    global zoomed_in
-    zoomed_in = False
 
     def key(event):
         global soak_start, soak_stop, downcast_start, downcast_stop, upcast_stop
@@ -419,6 +412,7 @@ def processera(fig, canvas, Quality_frame):
                 widget.destroy()
             global mappunavn
             for cast in list_of_casts:
+
                 if cast == filnavn[filur]:
                     Label(Quality_frame, text=cast, font=("Courier", 18), bg="Green").pack(side=TOP, anchor=W)
                 else:
