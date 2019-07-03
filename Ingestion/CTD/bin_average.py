@@ -18,7 +18,7 @@ def bin_average_frame(frame, root2):
     global root
     global mappunavn
     #mappunavn = './Ingestion/CTD/Lokalt_Data/2019-01-31/75_All_ASCII_Out'
-    mappunavn = './Ingestion/CTD/Lokalt_Data/2019-05-06/75_All_ASCII_Out'
+    mappunavn = './Ingestion/CTD/Lokalt_Data/2019-06-04/75_All_ASCII_Out'
     root = root2
     for widget in frame.winfo_children():
         widget.destroy()
@@ -60,12 +60,14 @@ def processera(fig, canvas, Quality_frame):
     fig.clf()
     ax = fig.subplots()
     filnavn = os.listdir(mappunavn)
+    filnavn.sort()
     global filur
     data = pd.read_csv(mappunavn + '/' + filnavn[filur], encoding='latin-1') # Les fíl
 
     for widget in Quality_frame.winfo_children(): # Tømur quality frame
         widget.destroy()
     list_of_casts = os.listdir(mappunavn)
+    list_of_casts.sort()
     for cast in list_of_casts:
         if cast == filnavn[filur]:
             Label(Quality_frame, text=cast, font=("Courier", 18), bg="Green").pack(side=TOP, anchor=W)
@@ -226,9 +228,21 @@ def processera(fig, canvas, Quality_frame):
     global soak_start_line, soak_stop_line, downcast_start_line, downcast_stop_line, upcast_stop_line
     soak_start_line = ax.plot([time_fulllength[soak_start], time_fulllength[soak_start]], [-100, 100], 'k')
     soak_stop_line = ax.plot([time_fulllength[soak_stop], time_fulllength[soak_stop]], [-100, 100], 'k')
-    downcast_start_line = ax.plot([time_fulllength[downcast_start], time_fulllength[downcast_start]], [-100, 100], 'k')
-    downcast_stop_line = ax.plot([time_fulllength[downcast_stop], time_fulllength[downcast_stop]], [-100, 100], 'k')
-    upcast_stop_line = ax.plot([time_fulllength[upcast_stop], time_fulllength[upcast_stop]], [-100, 100], 'k')
+    if downcast_start != -1:
+        downcast_start_line = ax.plot([time_fulllength[downcast_start], time_fulllength[downcast_start]], [-100, 100], 'k')
+    else:
+        log_w('Ávaring! Downcast Start er ikki funnið')
+        downcast_start_line = ax.plot([time_fulllength[50], time_fulllength[50]], [-100, 100], 'k')
+    if downcast_stop != -1:
+        downcast_stop_line = ax.plot([time_fulllength[downcast_stop], time_fulllength[downcast_stop]], [-100, 100], 'k')
+    else:
+        log_w('Ávaring! Downcast Stop er ikki funnið')
+        downcast_stop_line = ax.plot([time_fulllength[100], time_fulllength[100]], [-100, 100], 'k')
+    if upcast_stop != -1:
+        upcast_stop_line = ax.plot([time_fulllength[upcast_stop], time_fulllength[upcast_stop]], [-100, 100], 'k')
+    else:
+        log_w('Ávaring! Upcast Stop er ikki funnið')
+        upcast_stop_line = ax.plot([time_fulllength[150], time_fulllength[150]], [-100, 100], 'k')
 
     global selected_event
     selected_event = 0
@@ -255,6 +269,7 @@ def processera(fig, canvas, Quality_frame):
             move_amount = 1
         else:
             move_amount = 8
+
         if event.keysym == 'w':
             if filur < len(filnavn)-1:
                 filur += 1
@@ -263,6 +278,16 @@ def processera(fig, canvas, Quality_frame):
             if filur != 0:
                 filur -= 1
                 update_qframe = True
+        elif event.keysym == 'Return':
+            print('Calculating')
+            print(data.columns.values)
+            downcast_Data = pd.DataFrame(
+                {'DepSM': data.DepSM.iloc[downcast_start:downcast_stop], 'T068C': data.T068C.iloc[downcast_start:downcast_stop], 'FlECO-AFL': data['FlECO-AFL'].iloc[downcast_start:downcast_stop], 'Sal00': data['Sal00'].iloc[downcast_start:downcast_stop],
+                 'Sigma-é00': data['Sigma-é00'].iloc[downcast_start:downcast_stop], 'Sbeox0Mg/L': data['Sbeox0Mg/L'].iloc[downcast_start:downcast_stop]})
+            if not os.path.isdir(parent_folder + '/ASCII_Downcast'):
+                os.mkdir(parent_folder + '/ASCII_Downcast')
+            downcast_Data.to_csv(parent_folder + '/ASCII_Downcast/' + filnavn[filur], index=False)
+            print('Done exporting')
         elif event.keysym == 'l':
             if not zoomed_in:
                 selected_event += 1
@@ -303,6 +328,14 @@ def processera(fig, canvas, Quality_frame):
                     ax.set_xlim(time_fulllength[soak_stop] - 5, time_fulllength[soak_stop] + 5)
                     ax.set_ylim(np.min(depth[soak_stop - (5 * 16):soak_stop + (5 * 16)]) - 0.5,
                                     np.max(depth[soak_stop - (5 * 16):soak_stop + (5 * 16)]) + 0.5)
+                if selected_event == 2:
+                    ax.set_xlim(time_fulllength[downcast_start] - 5, time_fulllength[downcast_start] + 5)
+                    ax.set_ylim(np.min(depth[downcast_start - (5 * 16):downcast_start + (5 * 16)]) - 0.5,
+                                    np.max(depth[downcast_start - (5 * 16):downcast_start + (5 * 16)]) + 0.5)
+                if selected_event == 3:
+                    ax.set_xlim(time_fulllength[downcast_stop] - 5, time_fulllength[downcast_stop] + 5)
+                    ax.set_ylim(np.min(depth[downcast_stop - (5 * 16):downcast_stop + (5 * 16)]) - 0.5,
+                                    np.max(depth[downcast_stop - (5 * 16):downcast_stop + (5 * 16)]) + 0.5)
                 canvas.draw()
         elif event.keysym == 'o':
             ax.set_xlim(0, time_fulllength[len(time_fulllength)-1])
@@ -310,6 +343,7 @@ def processera(fig, canvas, Quality_frame):
             zoomed_in = False
             canvas.draw()
         elif event.keysym == 'space':
+            log_clear()
             processera(fig, canvas, Quality_frame)
         if selected_event == -1: # Fyri at ikki kunna velja eina linju ið ikki er til
             selected_event = 0
@@ -384,7 +418,6 @@ def processera(fig, canvas, Quality_frame):
             for widget in Quality_frame.winfo_children():  # Tømur quality frame
                 widget.destroy()
             global mappunavn
-            list_of_casts = os.listdir(mappunavn)
             for cast in list_of_casts:
                 if cast == filnavn[filur]:
                     Label(Quality_frame, text=cast, font=("Courier", 18), bg="Green").pack(side=TOP, anchor=W)
