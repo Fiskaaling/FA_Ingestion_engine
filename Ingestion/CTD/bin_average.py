@@ -26,7 +26,7 @@ def bin_average_frame(frame, root2):
     Label(frame, text='Bin Average').pack(side=TOP, anchor=W)
     controlsFrame = Frame(frame)
     controlsFrame.pack(side=TOP, anchor=W)
-    velMappuBtn = Button(controlsFrame, text='Vel Fílir', command=lambda: velFil())
+    velMappuBtn = Button(controlsFrame, text='Vel Fílir', command=velFil)
     velMappuBtn.pack(side=LEFT, anchor=W)
 
     processBtn = Button(controlsFrame, text='Processera', command=lambda: processera(fig, canvas, Quality_frame))
@@ -191,11 +191,11 @@ def processera(fig, canvas, Quality_frame):
                     pump_off = i
                 lastLine = line[0]
         print('Pump ' + str(pump_on))
-        if not pump_on == -1:
+        if pump_on != -1:
             ax.plot([pump_on/16, pump_on/16], [-100, 100], ':')
             print('Pumpan tendraði aftaná: ' + str(pump_on/16) + ' sek')
 
-        if not pump_off == -1:
+        if pump_off != -1:
             print('Pumpan sløknaði aftaná: ' + str(pump_off/16) + ' sek')
             ax.plot([pump_off/16, pump_off/16], [-100, 100], ':')
         bin_stodd = 1 # [m]

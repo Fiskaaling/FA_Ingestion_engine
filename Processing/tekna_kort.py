@@ -849,8 +849,13 @@ def les_og_tekna(text, fig, canvas, silent=False):
         ax.get_proj = short_proj
         print('hello')
     if VisProgress:
-        text.tag_add('alt', '0.0', END)
-        text.tag_config('alt', foreground='black', background='white')
+        print(text.tag_names())
+        tags = text.tag_names()
+        for tag in tags:
+            text.tag_delete(tag)
+        #text.tag_add('alt', '0.0', END)
+        #text.tag_config('alt', foreground='black', background='white')
+
     canvas.draw()
     canvas.get_tk_widget().pack(fill=BOTH, expand=1)
     log_e()
