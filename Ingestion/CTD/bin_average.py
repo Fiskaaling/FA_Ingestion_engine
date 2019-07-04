@@ -13,6 +13,7 @@ matplotlib.use('TkAgg')
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 
+textsize = 16
 
 def bin_average_frame(frame, root2):
     global root
@@ -32,12 +33,13 @@ def bin_average_frame(frame, root2):
     processBtn = Button(controlsFrame, text='Processera', command=lambda: processera(fig, canvas, Quality_frame))
     processBtn.pack(side=LEFT, anchor=W)
 
+    Right_frame = Frame(frame)
+    Right_frame.pack(fill=BOTH, expand=False, side=RIGHT, anchor=N)
+
     fig = Figure(figsize=(12, 8), dpi=100)
     plot_frame = Frame(frame, borderwidth=1, highlightbackground="green", highlightcolor="green", highlightthickness=1)
     plot_frame.pack(fill=BOTH, expand=True, side=LEFT, anchor=N)
     canvas = FigureCanvasTkAgg(fig, master=plot_frame)
-    Right_frame = Frame(frame)
-    Right_frame.pack(fill=BOTH, expand=True, side=RIGHT, anchor=N)
 
     Quality_frame = Frame(Right_frame)
     Quality_frame.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
@@ -52,6 +54,51 @@ def bin_average_frame(frame, root2):
 def velFil():
     global mappunavn
     mappunavn = filedialog.askdirectory(title='Vel túramappu', initialdir='./Ingestion/CTD/Lokalt_Data/')
+
+
+def qcontrol(Quality_subframe, depth, time_fulllength, soak_start, soak_stop, downcast_start, downcast_stop, upcast_stop, pump_on):
+    for widget in Quality_subframe.winfo_children(): # Tømur quality frame
+        widget.destroy()
+
+    cast_quality=0
+    downcast_quality=0
+    upcast_quality=0
+
+    # Soaking stabilitetur
+    soakvar = np.var(depth[soak_start:soak_stop])
+    print('Sample variansur á soak er: ' + str(soakvar))
+    cast_quality -= min(soakvar, 1)
+    # Pumpa tendrar
+    if pump_on == -1:
+        Label(Quality_subframe, text='Pumpan tendraði ikki', font=("Helvetica", textsize), bg="red").pack(side=TOP, anchor=W)
+        cast_quality -= 100
+    elif (time_fulllength[pump_on] + 10 < time_fulllength[downcast_start])\
+            and (time_fulllength[soak_start] < time_fulllength[pump_on] < time_fulllength[soak_stop]):
+        Label(Quality_subframe, text='Pumpan tendraði til tíðuna', font=("Courier", textsize), bg="lightgreen").pack(side=TOP, anchor=W)
+        cast_quality += 1
+    else:
+        Label(Quality_subframe, text='Pumpan tendraði ikki tá hon burdi', font=("Helvetica", textsize),
+              bg="red").pack(side=TOP, anchor=W)
+        cast_quality -= 1
+    if time_fulllength[soak_stop] - time_fulllength[soak_start] > 60:
+        Label(Quality_subframe, text='Soak er nóg miki langt', font=("Courier", textsize), bg="lightgreen").pack(
+            side=TOP, anchor=W)
+        cast_quality += 1
+        if soakvar < 0.1:
+            Label(Quality_subframe, text='Variansurin á soak er OK', font=("Courier", textsize), bg="lightgreen").pack(
+                side=TOP, anchor=W)
+        else:
+            Label(Quality_subframe, text='Variansurin á soak er høgur', font=("Helvetica", textsize), bg="orange").pack(
+                side=TOP,
+                anchor=W)
+    else:
+        Label(Quality_subframe, text='Soak er ikki nóg langt', font=("Helvetica", textsize), bg="red").pack(side=TOP,
+                                                                                                          anchor=W)
+        cast_quality -= 1
+    Label(Quality_subframe, text='Kvalitetur: ' + str(cast_quality), font=("Helvetica", textsize)).pack(side=TOP,
+                                                                                                          anchor=W)
+
+
 
 def processera(fig, canvas, Quality_frame):
     global mappunavn
@@ -70,11 +117,13 @@ def processera(fig, canvas, Quality_frame):
     list_of_casts.sort()
     for cast in list_of_casts:
         if cast == filnavn[filur]:
-            Label(Quality_frame, text=cast, font=("Courier", 18), bg="Green").pack(side=TOP, anchor=W)
+            Label(Quality_frame, text=cast, font=("Courier", textsize, 'underline')).pack(side=TOP, anchor=W)
         else:
-            Label(Quality_frame, text=cast, font=("Courier", 18)).pack(side=TOP, anchor=W)
+            Label(Quality_frame, text=cast, font=("Courier", textsize)).pack(side=TOP, anchor=W)
 
-    Label(Quality_frame, text=('―'*100), font=("Courier", 18)).pack(side=TOP, anchor=W)
+    Label(Quality_frame, text=('―'*20), font=("Courier", textsize)).pack(side=TOP, anchor=W)
+    quality_subframe = Frame(Quality_frame)
+    quality_subframe.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
 
     depth = data[data.columns[0]]
     time_fulllength = data['TimeS']
@@ -251,6 +300,8 @@ def processera(fig, canvas, Quality_frame):
                              ha='center',
                              arrowprops=dict(arrowstyle="->"))
 
+    qcontrol(quality_subframe, depth, time_fulllength, soak_start, soak_stop, downcast_start, downcast_stop, upcast_stop, pump_on)
+
     def key(event):
         global soak_start, soak_stop, downcast_start, downcast_stop, upcast_stop
         global selected_event, filur
@@ -338,6 +389,10 @@ def processera(fig, canvas, Quality_frame):
         elif event.keysym == 'space':
             log_clear()
             processera(fig, canvas, Quality_frame)
+        elif event.keysym == 'onehalf':
+            qcontrol(quality_subframe, depth, time_fulllength, soak_start, soak_stop, downcast_start, downcast_stop,
+                     upcast_stop, pump_on)
+
         if selected_event == -1: # Fyri at ikki kunna velja eina linju ið ikki er til
             selected_event = 0
         elif selected_event == 5:
@@ -414,10 +469,10 @@ def processera(fig, canvas, Quality_frame):
             for cast in list_of_casts:
 
                 if cast == filnavn[filur]:
-                    Label(Quality_frame, text=cast, font=("Courier", 18), bg="Green").pack(side=TOP, anchor=W)
+                    Label(Quality_frame, text=cast, font=("Courier", textsize), bg="Green").pack(side=TOP, anchor=W)
                 else:
-                    Label(Quality_frame, text=cast, font=("Courier", 18)).pack(side=TOP, anchor=W)
-            Label(Quality_frame, text=('―' * 100), font=("Courier", 18)).pack(side=TOP, anchor=W)
+                    Label(Quality_frame, text=cast, font=("Courier", textsize)).pack(side=TOP, anchor=W)
+            Label(Quality_frame, text=('―' * 20), font=("Courier", textsize)).pack(side=TOP, anchor=W)
 
     root.bind('<Key>', key)
 

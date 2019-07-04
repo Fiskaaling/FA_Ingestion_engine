@@ -422,8 +422,6 @@ def les_og_tekna(text, fig, canvas, silent=False):
                     for iiiio, dep in enumerate(D_dep):
                         for i2o, depe in enumerate(dep):
                             if((61.62799 > D_lat[iiiio, i2o] > 61.59211) and (-6.9192 < D_lon[iiiio, i2o] < -6.80300)):
-                                #-6.919201789386688,61.627996265608594
-                                #-6.830079612480041,61.59211109814448
                                 plon.append(D_lon[iiiio, i2o])
                                 plat.append(D_lat[iiiio, i2o])
                                 if D_dep[iiiio, i2o] == float(-99.9):
