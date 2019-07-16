@@ -163,10 +163,10 @@ def plotrose(ax, N, umax, lv, Es, Ns, eind='mm/s', axline=.5, axcolor='k', alpha
     F = np.zeros(shape=(N, N))
 
     #  her filli eg inn í bins
-    for k in range(len(Ns)):
+    for nn, ee in zip(Ns, Es):
         #  hvat fyri bin skal hendan mátingin inní
-        Ebin = int(np.floor(((N-1)*((Es[k])+umax)) / (2 * umax) + .5))
-        Nbin = int(np.floor(((N-1)*((Ns[k])+umax)) / (2 * umax) + .5))
+        Ebin = int(np.floor(((N-1)*((ee)+umax)) / (2 * umax) + .5))
+        Nbin = int(np.floor(((N-1)*((nn)+umax)) / (2 * umax) + .5))
         if 0 <= Ebin < N and 0 <= Nbin < N:
             F[Nbin][Ebin] += 1
 
@@ -197,10 +197,10 @@ def plotrose(ax, N, umax, lv, Es, Ns, eind='mm/s', axline=.5, axcolor='k', alpha
         #  sortera ratt
         Zj = sorted(Zj, key=lambda x: x[1])
         count = 1
-        for k in range(len(Zj)):
+        for myvar in Zj:
             #  set virðini inn til at gera konfidens interval
-            temp = count - Zj[k][1]
-            Zj[k][1] = count
+            temp = count - myvar[1]
+            myvar[1] = count
             count = temp
 
         #  set elimentini uppá pláss aftur
@@ -355,20 +355,20 @@ def progressive_vector(bins, dato, uvdf, dypir, dest='LaTeX/', dpi=200,
             punktir[2].append(process_dato)
         plots.append(punktir)
 
-    for i in range(len(plots)):
+    for i, myplot in enumerate(plots):
         if i == 0:
             prelabel = 'Surface layer'
         elif i == 1:
             prelabel = 'Center layer'
         else:
             prelabel = 'Bottom layer'
-        punktir = plots[i]
+        punktir = myplot
         xmin = np.min(punktir[0])
         xmax = np.max(punktir[0])
         ymin = np.min(punktir[1])
         ymax = np.max(punktir[1])
 
-        axs.plot(plots[i][0], plots[i][1], linewidth=2.5, alpha=.05, color='k')
+        axs.plot(myplot[0], myplot[1], linewidth=2.5, alpha=.05, color='k')
 
         tempdato = np.array(punktir[2])
         punktir = np.array([np.array(punktir[0]), np.array(punktir[1])]).T.reshape(-1, 1, 2)
@@ -380,7 +380,7 @@ def progressive_vector(bins, dato, uvdf, dypir, dest='LaTeX/', dpi=200,
         lc.set_linewidth(2)
         line = axs.add_collection(lc)
 
-        axs.scatter(plots[i][0][-1], plots[i][1][-1], label=prelabel)
+        axs.scatter(myplot[0][-1], myplot[1][-1], label=prelabel)
         glxmax = max(xmax, glxmax)
         glymax = max(ymax, glymax)
         glxmin = max(xmin, glxmin)
@@ -558,14 +558,14 @@ def duration_speed(bins, dato, magdf, dypir, dest='LaTeX/',
             delta_tid = (dato[i] - dato0) * (24 * 60)       #  min
             dato0 = dato[i]
             #  uppdatera durationspeeds
-            for k in range(len(speed)):
-                if speed[k] <= magnetude:
+            for k, myspeed in enumerate(speed):
+                if myspeed <= magnetude:
                     durationspeeds[k] += delta_tid
                 else:
                     durationspeeds[k] = 0
-            for d in range(len(duration)):
+            for d, myduration in enumerate(duration):
                 for s in range(len(speed)):
-                    if durationspeeds[s] >= duration[d]:
+                    if durationspeeds[s] >= myduration:
                         tabell[s][d] += 1
         #  skriva tex tabell
         texstr = '\\begin{tabular}{|' + (1 + len(duration))*'r|' + '}\n'
@@ -575,8 +575,8 @@ def duration_speed(bins, dato, magdf, dypir, dest='LaTeX/',
         for x in duration:
             texstr += '&\t' + str(x).rjust(4)
         texstr += '\\\\\\hline\n'
-        for s in range(len(speed)):
-            texstr += str(speed[s]).rjust(4)
+        for s, myspeed in enumerate(speed):
+            texstr += str(myspeed).rjust(4)
             for d in range(len(duration)):
                 #  temp er tað nasta talið sum skal inní tabellina
                 #  tað er ok at sama total verður brúkt til alt tí tað er sama data
@@ -632,4 +632,3 @@ def duration_speed(bins, dato, magdf, dypir, dest='LaTeX/',
            '\n\\caption{%s}' \
            '\n\\end{table}' \
            '\n\\newpage\n' % (section, filnovn[0], caption[0], filnovn[1], caption[1], filnovn[2], caption[2])
-
