@@ -1,0 +1,10 @@
+LaTeX/
+__pycache__/
+myndir/
+setup/
+testbac/
+test/
+bak.py
+TODOS.txt
+mytest*
+*.swp
