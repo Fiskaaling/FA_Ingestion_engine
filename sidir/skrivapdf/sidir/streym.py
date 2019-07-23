@@ -83,7 +83,7 @@ def tegnahovmuller(data, dypid, dato, ratning=0, nrplots=11, figwidth=6, figheig
     mpl.rcParams['xtick.major.pad'] = 0
     fig.savefig(dest + 'myndir/' + navn, dpi=dpi)
     print('enda ' + navn)
-    return '\n\\newpage\n\\section{%s}\n\\begin{figure}[h!]\\label{Hov%2.1f}\n\\includegraphics[scale=1]{myndir/%s}' \
+    return '\n\\FloatBarrier\n\\newpage\n\\section{%s}\n\\begin{figure}[h!]\\label{Hov%2.1f}\n\\includegraphics[scale=1]{myndir/%s}' \
            '\n\\caption{%s}\n\\end{figure}\n\\newpage\n' % (section, ratning, navn, caption)
 
 
@@ -136,7 +136,7 @@ def speedbins(bins, dato, df, dypir, dest='', dpi=200,
 
     plt.subplots_adjust(left=0.1, bottom=0.05, right=0.95, top=0.95, wspace=0.0, hspace=0.2)
     fig.savefig(dest + 'myndir/%s' % navn, dpi=dpi)
-    return '\n\\newpage\n\\section{%s}\n\\begin{figure}[h!]\\label{speedbin}\n\\includegraphics[scale=1]{myndir/%s}' \
+    return '\n\\FloatBarrier\n\\newpage\n\\section{%s}\n\\begin{figure}[h!]\\label{speedbin}\n\\includegraphics[scale=1]{myndir/%s}' \
            '\n\\caption{%s}\n\\end{figure}\n\\newpage\n' % (section, navn, caption)
 
 
@@ -163,10 +163,10 @@ def plotrose(ax, N, umax, lv, Es, Ns, eind='mm/s', axline=.5, axcolor='k', alpha
     F = np.zeros(shape=(N, N))
 
     #  her filli eg inn í bins
-    for nn, ee in zip(Ns, Es):
+    for k in range(len(Ns)):
         #  hvat fyri bin skal hendan mátingin inní
-        Ebin = int(np.floor(((N-1)*((ee)+umax)) / (2 * umax) + .5))
-        Nbin = int(np.floor(((N-1)*((nn)+umax)) / (2 * umax) + .5))
+        Ebin = int(np.floor(((N-1)*((Es[k])+umax)) / (2 * umax) + .5))
+        Nbin = int(np.floor(((N-1)*((Ns[k])+umax)) / (2 * umax) + .5))
         if 0 <= Ebin < N and 0 <= Nbin < N:
             F[Nbin][Ebin] += 1
 
@@ -197,10 +197,10 @@ def plotrose(ax, N, umax, lv, Es, Ns, eind='mm/s', axline=.5, axcolor='k', alpha
         #  sortera ratt
         Zj = sorted(Zj, key=lambda x: x[1])
         count = 1
-        for myvar in Zj:
+        for k in range(len(Zj)):
             #  set virðini inn til at gera konfidens interval
-            temp = count - myvar[1]
-            myvar[1] = count
+            temp = count - Zj[k][1]
+            Zj[k][1] = count
             count = temp
 
         #  set elimentini uppá pláss aftur
@@ -273,7 +273,7 @@ def tekna_dist_rose(bins, data, N, umax, dypir, dest='LaTeX/', dpi=200,
     plt.gca().set_aspect('equal', adjustable='box')
     plt.subplots_adjust(left=0.05, bottom=0.05, right=0.95, top=0.95, wspace=0.0, hspace=0.5)
     fig.savefig(dest + 'myndir/' + navn)
-    return '\n\\newpage\n\\section{%s}\n\\begin{figure}[h!]\\label{rose}\n\\includegraphics[scale=1]{myndir/%s}' \
+    return '\n\\FloatBarrier\n\\newpage\n\\section{%s}\n\\begin{figure}[h!]\\label{rose}\n\\includegraphics[scale=1]{myndir/%s}' \
            '\n\\caption{%s}\n\\end{figure}\n\\newpage\n' % (section, navn, caption)
 
 
@@ -355,20 +355,20 @@ def progressive_vector(bins, dato, uvdf, dypir, dest='LaTeX/', dpi=200,
             punktir[2].append(process_dato)
         plots.append(punktir)
 
-    for i, myplot in enumerate(plots):
+    for i in range(len(plots)):
         if i == 0:
             prelabel = 'Surface layer'
         elif i == 1:
             prelabel = 'Center layer'
         else:
             prelabel = 'Bottom layer'
-        punktir = myplot
+        punktir = plots[i]
         xmin = np.min(punktir[0])
         xmax = np.max(punktir[0])
         ymin = np.min(punktir[1])
         ymax = np.max(punktir[1])
 
-        axs.plot(myplot[0], myplot[1], linewidth=2.5, alpha=.05, color='k')
+        axs.plot(plots[i][0], plots[i][1], linewidth=2.5, alpha=.05, color='k')
 
         tempdato = np.array(punktir[2])
         punktir = np.array([np.array(punktir[0]), np.array(punktir[1])]).T.reshape(-1, 1, 2)
@@ -380,7 +380,7 @@ def progressive_vector(bins, dato, uvdf, dypir, dest='LaTeX/', dpi=200,
         lc.set_linewidth(2)
         line = axs.add_collection(lc)
 
-        axs.scatter(myplot[0][-1], myplot[1][-1], label=prelabel)
+        axs.scatter(plots[i][0][-1], plots[i][1][-1], label=prelabel)
         glxmax = max(xmax, glxmax)
         glymax = max(ymax, glymax)
         glxmin = max(xmin, glxmin)
@@ -402,7 +402,7 @@ def progressive_vector(bins, dato, uvdf, dypir, dest='LaTeX/', dpi=200,
                  bins[1], -dypir[bins[1]],
                  bins[2], -dypir[bins[2]])
 
-    return '\n\\newpage\n\\section{%s}\n\\begin{figure}[h!]\\label{PVD}\n\\includegraphics[scale=1]{myndir/%s}' \
+    return '\n\\FloatBarrier\n\\newpage\n\\section{%s}\n\\begin{figure}[h!]\\label{PVD}\n\\includegraphics[scale=1]{myndir/%s}' \
            '\n\\caption{%s}\n\\end{figure}\n\\newpage\n' % (section, navn, caption)
 
 
@@ -509,7 +509,7 @@ def frequencytabellir(datadf, dypir, dest='LaTeX/',
         newpage = ''
     caption = ['Frequency (in parts per thousand) of speeds equal to or exeeding speified values.',
                'Frequency (in parts per thousand) of speeds less than speified values.']
-    return '\n\\newpage' \
+    return '\n\\FloatBarrier\n\\newpage' \
            '\n\\section{%s}' \
            '\n\\begin{table}[h!]\\label{high_spd}' \
            '\n\\resizebox{\\textwidth}{!}{' \
@@ -558,14 +558,14 @@ def duration_speed(bins, dato, magdf, dypir, dest='LaTeX/',
             delta_tid = (dato[i] - dato0) * (24 * 60)       #  min
             dato0 = dato[i]
             #  uppdatera durationspeeds
-            for k, myspeed in enumerate(speed):
-                if myspeed <= magnetude:
+            for k in range(len(speed)):
+                if speed[k] <= magnetude:
                     durationspeeds[k] += delta_tid
                 else:
                     durationspeeds[k] = 0
-            for d, myduration in enumerate(duration):
+            for d in range(len(duration)):
                 for s in range(len(speed)):
-                    if durationspeeds[s] >= myduration:
+                    if durationspeeds[s] >= duration[d]:
                         tabell[s][d] += 1
         #  skriva tex tabell
         texstr = '\\begin{tabular}{|' + (1 + len(duration))*'r|' + '}\n'
@@ -575,8 +575,8 @@ def duration_speed(bins, dato, magdf, dypir, dest='LaTeX/',
         for x in duration:
             texstr += '&\t' + str(x).rjust(4)
         texstr += '\\\\\\hline\n'
-        for s, myspeed in enumerate(speed):
-            texstr += str(myspeed).rjust(4)
+        for s in range(len(speed)):
+            texstr += str(speed[s]).rjust(4)
             for d in range(len(duration)):
                 #  temp er tað nasta talið sum skal inní tabellina
                 #  tað er ok at sama total verður brúkt til alt tí tað er sama data
@@ -603,7 +603,7 @@ def duration_speed(bins, dato, magdf, dypir, dest='LaTeX/',
         caption.append('%s, bin no: %s. at %2.0fm Depth'
                        % (prelabel, item, -dypir[item - 1]))
         label.append('\\label{Dur_%s}' % (item,))
-    return '\n\\newpage' \
+    return '\n\\FloatBarrier\n\\newpage' \
            '\n\\section{%s}' \
            '\nOccurrence (in parts per thousand) of contiguous periods longer than or equal to ' \
            'specified duration with speeds equal to or exceeding specified threshold values (Speed). ' \
@@ -632,3 +632,4 @@ def duration_speed(bins, dato, magdf, dypir, dest='LaTeX/',
            '\n\\caption{%s}' \
            '\n\\end{table}' \
            '\n\\newpage\n' % (section, filnovn[0], caption[0], filnovn[1], caption[1], filnovn[2], caption[2])
+

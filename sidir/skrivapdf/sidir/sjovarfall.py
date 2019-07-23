@@ -75,7 +75,7 @@ def tidal_analysis_for_depth(tin, uin, vin, lat=62,
 def tidal_analysis_for_depth_bins(bins, dato, datadf, dypir, lat=62,
                                   section='Tidal analysis for selected depths',
                                   dest = 'LaTeX/'):
-    out = '\\newpage\n\\section{%s}\n' % (section,)
+    out = '\n\\FloatBarrier\n\\newpage\n\\section{%s}\n' % (section,)
     #  TODO skriva hettar til at taka uv data inn
     for i, mytempbin in enumerate(bins):
         if i == 0:
@@ -112,7 +112,7 @@ def tital_oll_dypir(dato, bins, Frqs, datadf, dypir, lat=62, verbose = True,
         coefsN[i] = utide.solve(tin, v, lat=lat, constit=Frqs, verbose=verbose)
     depts = [-dypir[x - 1] for x in bins]
 
-    out = '\n\\newpage\n\\section{%s}' % (Section,)
+    out = '\n\\FloatBarrier\n\\newpage\n\\section{%s}' % (Section,)
     col = ['Bin', 'Depth', 'E-ampl', 'E-gpl', 'N-ampl', 'N-gpl', 'Major', 'minor', 'Theta', 'Graphl', 'R']
     supcol = ['', 'm', 'mm/sec', 'deg', 'mm/sec', 'deg', 'mm/sec', 'mm/sec', 'deg', 'deg', '']
 
@@ -192,6 +192,7 @@ def tidal_non_tidal_plot(dato, direct, mag, figwidth=6, figheight=7.1, dpi=200,
     coef.umean = float(0)
     coef.vmean = float(0)
     reconstruckt = utide.reconstruct(tin, coef=coef, verbose=verbose)
+    reconstruckt = utide.reconstruct(tin, coef=coef, verbose=verbose)
 
     fig, axs = plt.subplots(ncols=1, nrows=2, figsize=(figwidth, figheight), dpi=dpi)
     mpl.rcParams['font.size'] = font
@@ -216,7 +217,7 @@ def tidal_non_tidal_plot(dato, direct, mag, figwidth=6, figheight=7.1, dpi=200,
 def tidal_non_tidal_bins(bins, dato, datadf, dypir,
                          lat=62, verbose=True, section='Tidal and non-tidal currents',
                          dest='LaTeX/'):
-    out = '\n\\newpage'
+    out = '\n\\FloatBarrier\n\\newpage'
     out += '\n\\section{%s}' % (section,)
     #  TODO partur av analysini er í caption ??? :/
     for i, item in enumerate(bins):
@@ -239,4 +240,50 @@ def tidal_non_tidal_bins(bins, dato, datadf, dypir,
         out += '\n\\newpage\n'
     return out
 
+def tidaldominesrekkja(item, mag, direct, dato, dypid, lat=62, verbose=True):
+    tin = np.array(dato)
+    u = mag * np.sin(np.deg2rad(direct))
+    v = mag * np.cos(np.deg2rad(direct))
+    coef = utide.solve(tin, u, v, lat=lat, verbose=verbose, trend=True)
+    reconstruckt = utide.reconstruct(tin, coef=coef, verbose=verbose)
+    orgmag = [x for x in mag if not np.isnan(x)]
+    recmag = [np.sqrt(x**2+y**2) for x, y in zip(u - reconstruckt.u, v - reconstruckt.v) if not np.isnan(x)]
+    out = ''
+    out += str(item)
+    out += '&\t%2.2f' % (dypid,)
+    out += '&\t%2.2f\\%%' % (100 * np.var(recmag)/np.var(orgmag),)
+    out += '&\t%6.0f' % (sum([coef.Lsmaj[i] for i in range(6)]),)
+    out += '&\t%s' % ('Ja' if 100 * np.var(recmag)/np.var(orgmag)<50 and sum([coef.Lsmaj[i] for i in range(6)])>150 else 'Nei',)
+    out +='\\\\\n'
+    return out
 
+def tidaldomines(bins, dato, datadf, dypir, lat=62, verbose=True, section='Sjovarfall', dest='LaTeX/'):
+    colonnir = ['bin', 'dypid', 'varratio', 'sum', 'sjóvarfalsdrivin']
+    tabel = '\\begin{tabular}{|r|r|r|r|c|}\n'
+    tabel += '\\hline\n'
+    tabel += colonnir[0]
+    for col in colonnir[1:]:
+        tabel += '&\t%s' % col
+    tabel += '\\\\\\hline\n'
+    for i in range(len(dypir)):
+        item = i+1
+        dypid = dypir[i]
+        mag = datadf['mag' + str(i+1)].values
+        direct = datadf['dir' + str(i+1)].values
+        tabel += tidaldominesrekkja(item, mag, direct, dato, dypid, lat=62, verbose=False)
+    tabel += '\\hline\n\\end{tabular}'
+    tabel_fil = open(dest + 'Talvur/sjovarfalsdrivin.tex', 'w')
+    tabel_fil.write(tabel)
+    tabel_fil.close()
+    caption = 'sjovarfalsdrivin'
+    out = '\n\\FloatBarrier\n\\newpage'
+    out += '\n\\section{sjovarfalsdrivin}'
+    out += '\n\\begin{table}[!ht]\\label{sjovarfalsdirvin}'
+    out += '\n\\centering'
+    out += '\n\\resizebox{\\textwidth}{!}{'
+    out += '\n\\input{Talvur/sjovarfalsdrivin.tex}'
+    out += '\n}'
+    out += '\n\\caption{%s}' % (caption,)
+    out += '\n\\end{table}'
+    out += '\n\\newpage\n'
+    return out

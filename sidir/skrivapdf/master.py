@@ -17,11 +17,12 @@ from sidir.streym import duration_speed
 from sidir.sjovarfall import tidal_analysis_for_depth_bins
 from sidir.sjovarfall import tital_oll_dypir
 from sidir.sjovarfall import tidal_non_tidal_bins
+from sidir.sjovarfall import tidaldomines
 
 #  inlesData
-path_to_data = '../csv/navn/'
-dest = '../LaTeX/navn/'
-navn_a_fili = 'master.tex'
+path_to_data = '../csv/DJUD1901/'
+dest = '../LaTeX/DJUD1901/'
+navn_a_fili = 'DJUD1901.tex'
 
 
 # uppsetan til plottini
@@ -65,6 +66,7 @@ option_durationtabellir = True
 option_tidal_3_dypir = True
 option_tidal_oll_dypir = True
 option_tidal_non_tidal_bins = True
+option_sjovarfalsdrivi = True
 #--------------------------------------------------------------------------------
 
 # inles alt dataði
@@ -200,6 +202,10 @@ if option_tidal_oll_dypir:
 #  tekna u og v árðin vit hava tiki frequensarnir vekk og aftaná
 if option_tidal_non_tidal_bins:
     a = tidal_non_tidal_bins(top_mid_bot_layer, date, datadf, dypir, lat=62, dest=dest)
+    file.write(a)
+
+if option_sjovarfalsdrivi:
+    a = tidaldomines(top_mid_bot_layer, date, datadf, dypir, lat=62, dest=dest)
     file.write(a)
 
 #  enda texdocument
