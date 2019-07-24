@@ -1,4 +1,4 @@
-from sidir.LaTeX import HelloWorld as hello
+from . import HelloWorld as hello
 
 def init(ingestion_listbox):
     mainsidir = ingestion_listbox.insert("", 0, text='Sidir')
