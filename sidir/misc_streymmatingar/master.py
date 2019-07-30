@@ -24,7 +24,6 @@ def skriva_doc(setup_dict):
     path_to_data = setup_dict['path']['data'].get() + '/'
     dest = setup_dict['path']['dest'].get() + '/LaTeX/'
     navn_a_fili = 'master.tex'
-    print(dest)
 
 
     # uppsetan til plottini

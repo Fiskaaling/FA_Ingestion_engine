@@ -86,5 +86,4 @@ def setupmetaframe(frame, setup_dict):
     meta['leitiord'] = Entry(frame, width=100)
     meta['leitiord'].grid(row=14, column=1)
 
-    print(meta['status'])
     setup_dict['meta'] = meta

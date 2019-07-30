@@ -13,7 +13,6 @@ def germappu(setup_dict):
 
     #  TODO hvat skal eg gera við hettar???
     path_to_skabilon = startdir + '/sidir/nogui/LaTeX/skabilon'
-    print(os.listdir(path_to_skabilon))
 
     if path['dest'].get() == 'path':
         os.chdir(startdir)
@@ -24,7 +23,6 @@ def germappu(setup_dict):
     if not 'LaTeX' in os.listdir():
         os.mkdir('LaTeX')
     os.chdir('LaTeX')
-    print(os.getcwd())
     if len(os.listdir())>0:
         os.chdir(startdir)
         print('mappan er ikki tóm')
@@ -37,7 +35,6 @@ def germappu(setup_dict):
             shutil.copytree(s, d)
         else:
             shutil.copy2(s, d)
-    print(path['mynd'].get())
     Myndin = False
     if path['mynd'].get() != 'path':
         os.mkdir(os.path.join('myndir', 'permumynd'))

@@ -9,7 +9,6 @@ def vel_dest(frame, setup_dict):
     setup_dict['path']['dest'].set(temp)
 
 def vel_mynd(frame, setup_dict):
-    print(setup_dict['N'])
     temp = filedialog.askopenfilename(title='Velfil',
                                        filetypes=(("all files", "*.*"), ("png files", "*.png")))
     setup_dict['path']['mynd'].set(temp)

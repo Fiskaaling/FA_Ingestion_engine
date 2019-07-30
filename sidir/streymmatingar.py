@@ -3,10 +3,6 @@ import os
 
 from .misc_streymmatingar import setupframe
 
-
-def hello():
-    print('hello')
-
 def streym(frame, root):
     for widget in frame.winfo_children():
         widget.destroy()
@@ -62,4 +58,3 @@ def streym(frame, root):
     setupframe.setupmetaframe(meta_frame, setup_dict)
 
 
-    print(setup_dict['N'])
