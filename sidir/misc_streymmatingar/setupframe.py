@@ -3,7 +3,7 @@ import os
 
 from pprint import pprint
 
-from . import meta_fun, fun
+from . import meta_fun, fun, setupfun
 
 def setupmenuframe(frame, setup_dict):
     Button(frame, text='print', command=lambda: pprint(setup_dict)).pack(side=LEFT)
@@ -62,7 +62,7 @@ def setupmetaframe(frame, setup_dict):
     meta['fragrnr'] = Entry(frame, width=100)
     meta['fragrnr'].grid(row=8, column=1)
 
-    Label(frame, text='Heiti').grid(row=9)
+    Label(frame, text='Verkatlan').grid(row=9)
     meta['verkatlan'] = Entry(frame, width=100)
     meta['verkatlan'].grid(row=9, column=1)
 
@@ -85,5 +85,7 @@ def setupmetaframe(frame, setup_dict):
     Label(frame, text='Leitiorð').grid(row=14)
     meta['leitiord'] = Entry(frame, width=100)
     meta['leitiord'].grid(row=14, column=1)
+
+    setupfun.inset_feltir(meta)
 
     setup_dict['meta'] = meta
