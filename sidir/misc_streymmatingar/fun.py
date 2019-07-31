@@ -1,7 +1,6 @@
 import os
 import shutil
 import time
-import subprocess
 
 from pprint import pprint
 
@@ -47,11 +46,6 @@ def germappu(setup_dict):
     metafil.write(germetafilin(setup_dict, Myndin))
     metafil.close()
     master.skriva_doc(setup_dict)
-    subprocess.call(['pdflatex', 'master.tex'])
-    subprocess.call(['pdflatex', 'master.tex'])
-    subprocess.call(['pdflatex', 'master.tex'])
-    time.sleep(1)
-    #subprocess.call(['zathura', 'master.pdf'])
 
     os.chdir(startdir)
 
