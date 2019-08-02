@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter import filedialog
 from misc.faLog import *
 import pandas as pd
+import getpass # Til at fáa brúkaranavn
 import numpy as np
 import platform
 import os
@@ -12,13 +13,18 @@ import matplotlib
 matplotlib.use('TkAgg')
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
-
+from scipy import stats
+import datetime
+from tkinter import messagebox
+import misc.git_toolbox as gitTB
+from misc.sha2calc import get_hash
+textsize = 16
 
 def bin_average_frame(frame, root2):
     global root
     global mappunavn
     #mappunavn = './Ingestion/CTD/Lokalt_Data/2019-01-31/75_All_ASCII_Out'
-    mappunavn = './Ingestion/CTD/Lokalt_Data/2019-05-06/75_All_ASCII_Out'
+    mappunavn = './Ingestion/CTD/Lokalt_Data/2019-06-04/75_All_ASCII_Out'
     root = root2
     for widget in frame.winfo_children():
         widget.destroy()
@@ -26,18 +32,19 @@ def bin_average_frame(frame, root2):
     Label(frame, text='Bin Average').pack(side=TOP, anchor=W)
     controlsFrame = Frame(frame)
     controlsFrame.pack(side=TOP, anchor=W)
-    velMappuBtn = Button(controlsFrame, text='Vel Fílir', command=lambda: velFil())
+    velMappuBtn = Button(controlsFrame, text='Vel Fílir', command=velFil)
     velMappuBtn.pack(side=LEFT, anchor=W)
 
     processBtn = Button(controlsFrame, text='Processera', command=lambda: processera(fig, canvas, Quality_frame))
     processBtn.pack(side=LEFT, anchor=W)
 
+    Right_frame = Frame(frame)
+    Right_frame.pack(fill=BOTH, expand=False, side=RIGHT, anchor=N)
+
     fig = Figure(figsize=(12, 8), dpi=100)
     plot_frame = Frame(frame, borderwidth=1, highlightbackground="green", highlightcolor="green", highlightthickness=1)
     plot_frame.pack(fill=BOTH, expand=True, side=LEFT, anchor=N)
     canvas = FigureCanvasTkAgg(fig, master=plot_frame)
-    Right_frame = Frame(frame)
-    Right_frame.pack(fill=BOTH, expand=True, side=RIGHT, anchor=N)
 
     Quality_frame = Frame(Right_frame)
     Quality_frame.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
@@ -53,6 +60,119 @@ def velFil():
     global mappunavn
     mappunavn = filedialog.askdirectory(title='Vel túramappu', initialdir='./Ingestion/CTD/Lokalt_Data/')
 
+
+def qcontrol(Quality_subframe, depth, time_fulllength, soak_start, soak_stop, downcast_start, downcast_stop, upcast_stop, pump_on, filnavn):
+    for widget in Quality_subframe.winfo_children(): # Tømur quality frame
+        widget.destroy()
+
+    cast_quality=0
+    downcast_quality=0
+    upcast_quality=0
+
+    # Soaking stabilitetur
+    soakvar = np.var(depth[soak_start:soak_stop])
+    print('Sample variansur á soak er: ' + str(soakvar))
+    cast_quality -= min(soakvar, 1)
+    # Downcast stabilitetur
+    downcast_diff = np.diff(depth[downcast_start:downcast_stop])
+    downcast_slope = -1
+    if len(downcast_diff)>1:
+        downcast_slope, intercept, downcast_r_value, p_value, std_err = stats.linregress(time_fulllength[downcast_start:downcast_stop], depth[downcast_start:downcast_stop])
+        print('Downcast R value: ' + str(downcast_r_value))
+    # Upcast stabilitetur
+    # Fitta linju og rokna error
+    slope, intercept, upcast_r_value, p_value, std_err = stats.linregress(time_fulllength[downcast_stop:upcast_stop], depth[downcast_stop:upcast_stop])
+    upcast_r_value = abs(upcast_r_value)
+    print('Upcast R value: ' + str(upcast_r_value))
+    # Pumpa tendrar
+    if pump_on == -1:
+        Label(Quality_subframe, text='Pumpan tendraði ikki', font=("Helvetica", textsize), bg="red").pack(side=TOP, anchor=W)
+        cast_quality -= 100
+    elif (time_fulllength[pump_on] + 10 < time_fulllength[downcast_start])\
+            and (time_fulllength[soak_start] < time_fulllength[pump_on] < time_fulllength[soak_stop]):
+        Label(Quality_subframe, text='Pumpan tendraði til tíðuna', font=("Courier", textsize), bg="lightgreen").pack(side=TOP, anchor=W)
+        cast_quality += 1
+    else:
+        Label(Quality_subframe, text='Pumpan tendraði ikki tá hon burdi', font=("Helvetica", textsize),
+              bg="red").pack(side=TOP, anchor=W)
+        cast_quality -= 1
+    # Soak tíð og varians
+    if time_fulllength[soak_stop] - time_fulllength[soak_start] > 60:
+        Label(Quality_subframe, text='Soak er nóg miki langt', font=("Courier", textsize), bg="lightgreen").pack(
+            side=TOP, anchor=W)
+        cast_quality += 1
+        if soakvar < 0.1:
+            Label(Quality_subframe, text='Variansurin á soak er OK', font=("Courier", textsize), bg="lightgreen").pack(
+                side=TOP, anchor=W)
+        else:
+            Label(Quality_subframe, text='Variansurin á soak er høgur', font=("Helvetica", textsize), bg="orange").pack(
+                side=TOP,
+                anchor=W)
+    else:
+        Label(Quality_subframe, text='Soak er ikki nóg langt', font=("Helvetica", textsize), bg="red").pack(side=TOP,
+                                                                                                          anchor=W)
+        cast_quality -= 1
+
+    if len(downcast_diff) > 1:
+        if np.min(downcast_diff) >= 0:
+            Label(Quality_subframe, text='Downcast fer ikki upp', font=("Courier", textsize), bg="lightgreen").pack(side=TOP, anchor=W)
+            downcast_quality += 1
+        else:
+            Label(Quality_subframe, text='Downcast fer upp', font=("Helvetica", textsize), bg="red").pack(side=TOP,anchor=W)
+            downcast_quality -= 1
+
+        if downcast_r_value > 0.99:
+            Label(Quality_subframe, text='Downcast er stabilt', font=("Courier", textsize), bg="lightgreen").pack(side=TOP, anchor=W)
+        else:
+            Label(Quality_subframe, text='Downcast er ikki stabilt', font=("Helvetica", textsize), bg="red").pack(side=TOP, anchor=W)
+        downcast_quality += downcast_r_value
+
+        if upcast_r_value > 0.97:
+            Label(Quality_subframe, text='Upcast er stabilt', font=("Courier", textsize), bg="lightgreen").pack(side=TOP, anchor=W)
+        else:
+            Label(Quality_subframe, text='Upcast er ikki stabilt', font=("Helvetica", textsize), bg="red").pack(side=TOP, anchor=W)
+        upcast_quality += upcast_r_value
+
+        if 0.5 < downcast_slope < 1:
+            Label(Quality_subframe, text='Downcast ferð er ok', font=("Courier", textsize), bg="lightgreen").pack(side=TOP, anchor=W)
+            downcast_quality += 1
+        else:
+            if downcast_slope < 0.5:
+                Label(Quality_subframe, text='Downcast ferð er ov lág', font=("Helvetica", textsize), bg="red").pack(side=TOP, anchor=W)
+            else:
+                Label(Quality_subframe, text='Downcast ferð er ov høg', font=("Helvetica", textsize), bg="red").pack(side=TOP, anchor=W)
+            downcast_quality -= 1
+
+    text, is_dirty = gitTB.get_info()
+    if is_dirty:
+        Label(Quality_subframe, text='Git commit broytingar', font=("Helvetica", textsize), bg="red").pack(side=TOP, anchor=W)
+        cast_quality -= 1
+    else:
+        Label(Quality_subframe, text='Git er ok', font=("Helvetica", textsize), bg="lightgreen").pack(side=TOP, anchor=W)
+
+    if 'Master' not in text:
+        Label(Quality_subframe, text='Git koyrur ikki á Master branch', font=("Helvetica", textsize), bg="orange").pack(side=TOP, anchor=W)
+
+    Label(Quality_subframe, text='Kvalitetur: ' + str(np.round(cast_quality+downcast_quality+upcast_quality,2)), font=("Helvetica", textsize)).pack(side=TOP, anchor=W)
+    datetimestring = filnavn.split()
+    measurement_time = datetime.datetime.strptime(datetimestring[0], '%Y-%m-%dt%H%M%S') + datetime.timedelta(0,time_fulllength[downcast_start])
+    print(measurement_time)
+
+
+
+    Label(Quality_subframe, text=('―' * 40), font=("Courier", 8)).pack(side=TOP, anchor=W) ## Seperator
+    Label(Quality_subframe, text='Soaktid: ' + str(time_fulllength[soak_stop] - time_fulllength[soak_start]) + ' sek', font=("Courier", textsize-4)).pack(side=TOP, anchor=W)
+    Label(Quality_subframe, text='Soakdypið:' + str(np.round(np.mean(depth[soak_start:soak_stop]), 3)) + ' m', font=("Courier", textsize-4)).pack(side=TOP, anchor=W)
+    Label(Quality_subframe, text='Støðsta dýpið: ' + str(np.round(max(depth), 2)) + ' m', font=("Courier", textsize - 4)).pack(side=TOP, anchor=W)
+    Label(Quality_subframe, text='Downcast ferð: ' + str(np.round(downcast_slope, 2)) + ' m/s', font=("Courier", textsize - 4)).pack(side=TOP, anchor=W)
+
+    summary = {'downcast_quality': downcast_quality, 'upcast_quality': upcast_quality, 'cast_quality': cast_quality, 'soak_time': time_fulllength[soak_stop] - time_fulllength[soak_start], 'soak_depth': np.mean(depth[soak_start:soak_stop]),
+               'soak_var': soakvar, 'downcast_time': measurement_time, 'downcast_speed': downcast_slope, 'max_depth': max(depth)}
+
+
+    return summary
+
+
 def processera(fig, canvas, Quality_frame):
     global mappunavn
     log_b()
@@ -60,19 +180,29 @@ def processera(fig, canvas, Quality_frame):
     fig.clf()
     ax = fig.subplots()
     filnavn = os.listdir(mappunavn)
+    filnavn.sort()
     global filur
     data = pd.read_csv(mappunavn + '/' + filnavn[filur], encoding='latin-1') # Les fíl
 
     for widget in Quality_frame.winfo_children(): # Tømur quality frame
         widget.destroy()
     list_of_casts = os.listdir(mappunavn)
+    list_of_casts.sort()
+    parent_folder = os.path.dirname(mappunavn)
     for cast in list_of_casts:
+        casttext = cast
+        if os.path.exists(parent_folder + '/ASCII_Downcast/' + cast.split('.')[0] + '_metadata.csv'):
+            casttext += ' ✓'
+        if os.path.exists(parent_folder + '/ASCII_Downcast/' + cast.split('.')[0] + '_do_not_use_.csv'):
+            casttext += ' X'
         if cast == filnavn[filur]:
-            Label(Quality_frame, text=cast, font=("Courier", 18), bg="Green").pack(side=TOP, anchor=W)
+            Label(Quality_frame, text=casttext, font=("Courier", textsize, 'underline')).pack(side=TOP, anchor=W)
         else:
-            Label(Quality_frame, text=cast, font=("Courier", 18)).pack(side=TOP, anchor=W)
+            Label(Quality_frame, text=casttext, font=("Courier", textsize)).pack(side=TOP, anchor=W)
 
-    Label(Quality_frame, text=('―'*100), font=("Courier", 18)).pack(side=TOP, anchor=W)
+    Label(Quality_frame, text=('―'*20), font=("Courier", textsize)).pack(side=TOP, anchor=W)
+    quality_subframe = Frame(Quality_frame)
+    quality_subframe.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
 
     depth = data[data.columns[0]]
     time_fulllength = data['TimeS']
@@ -157,7 +287,6 @@ def processera(fig, canvas, Quality_frame):
         else:
             pass
 
-    parent_folder = os.path.dirname(mappunavn)
     if os.path.isdir(parent_folder + '/0_RAW_DATA'):
         raw_filar = os.listdir(parent_folder + '/0_RAW_DATA/')
         raw_filnavn = '-1'
@@ -189,11 +318,11 @@ def processera(fig, canvas, Quality_frame):
                     pump_off = i
                 lastLine = line[0]
         print('Pump ' + str(pump_on))
-        if not pump_on == -1:
+        if pump_on != -1:
             ax.plot([pump_on/16, pump_on/16], [-100, 100], ':')
             print('Pumpan tendraði aftaná: ' + str(pump_on/16) + ' sek')
 
-        if not pump_off == -1:
+        if pump_off != -1:
             print('Pumpan sløknaði aftaná: ' + str(pump_off/16) + ' sek')
             ax.plot([pump_off/16, pump_off/16], [-100, 100], ':')
         bin_stodd = 1 # [m]
@@ -204,26 +333,30 @@ def processera(fig, canvas, Quality_frame):
         #downcast_stop_line = ax.plot([time_fulllength[downcast_stop], time_fulllength[downcast_stop]], [-100, 100], 'k')
     bins = np.arange(1,5+.2,.2)
 
-    #for i, d in enumerate(depth[downcast_start:downcast_stop_d]):
-    #    if
-
-
-    #bins_per_meter = 1
-    #bins = np.linspace(bins_per_meter, np.ceil(maxd), np.ceil(maxd*bins_per_meter))
-    #for bin in bins:
-    #    bin_data = []
-    #    for i, d in enumerate(dypid[downcast_start:downcast_stop]):
-    #        if abs(bin - d) < bin_stodd:
-    #            print(str(d) + " - " + str(bin))
-
     print(bins)
     print('maxd : ' + str(maxd) + ' m')
     print('n_midlingspunktir : ' + str(n_midlingspunktir))
     print('soak_start : ' + str(soak_start))
-    print('soak_stop : '+ str(soak_stop))
+    print('soak_stop : ' + str(soak_stop))
     print('soak_time :' + str(soaktime) + ' sec')
     print('soak_depth : ' + str(soak_depth) + ' m')
     global soak_start_line, soak_stop_line, downcast_start_line, downcast_stop_line, upcast_stop_line
+    if soak_start == -1:
+        log_w('Ávaring! Soak Start er ikki funnið')
+        soak_start = 50
+    if soak_stop == -1:
+        log_w('Ávaring! Soak Stop er ikki funnið')
+        soak_stop = 100
+    if downcast_start == -1:
+        log_w('Ávaring! Downcast Start er ikki funnið')
+        downcast_start = 150
+    if downcast_stop == -1:
+        log_w('Ávaring! Downcast Stop er ikki funnið')
+        downcast_stop = 200
+    if upcast_stop == -1:
+        log_w('Ávaring! Upcast Stop er ikki funnið')
+        upcast_stop = 250
+
     soak_start_line = ax.plot([time_fulllength[soak_start], time_fulllength[soak_start]], [-100, 100], 'k')
     soak_stop_line = ax.plot([time_fulllength[soak_stop], time_fulllength[soak_stop]], [-100, 100], 'k')
     downcast_start_line = ax.plot([time_fulllength[downcast_start], time_fulllength[downcast_start]], [-100, 100], 'k')
@@ -232,6 +365,10 @@ def processera(fig, canvas, Quality_frame):
 
     global selected_event
     selected_event = 0
+
+    global zoomed_in
+    zoomed_in = False
+
     global annotation
     annotation = ax.annotate('Soak Start',
                              xy=(time_fulllength[soak_start], maxd + 1),
@@ -241,8 +378,7 @@ def processera(fig, canvas, Quality_frame):
                              ha='center',
                              arrowprops=dict(arrowstyle="->"))
 
-    global zoomed_in
-    zoomed_in = False
+    qcontrol(quality_subframe, depth, time_fulllength, soak_start, soak_stop, downcast_start, downcast_stop, upcast_stop, pump_on, filnavn[filur])
 
     def key(event):
         global soak_start, soak_stop, downcast_start, downcast_stop, upcast_stop
@@ -255,6 +391,7 @@ def processera(fig, canvas, Quality_frame):
             move_amount = 1
         else:
             move_amount = 8
+
         if event.keysym == 'w':
             if filur < len(filnavn)-1:
                 filur += 1
@@ -263,6 +400,41 @@ def processera(fig, canvas, Quality_frame):
             if filur != 0:
                 filur -= 1
                 update_qframe = True
+        elif event.keysym == 'Return':
+            log_b()
+            print('Calculating')
+            print(data.columns.values)
+            downcast_Data = pd.DataFrame(
+                {'DepSM': data.DepSM.iloc[downcast_start:downcast_stop], 'T068C': data.T068C.iloc[downcast_start:downcast_stop], 'FlECO-AFL': data['FlECO-AFL'].iloc[downcast_start:downcast_stop], 'Sal00': data['Sal00'].iloc[downcast_start:downcast_stop],
+                 'Sigma-é00': data['Sigma-é00'].iloc[downcast_start:downcast_stop], 'Sbeox0Mg/L': data['Sbeox0Mg/L'].iloc[downcast_start:downcast_stop]}) ## TODO: ger hettar betri. Set hettar í egna funku
+            if not os.path.isdir(parent_folder + '/ASCII_Downcast'):
+                os.mkdir(parent_folder + '/ASCII_Downcast')
+            downcast_Data.to_csv(parent_folder + '/ASCII_Downcast/' + filnavn[filur], index=False)
+            print('Assesing quality')
+            summary = qcontrol(quality_subframe, depth, time_fulllength, soak_start, soak_stop, downcast_start, downcast_stop, upcast_stop, pump_on, filnavn[filur])
+
+            confirmation = False
+            if summary['downcast_quality'] < 0:
+                if messagebox.askyesno('Vátta', 'Ávaring!\nKvaliteturin á kastinum er undir 0\n Vátta at allir parametrar eru rættir'):
+                    confirmation = True
+            else:
+                confirmation = True
+            if confirmation:
+                metadatafile = 'key,value\n'
+                metadatafile += 'Data_File_Name,' + filnavn[filur] + '\n'
+                sha256_hash = get_hash(parent_folder + '/ASCII_Downcast/' + filnavn[filur])
+                metadatafile += 'sha256_hash,' + sha256_hash + '\n'
+                metadatafile += 'processed_by,' + getpass.getuser() + '\n'
+                for key, value in summary.items():
+                    metadatafile += key + ',' + str(value) + '\n'
+                print(metadatafile)
+
+                text_file = open(parent_folder + '/ASCII_Downcast/' + filnavn[filur].split('.')[0] + '_metadata.csv', "w")
+                text_file.write(metadatafile)
+                text_file.close()
+                print('Done exporting')
+
+            log_e()
         elif event.keysym == 'l':
             if not zoomed_in:
                 selected_event += 1
@@ -303,6 +475,14 @@ def processera(fig, canvas, Quality_frame):
                     ax.set_xlim(time_fulllength[soak_stop] - 5, time_fulllength[soak_stop] + 5)
                     ax.set_ylim(np.min(depth[soak_stop - (5 * 16):soak_stop + (5 * 16)]) - 0.5,
                                     np.max(depth[soak_stop - (5 * 16):soak_stop + (5 * 16)]) + 0.5)
+                if selected_event == 2:
+                    ax.set_xlim(time_fulllength[downcast_start] - 5, time_fulllength[downcast_start] + 5)
+                    ax.set_ylim(np.min(depth[downcast_start - (5 * 16):downcast_start + (5 * 16)]) - 0.5,
+                                    np.max(depth[downcast_start - (5 * 16):downcast_start + (5 * 16)]) + 0.5)
+                if selected_event == 3:
+                    ax.set_xlim(time_fulllength[downcast_stop] - 5, time_fulllength[downcast_stop] + 5)
+                    ax.set_ylim(np.min(depth[downcast_stop - (5 * 16):downcast_stop + (5 * 16)]) - 0.5,
+                                    np.max(depth[downcast_stop - (5 * 16):downcast_stop + (5 * 16)]) + 0.5)
                 canvas.draw()
         elif event.keysym == 'o':
             ax.set_xlim(0, time_fulllength[len(time_fulllength)-1])
@@ -310,7 +490,21 @@ def processera(fig, canvas, Quality_frame):
             zoomed_in = False
             canvas.draw()
         elif event.keysym == 'space':
+            log_clear()
             processera(fig, canvas, Quality_frame)
+        elif event.keysym == 'onehalf':
+            qcontrol(quality_subframe, depth, time_fulllength, soak_start, soak_stop, downcast_start, downcast_stop,
+                     upcast_stop, pump_on, filnavn[filur])
+        elif event.keysym == 'Delete':
+            if os.path.exists(parent_folder + '/ASCII_Downcast/' + filnavn[filur].split('.')[0] + '_do_not_use_.csv'):
+                if messagebox.askyesno('Vátta', 'Strika at casti ikki skal brúkast?'):
+                    os.remove(parent_folder + '/ASCII_Downcast/' + filnavn[filur].split('.')[0] + '_do_not_use_.csv')
+            else:
+                if messagebox.askyesno('Vátta', 'Markera hettar casti sum tað ikki skal brúkast?'):
+                    text_file = open(parent_folder + '/ASCII_Downcast/' + filnavn[filur].split('.')[0] + '_do_not_use_.csv', "w")
+                    text_file.write('Hesin fílurin er brúktur til at markera at hettar casti ikki skal brúkast')
+                    text_file.close()
+
         if selected_event == -1: # Fyri at ikki kunna velja eina linju ið ikki er til
             selected_event = 0
         elif selected_event == 5:
@@ -333,7 +527,7 @@ def processera(fig, canvas, Quality_frame):
             if selected_event == 4:
                 upcast_stop_line.pop(0).remove()
                 upcast_stop_line = ax.plot([time_fulllength[upcast_stop], time_fulllength[upcast_stop]], [-100, 100], 'k')
-            update_annotations = True
+            #update_annotations = True
             canvas.draw()
         if update_annotations:
             global annotation
@@ -384,13 +578,17 @@ def processera(fig, canvas, Quality_frame):
             for widget in Quality_frame.winfo_children():  # Tømur quality frame
                 widget.destroy()
             global mappunavn
-            list_of_casts = os.listdir(mappunavn)
             for cast in list_of_casts:
+                casttext = cast
+                if os.path.exists(parent_folder + '/ASCII_Downcast/' + cast.split('.')[0] + '_metadata.csv'):
+                    casttext += ' ✓'
+                if os.path.exists(parent_folder + '/ASCII_Downcast/' + cast.split('.')[0] + '_do_not_use_.csv'):
+                    casttext += ' ⃠'
                 if cast == filnavn[filur]:
-                    Label(Quality_frame, text=cast, font=("Courier", 18), bg="Green").pack(side=TOP, anchor=W)
+                    Label(Quality_frame, text=casttext, font=("Courier", textsize), bg="Green").pack(side=TOP, anchor=W)
                 else:
-                    Label(Quality_frame, text=cast, font=("Courier", 18)).pack(side=TOP, anchor=W)
-            Label(Quality_frame, text=('―' * 100), font=("Courier", 18)).pack(side=TOP, anchor=W)
+                    Label(Quality_frame, text=casttext, font=("Courier", textsize)).pack(side=TOP, anchor=W)
+            Label(Quality_frame, text=('―' * 20), font=("Courier", textsize)).pack(side=TOP, anchor=W)
 
     root.bind('<Key>', key)
 

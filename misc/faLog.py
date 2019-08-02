@@ -3,7 +3,7 @@ from tkinter import *
 def gerlog(log_frame, root2):
     global log
     global root
-    global nw
+    global nw  # Number of warnings
     nw = 2.0
     root = root2
     log = Text(log_frame, bg='#888888')
@@ -13,7 +13,7 @@ def gerlog(log_frame, root2):
     log.tag_config('fystalinja', foreground='white', background='green')
     log.config(state=DISABLED)
 
-def print(text, nl=True):
+def log_print(text, nl=True):
     global root
     log.config(state=NORMAL)
     if nl:
@@ -22,6 +22,10 @@ def print(text, nl=True):
         log.insert(nw, str(text))
     log.config(state=DISABLED)
     root.update()
+
+
+def print(text, nl=True):
+    log_print(text, nl)
 
 
 def log_w(text):

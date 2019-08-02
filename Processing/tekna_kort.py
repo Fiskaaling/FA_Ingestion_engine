@@ -422,8 +422,6 @@ def les_og_tekna(text, fig, canvas, silent=False):
                     for iiiio, dep in enumerate(D_dep):
                         for i2o, depe in enumerate(dep):
                             if((61.62799 > D_lat[iiiio, i2o] > 61.59211) and (-6.9192 < D_lon[iiiio, i2o] < -6.80300)):
-                                #-6.919201789386688,61.627996265608594
-                                #-6.830079612480041,61.59211109814448
                                 plon.append(D_lon[iiiio, i2o])
                                 plat.append(D_lat[iiiio, i2o])
                                 if D_dep[iiiio, i2o] == float(-99.9):
@@ -700,6 +698,7 @@ def les_og_tekna(text, fig, canvas, silent=False):
                 scatter_legend = command[toindex::]
                 show_legend = True
             elif variable == 'scatter_tekst':
+                # Ger tað møguligt at tendra og sløkka legend
                 if command[toindex::] == 'True':
                     scatter_tekst = True
                 else:
@@ -848,8 +847,13 @@ def les_og_tekna(text, fig, canvas, silent=False):
         ax.get_proj = short_proj
         print('hello')
     if VisProgress:
-        text.tag_add('alt', '0.0', END)
-        text.tag_config('alt', foreground='black', background='white')
+        print(text.tag_names())
+        tags = text.tag_names()
+        for tag in tags:
+            text.tag_delete(tag)
+        #text.tag_add('alt', '0.0', END)
+        #text.tag_config('alt', foreground='black', background='white')
+
     canvas.draw()
     canvas.get_tk_widget().pack(fill=BOTH, expand=1)
     log_e()

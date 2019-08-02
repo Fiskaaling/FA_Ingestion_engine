@@ -6,7 +6,10 @@ Ingestion/CTD/Lokalt_Data/
 venv/
 data/
 work/
+sor/
+sidir/LaTeX/
 
+*pytest_cache*
 *temp.*
 
 *__pycache__*
