@@ -12,7 +12,9 @@ import matplotlib
 matplotlib.use('TkAgg')
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
-
+from scipy import stats
+import datetime
+import misc.git_toolbox as gitTB
 textsize = 16
 
 def bin_average_frame(frame, root2):
@@ -56,7 +58,7 @@ def velFil():
     mappunavn = filedialog.askdirectory(title='Vel túramappu', initialdir='./Ingestion/CTD/Lokalt_Data/')
 
 
-def qcontrol(Quality_subframe, depth, time_fulllength, soak_start, soak_stop, downcast_start, downcast_stop, upcast_stop, pump_on):
+def qcontrol(Quality_subframe, depth, time_fulllength, soak_start, soak_stop, downcast_start, downcast_stop, upcast_stop, pump_on, filnavn):
     for widget in Quality_subframe.winfo_children(): # Tømur quality frame
         widget.destroy()
 
@@ -68,6 +70,18 @@ def qcontrol(Quality_subframe, depth, time_fulllength, soak_start, soak_stop, do
     soakvar = np.var(depth[soak_start:soak_stop])
     print('Sample variansur á soak er: ' + str(soakvar))
     cast_quality -= min(soakvar, 1)
+    # Downcast stabilitetur
+    downcast_diff = np.diff(depth[downcast_start:downcast_stop])
+
+    if len(downcast_diff)>1:
+        downcast_slope, intercept, downcast_r_value, p_value, std_err = stats.linregress(time_fulllength[downcast_start:downcast_stop], depth[downcast_start:downcast_stop])
+        print('Downcast R value: ' + str(downcast_r_value))
+    print('Slope: ' + str(downcast_slope))
+    # Upcast stabilitetur
+    # Fitta linju og rokna error
+    slope, intercept, upcast_r_value, p_value, std_err = stats.linregress(time_fulllength[downcast_stop:upcast_stop], depth[downcast_stop:upcast_stop])
+    upcast_r_value = abs(upcast_r_value)
+    print('Upcast R value: ' + str(upcast_r_value))
     # Pumpa tendrar
     if pump_on == -1:
         Label(Quality_subframe, text='Pumpan tendraði ikki', font=("Helvetica", textsize), bg="red").pack(side=TOP, anchor=W)
@@ -80,6 +94,7 @@ def qcontrol(Quality_subframe, depth, time_fulllength, soak_start, soak_stop, do
         Label(Quality_subframe, text='Pumpan tendraði ikki tá hon burdi', font=("Helvetica", textsize),
               bg="red").pack(side=TOP, anchor=W)
         cast_quality -= 1
+    # Soak tíð og varians
     if time_fulllength[soak_stop] - time_fulllength[soak_start] > 60:
         Label(Quality_subframe, text='Soak er nóg miki langt', font=("Courier", textsize), bg="lightgreen").pack(
             side=TOP, anchor=W)
@@ -95,9 +110,43 @@ def qcontrol(Quality_subframe, depth, time_fulllength, soak_start, soak_stop, do
         Label(Quality_subframe, text='Soak er ikki nóg langt', font=("Helvetica", textsize), bg="red").pack(side=TOP,
                                                                                                           anchor=W)
         cast_quality -= 1
-    Label(Quality_subframe, text='Kvalitetur: ' + str(cast_quality), font=("Helvetica", textsize)).pack(side=TOP,
-                                                                                                          anchor=W)
 
+    if len(downcast_diff) > 1:
+        if np.min(downcast_diff) >= 0:
+            Label(Quality_subframe, text='Downcast fer ikki upp', font=("Courier", textsize), bg="lightgreen").pack(side=TOP, anchor=W)
+            downcast_quality += 1
+        else:
+            Label(Quality_subframe, text='Downcast fer upp', font=("Helvetica", textsize), bg="red").pack(side=TOP,anchor=W)
+            downcast_quality -= 1
+
+        if downcast_r_value > 0.99:
+            Label(Quality_subframe, text='Downcast er stabilt', font=("Courier", textsize), bg="lightgreen").pack(side=TOP, anchor=W)
+        else:
+            Label(Quality_subframe, text='Downcast er ikki stabilt', font=("Helvetica", textsize), bg="red").pack(side=TOP, anchor=W)
+        downcast_quality += downcast_r_value
+
+        if upcast_r_value > 0.97:
+            Label(Quality_subframe, text='Upcast er stabilt', font=("Courier", textsize), bg="lightgreen").pack(side=TOP, anchor=W)
+        else:
+            Label(Quality_subframe, text='Upcast er ikki stabilt', font=("Helvetica", textsize), bg="red").pack(side=TOP, anchor=W)
+        upcast_quality += upcast_r_value
+    Label(Quality_subframe, text='Kvalitetur: ' + str(np.round(cast_quality+downcast_quality+upcast_quality,2)), font=("Helvetica", textsize)).pack(side=TOP, anchor=W)
+    datetimestring = filnavn.split()
+    measurement_time = datetime.datetime.strptime(datetimestring[0], '%Y-%m-%dt%H%M%S') + datetime.timedelta(0,time_fulllength[downcast_start])
+    print(measurement_time)
+
+    Label(Quality_subframe, text=('―' * 40), font=("Courier", 8)).pack(side=TOP, anchor=W) ## Seperator
+    Label(Quality_subframe, text='Soaktid: ' + str(time_fulllength[soak_stop] - time_fulllength[soak_start]) + ' sek', font=("Courier", textsize-4)).pack(side=TOP, anchor=W)
+    Label(Quality_subframe, text='Soakdypið:' + str(np.round(np.mean(depth[soak_start:soak_stop]), 3)) + ' m', font=("Courier", textsize-4)).pack(side=TOP, anchor=W)
+    Label(Quality_subframe, text='Støðsta dýpið: ' + str(np.round(max(depth), 2)) + ' m', font=("Courier", textsize - 4)).pack(side=TOP, anchor=W)
+    Label(Quality_subframe, text='Downcast ferð: ' + str(np.round(downcast_slope, 2)) + ' m/s', font=("Courier", textsize - 4)).pack(side=TOP, anchor=W)
+
+    summary = {'downcast_quality': downcast_quality, 'upcast_quality': upcast_quality, 'cast_quality': cast_quality, 'soak_time': time_fulllength[soak_stop] - time_fulllength[soak_start], 'soak_depth': np.mean(depth[soak_start:soak_stop]),
+               'soak_var': soakvar, 'downcast_time': measurement_time, 'downcast_speed': downcast_slope, 'max_depth': max(depth)}
+
+    gitTB.get_info()
+
+    return summary
 
 
 def processera(fig, canvas, Quality_frame):
@@ -300,7 +349,7 @@ def processera(fig, canvas, Quality_frame):
                              ha='center',
                              arrowprops=dict(arrowstyle="->"))
 
-    qcontrol(quality_subframe, depth, time_fulllength, soak_start, soak_stop, downcast_start, downcast_stop, upcast_stop, pump_on)
+    qcontrol(quality_subframe, depth, time_fulllength, soak_start, soak_stop, downcast_start, downcast_stop, upcast_stop, pump_on, filnavn[filur])
 
     def key(event):
         global soak_start, soak_stop, downcast_start, downcast_stop, upcast_stop
@@ -323,15 +372,23 @@ def processera(fig, canvas, Quality_frame):
                 filur -= 1
                 update_qframe = True
         elif event.keysym == 'Return':
+            log_b()
             print('Calculating')
             print(data.columns.values)
             downcast_Data = pd.DataFrame(
                 {'DepSM': data.DepSM.iloc[downcast_start:downcast_stop], 'T068C': data.T068C.iloc[downcast_start:downcast_stop], 'FlECO-AFL': data['FlECO-AFL'].iloc[downcast_start:downcast_stop], 'Sal00': data['Sal00'].iloc[downcast_start:downcast_stop],
-                 'Sigma-é00': data['Sigma-é00'].iloc[downcast_start:downcast_stop], 'Sbeox0Mg/L': data['Sbeox0Mg/L'].iloc[downcast_start:downcast_stop]})
+                 'Sigma-é00': data['Sigma-é00'].iloc[downcast_start:downcast_stop], 'Sbeox0Mg/L': data['Sbeox0Mg/L'].iloc[downcast_start:downcast_stop]}) ## TODO: ger hettar betri. Set hettar í egna funku
             if not os.path.isdir(parent_folder + '/ASCII_Downcast'):
                 os.mkdir(parent_folder + '/ASCII_Downcast')
             downcast_Data.to_csv(parent_folder + '/ASCII_Downcast/' + filnavn[filur], index=False)
+            print('Assesing quality')
+            summary = qcontrol(quality_subframe, depth, time_fulllength, soak_start, soak_stop, downcast_start, downcast_stop, upcast_stop, pump_on, filnavn[filur])
+
+            metadatafile = ''
+
+
             print('Done exporting')
+            log_e()
         elif event.keysym == 'l':
             if not zoomed_in:
                 selected_event += 1
@@ -391,7 +448,7 @@ def processera(fig, canvas, Quality_frame):
             processera(fig, canvas, Quality_frame)
         elif event.keysym == 'onehalf':
             qcontrol(quality_subframe, depth, time_fulllength, soak_start, soak_stop, downcast_start, downcast_stop,
-                     upcast_stop, pump_on)
+                     upcast_stop, pump_on, filnavn[filur])
 
         if selected_event == -1: # Fyri at ikki kunna velja eina linju ið ikki er til
             selected_event = 0
@@ -415,7 +472,7 @@ def processera(fig, canvas, Quality_frame):
             if selected_event == 4:
                 upcast_stop_line.pop(0).remove()
                 upcast_stop_line = ax.plot([time_fulllength[upcast_stop], time_fulllength[upcast_stop]], [-100, 100], 'k')
-            update_annotations = True
+            #update_annotations = True
             canvas.draw()
         if update_annotations:
             global annotation
@@ -467,11 +524,12 @@ def processera(fig, canvas, Quality_frame):
                 widget.destroy()
             global mappunavn
             for cast in list_of_casts:
-
+                casttext = cast
                 if cast == filnavn[filur]:
-                    Label(Quality_frame, text=cast, font=("Courier", textsize), bg="Green").pack(side=TOP, anchor=W)
+
+                    Label(Quality_frame, text=casttext, font=("Courier", textsize), bg="Green").pack(side=TOP, anchor=W)
                 else:
-                    Label(Quality_frame, text=cast, font=("Courier", textsize)).pack(side=TOP, anchor=W)
+                    Label(Quality_frame, text=casttext, font=("Courier", textsize)).pack(side=TOP, anchor=W)
             Label(Quality_frame, text=('―' * 20), font=("Courier", textsize)).pack(side=TOP, anchor=W)
 
     root.bind('<Key>', key)
