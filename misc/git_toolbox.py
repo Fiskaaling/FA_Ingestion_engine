@@ -6,4 +6,4 @@ def get_info():
     print(repo.active_branch)
     print(repo.head.object.hexsha)
     print(repo.is_dirty())
-
+    print(repo.)
