@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter import filedialog
 from misc.faLog import *
 import pandas as pd
+import getpass # Til at fáa brúkaranavn
 import numpy as np
 import platform
 import os
@@ -14,7 +15,9 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 from scipy import stats
 import datetime
+from tkinter import messagebox
 import misc.git_toolbox as gitTB
+from misc.sha2calc import get_hash
 textsize = 16
 
 def bin_average_frame(frame, root2):
@@ -72,11 +75,10 @@ def qcontrol(Quality_subframe, depth, time_fulllength, soak_start, soak_stop, do
     cast_quality -= min(soakvar, 1)
     # Downcast stabilitetur
     downcast_diff = np.diff(depth[downcast_start:downcast_stop])
-
+    downcast_slope = -1
     if len(downcast_diff)>1:
         downcast_slope, intercept, downcast_r_value, p_value, std_err = stats.linregress(time_fulllength[downcast_start:downcast_stop], depth[downcast_start:downcast_stop])
         print('Downcast R value: ' + str(downcast_r_value))
-    print('Slope: ' + str(downcast_slope))
     # Upcast stabilitetur
     # Fitta linju og rokna error
     slope, intercept, upcast_r_value, p_value, std_err = stats.linregress(time_fulllength[downcast_stop:upcast_stop], depth[downcast_stop:upcast_stop])
@@ -130,10 +132,33 @@ def qcontrol(Quality_subframe, depth, time_fulllength, soak_start, soak_stop, do
         else:
             Label(Quality_subframe, text='Upcast er ikki stabilt', font=("Helvetica", textsize), bg="red").pack(side=TOP, anchor=W)
         upcast_quality += upcast_r_value
+
+        if 0.5 < downcast_slope < 1:
+            Label(Quality_subframe, text='Downcast ferð er ok', font=("Courier", textsize), bg="lightgreen").pack(side=TOP, anchor=W)
+            downcast_quality += 1
+        else:
+            if downcast_slope < 0.5:
+                Label(Quality_subframe, text='Downcast ferð er ov lág', font=("Helvetica", textsize), bg="red").pack(side=TOP, anchor=W)
+            else:
+                Label(Quality_subframe, text='Downcast ferð er ov høg', font=("Helvetica", textsize), bg="red").pack(side=TOP, anchor=W)
+            downcast_quality -= 1
+
+    text, is_dirty = gitTB.get_info()
+    if is_dirty:
+        Label(Quality_subframe, text='Git commit broytingar', font=("Helvetica", textsize), bg="red").pack(side=TOP, anchor=W)
+        cast_quality -= 1
+    else:
+        Label(Quality_subframe, text='Git er ok', font=("Helvetica", textsize), bg="lightgreen").pack(side=TOP, anchor=W)
+
+    if 'Master' not in text:
+        Label(Quality_subframe, text='Git koyrur ikki á Master branch', font=("Helvetica", textsize), bg="orange").pack(side=TOP, anchor=W)
+
     Label(Quality_subframe, text='Kvalitetur: ' + str(np.round(cast_quality+downcast_quality+upcast_quality,2)), font=("Helvetica", textsize)).pack(side=TOP, anchor=W)
     datetimestring = filnavn.split()
     measurement_time = datetime.datetime.strptime(datetimestring[0], '%Y-%m-%dt%H%M%S') + datetime.timedelta(0,time_fulllength[downcast_start])
     print(measurement_time)
+
+
 
     Label(Quality_subframe, text=('―' * 40), font=("Courier", 8)).pack(side=TOP, anchor=W) ## Seperator
     Label(Quality_subframe, text='Soaktid: ' + str(time_fulllength[soak_stop] - time_fulllength[soak_start]) + ' sek', font=("Courier", textsize-4)).pack(side=TOP, anchor=W)
@@ -144,7 +169,6 @@ def qcontrol(Quality_subframe, depth, time_fulllength, soak_start, soak_stop, do
     summary = {'downcast_quality': downcast_quality, 'upcast_quality': upcast_quality, 'cast_quality': cast_quality, 'soak_time': time_fulllength[soak_stop] - time_fulllength[soak_start], 'soak_depth': np.mean(depth[soak_start:soak_stop]),
                'soak_var': soakvar, 'downcast_time': measurement_time, 'downcast_speed': downcast_slope, 'max_depth': max(depth)}
 
-    gitTB.get_info()
 
     return summary
 
@@ -164,11 +188,17 @@ def processera(fig, canvas, Quality_frame):
         widget.destroy()
     list_of_casts = os.listdir(mappunavn)
     list_of_casts.sort()
+    parent_folder = os.path.dirname(mappunavn)
     for cast in list_of_casts:
+        casttext = cast
+        if os.path.exists(parent_folder + '/ASCII_Downcast/' + cast.split('.')[0] + '_metadata.csv'):
+            casttext += ' ✓'
+        if os.path.exists(parent_folder + '/ASCII_Downcast/' + cast.split('.')[0] + '_do_not_use_.csv'):
+            casttext += ' X'
         if cast == filnavn[filur]:
-            Label(Quality_frame, text=cast, font=("Courier", textsize, 'underline')).pack(side=TOP, anchor=W)
+            Label(Quality_frame, text=casttext, font=("Courier", textsize, 'underline')).pack(side=TOP, anchor=W)
         else:
-            Label(Quality_frame, text=cast, font=("Courier", textsize)).pack(side=TOP, anchor=W)
+            Label(Quality_frame, text=casttext, font=("Courier", textsize)).pack(side=TOP, anchor=W)
 
     Label(Quality_frame, text=('―'*20), font=("Courier", textsize)).pack(side=TOP, anchor=W)
     quality_subframe = Frame(Quality_frame)
@@ -257,7 +287,6 @@ def processera(fig, canvas, Quality_frame):
         else:
             pass
 
-    parent_folder = os.path.dirname(mappunavn)
     if os.path.isdir(parent_folder + '/0_RAW_DATA'):
         raw_filar = os.listdir(parent_folder + '/0_RAW_DATA/')
         raw_filnavn = '-1'
@@ -384,10 +413,27 @@ def processera(fig, canvas, Quality_frame):
             print('Assesing quality')
             summary = qcontrol(quality_subframe, depth, time_fulllength, soak_start, soak_stop, downcast_start, downcast_stop, upcast_stop, pump_on, filnavn[filur])
 
-            metadatafile = ''
+            confirmation = False
+            if summary['downcast_quality'] < 0:
+                if messagebox.askyesno('Vátta', 'Ávaring!\nKvaliteturin á kastinum er undir 0\n Vátta at allir parametrar eru rættir'):
+                    confirmation = True
+            else:
+                confirmation = True
+            if confirmation:
+                metadatafile = 'key,value\n'
+                metadatafile += 'Data_File_Name,' + filnavn[filur] + '\n'
+                sha256_hash = get_hash(parent_folder + '/ASCII_Downcast/' + filnavn[filur])
+                metadatafile += 'sha256_hash,' + sha256_hash + '\n'
+                metadatafile += 'processed_by,' + getpass.getuser() + '\n'
+                for key, value in summary.items():
+                    metadatafile += key + ',' + str(value) + '\n'
+                print(metadatafile)
 
+                text_file = open(parent_folder + '/ASCII_Downcast/' + filnavn[filur].split('.')[0] + '_metadata.csv', "w")
+                text_file.write(metadatafile)
+                text_file.close()
+                print('Done exporting')
 
-            print('Done exporting')
             log_e()
         elif event.keysym == 'l':
             if not zoomed_in:
@@ -449,6 +495,15 @@ def processera(fig, canvas, Quality_frame):
         elif event.keysym == 'onehalf':
             qcontrol(quality_subframe, depth, time_fulllength, soak_start, soak_stop, downcast_start, downcast_stop,
                      upcast_stop, pump_on, filnavn[filur])
+        elif event.keysym == 'Delete':
+            if os.path.exists(parent_folder + '/ASCII_Downcast/' + filnavn[filur].split('.')[0] + '_do_not_use_.csv'):
+                if messagebox.askyesno('Vátta', 'Strika at casti ikki skal brúkast?'):
+                    os.remove(parent_folder + '/ASCII_Downcast/' + filnavn[filur].split('.')[0] + '_do_not_use_.csv')
+            else:
+                if messagebox.askyesno('Vátta', 'Markera hettar casti sum tað ikki skal brúkast?'):
+                    text_file = open(parent_folder + '/ASCII_Downcast/' + filnavn[filur].split('.')[0] + '_do_not_use_.csv', "w")
+                    text_file.write('Hesin fílurin er brúktur til at markera at hettar casti ikki skal brúkast')
+                    text_file.close()
 
         if selected_event == -1: # Fyri at ikki kunna velja eina linju ið ikki er til
             selected_event = 0
@@ -525,8 +580,11 @@ def processera(fig, canvas, Quality_frame):
             global mappunavn
             for cast in list_of_casts:
                 casttext = cast
+                if os.path.exists(parent_folder + '/ASCII_Downcast/' + cast.split('.')[0] + '_metadata.csv'):
+                    casttext += ' ✓'
+                if os.path.exists(parent_folder + '/ASCII_Downcast/' + cast.split('.')[0] + '_do_not_use_.csv'):
+                    casttext += ' ⃠'
                 if cast == filnavn[filur]:
-
                     Label(Quality_frame, text=casttext, font=("Courier", textsize), bg="Green").pack(side=TOP, anchor=W)
                 else:
                     Label(Quality_frame, text=casttext, font=("Courier", textsize)).pack(side=TOP, anchor=W)
