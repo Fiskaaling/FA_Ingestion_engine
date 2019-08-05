@@ -73,7 +73,7 @@ def tegnahovmuller(data, dypid, dato, ratning=0, nrplots=11, figwidth=6, figheig
         locint = np.ceil((dato[plotstop - 1] - dato[plotstart]) / 10)
         axs[i].xaxis.set_major_locator(mdate.DayLocator(interval=int(locint)))
         axs[i].xaxis.set_minor_locator(mdate.DayLocator(interval=1))
-        axs[i].set_ylabel('Djúbd')
+        axs[i].set_ylabel('Dýpið')
         axs[i].tick_params(axis='x', which='major', pad=0)
     # TODO skriva tiks ordiligt
     # finn hvat tiks skullu verða á color bar
