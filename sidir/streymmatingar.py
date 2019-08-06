@@ -28,7 +28,7 @@ def streym(frame, root):
     #                    eg havi ikki brúkt hettar
     #----------------------------------------------------------------------
     siduval_dict = {'Language'                  : 'FO', # Møgulig mál eru FO og EN
-                    'Introducton'          : True, #
+                    'Introduction'         : False, #
                     'Hovmuller'            : True, #
                     'speedbin'             : True, #
                     'rosa'                 : True, #

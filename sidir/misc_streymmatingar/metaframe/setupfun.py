@@ -9,6 +9,7 @@ import numpy as np
 def inset_feltir(meta):
     path = os.path.split(__file__)[0]
     path = os.path.split(path)[0]
+    path = os.path.split(path)[0]
     temp = {}
     if 'setup.txt' in os.listdir(path):
         try:
