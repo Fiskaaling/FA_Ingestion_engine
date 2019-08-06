@@ -6,7 +6,7 @@ from pprint import pprint
 
 from . import master
 
-def germappu(setup_dict):
+def germappu(setup_dict, siduval_dict):
     startdir = os.getcwd()
     path = setup_dict['path']
 
@@ -45,7 +45,7 @@ def germappu(setup_dict):
     metafil = open(os.path.join('setup', 'metadata.tex'), 'w')
     metafil.write(germetafilin(setup_dict, Myndin))
     metafil.close()
-    master.skriva_doc(setup_dict)
+    master.skriva_doc(setup_dict, siduval_dict)
 
     os.chdir(startdir)
 

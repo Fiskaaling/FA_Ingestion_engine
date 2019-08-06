@@ -768,11 +768,11 @@ def les_og_tekna(text, fig, canvas, silent=False):
             elif command == 'btn_contourf':
                 grid_z0 = griddata((btn_lon.values, btn_lat.values), dypid.values, (meshgridx, meshgridy), method=btn_interpolation)
                 #grid_z0 = interpolate.interp2d(btn_x, btn_y, dypid.values, kind='cubic')
-                #vmin = min(-70, min([-y for x in grid_z0 for y in x]))
-                #vmin = min([-y for x in grid_z0 for y in x])
-                vmin = 30 # og hetta
-                vmax = 36 # Sletta hettar!
-                lv = np.round(list(frange(vmin, vmax, float(btn_striku_hvor))), 3)
+                vmin = min(-70, min([-y for x in grid_z0 for y in x]))
+                vmin = min([-y for x in grid_z0 for y in x])
+                #vmin = 30 # og hetta
+                #vmax = 36 # Sletta hettar!
+                lv = np.round(list(frange(vmin, 0, float(btn_striku_hvor))), 3)
                 print(lv)
                 #lv = list(frange(int(vmin/btn_striku_hvor)*btn_striku_hvor, int(btn_striku_hvor), int(btn_striku_hvor)))
 
@@ -796,7 +796,7 @@ def les_og_tekna(text, fig, canvas, silent=False):
                     ax.set_aspect(scalefactor * v2 / v1)
                 else:
                     c = ax.contourf(meshgridx, meshgridy, grid_z0, lv, transform=ccrs_projection)
-                    #ax.clabel(c, inline=1, fontsize=15, fmt='%2.0f')
+                    ax.clabel(c, inline=1, fontsize=15, fmt='%2.0f')
                     #fig.colorbar(c)
                     if vmin >= -150:
                         confti=list(range(int(vmin/10)*10, int(10), int(10)))
@@ -809,16 +809,14 @@ def les_og_tekna(text, fig, canvas, silent=False):
                 vmin = min(-70, min([-y for x in grid_z0 for y in x]))
                 temp = btn_striku_hvor
                 lv = list(frange(int(vmin/temp)*temp, float(btn_striku_hvor), float(btn_striku_hvor)))
-                vmin = 28 # og hetta
-                vmax = 35.1 # Sletta hettar!
-                lv = np.round(list(frange(vmin, vmax, float(btn_striku_hvor))), 3)
+                lv = np.round(list(frange(vmin, 0, float(btn_striku_hvor))), 3)
                 print(lv)
                 #grid_z0 = interpolate.interp2d(btn_x, btn_y, dypid.values, kind='cubic')
                 if renderengine == '3D_botn':
                     ax.contour3D(meshgridx, meshgridy, -1 * grid_z0, levels=lv,
                                  colors='k',vmax=0 , linestyles='solid')
                 else:
-                    c = ax.contour(meshgridx, meshgridy, grid_z0, lv, transform=ccrs_projection, colors='gray', linestyles='solid', linewidths=0.3)
+                    c = ax.contour(meshgridx, meshgridy, -grid_z0, lv, transform=ccrs_projection, colors='gray', linestyles='solid', linewidths=0.3)
                     if clabel:
                         #ax.clabel(c, inline=1, fontsize=fontsize, fmt='%2.0f', manual=False)
                         ax.clabel(c, inline=1, fontsize=fontsize, fmt='%2.0f', manual=True)

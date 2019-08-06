@@ -19,7 +19,7 @@ from .sidir.sjovarfall import tital_oll_dypir
 from .sidir.sjovarfall import tidal_non_tidal_bins
 from .sidir.sjovarfall import tidaldomines
 
-def skriva_doc(setup_dict):
+def skriva_doc(setup_dict, siduval_dict):
     #  inlesData
     path_to_data = setup_dict['path']['data'].get() + '/'
     dest = setup_dict['path']['dest'].get() + '/LaTeX/'
@@ -58,17 +58,21 @@ def skriva_doc(setup_dict):
     #                   soleiðis man kan hava tað sama fleiri ferða
     #                          og man kann velja til og frá
     #--------------------------------------------------------------------------------
-    option_Hovmuller = True
-    option_speedbin = True
-    option_rosa = True
-    option_progressive = True
-    option_freqtabellir = True
-    option_durationtabellir = True
-    option_tidal_3_dypir = True
-    option_tidal_oll_dypir = True
-    option_tidal_non_tidal_bins = True
-    option_sjovarfalsdrivi = True
+    #option_Introduction = 'FO' ## Available options are - FO, EN, False
+    #option_Hovmuller = True
+    #option_speedbin = True
+    #option_rosa = True
+    #option_progressive = True
+    #option_freqtabellir = True
+    #option_durationtabellir = True
+    #option_tidal_3_dypir = True
+    #option_tidal_oll_dypir = True
+    #option_tidal_non_tidal_bins = True
+    #option_sjovarfalsdrivi = True
     #--------------------------------------------------------------------------------
+
+
+
 
     # inles alt dataði
     #  TODO tjekka inles
@@ -114,8 +118,23 @@ def skriva_doc(setup_dict):
     \openany
     \newpage""")
 
+    # Introduction
+    if siduval_dict['Introduction']:
+        a = 'Ókent mál'
+        if siduval_dict['Language'] == 'FO':
+            a = "\\\FloatBarrier\n\\newpage\n\\section{Innleiðing}\\\\" + 'Eftir umbøn frá '+setup_dict['umb_av']+' eru kanningar gjørdar fyri at lýsa rákið í '  + setup_dict['stadarnavn'] + '. ' +\
+                'Hendan frágreiðingin lýsir hvussu úrslitini av hesum kanningum' + '\\newpage\n'
+            a += '\\section{Økið}\n' \
+                 'Økið har máta verður blabblabla'
+        elif siduval_dict['Language'] == 'EN':
+            pass
+            #a =  '\n\\FloatBarrier\n\\newpage\n\\section{%s}\n\\begin{figure}[h!]\\label{Hov%2.1f}\n\\includegraphics[scale=1]{myndir/%s}' \
+            #       '\n\\caption{%s}\n\\end{figure}\n\\newpage\n' % (section, ratning, navn, caption)
+    file.write(a)
+
+
     #  Setup Hovmuller
-    if option_Hovmuller:
+    if siduval_dict['Hovmuller']:
         # finn hvat fyri bins vit skullu brúka til Hovmuller diagrammi
         bins = bisect.bisect_right(dypir, Hov_hadd)
         bins = list(range(1, bins + 1))
@@ -156,13 +175,13 @@ def skriva_doc(setup_dict):
             file.write(a)
 
     #  tekna speedbins
-    if option_speedbin:
+    if siduval_dict['speedbin']:
         a = speedbins(top_mid_bot_layer, date, datadf, dypir, dest=dest,
                      font=font, figwidth=figwidth, figheight=figheight)
         file.write(a)
 
     #  tekna rósu
-    if option_rosa:
+    if siduval_dict['rosa']:
         umax = 4*(N-1)
 
         a = tekna_dist_rose(top_mid_bot_layer, uvdatadf, N, umax, dypir, dest=dest, dpi=200,
@@ -171,28 +190,28 @@ def skriva_doc(setup_dict):
         file.write(a)
 
     #  tekna Progressive vector diagrams at selected layers
-    if option_progressive:
+    if siduval_dict['progressive']:
         a = progressive_vector(top_mid_bot_layer, date, uvdatadf, dypir, dest=dest,
                               font=font, figwidth=figwidth, figheight=figheight)
         file.write(a)
 
     #  tekna Frequens tabellir
-    if option_freqtabellir:
+    if siduval_dict['freqtabellir']:
         a = frequencytabellir(datadf, dypir, dest=dest)
         file.write(a)
 
     #  tekna duration_speed
-    if option_durationtabellir:
+    if siduval_dict['durationtabellir']:
         a = duration_speed(top_mid_bot_layer, date, datadf, dypir, dest=dest)
         file.write(a)
 
     #  rokna utide fyri 3 dýpir
-    if option_tidal_3_dypir:
+    if siduval_dict['tidal_3_dypir']:
         a = tidal_analysis_for_depth_bins(top_mid_bot_layer, date, datadf, dypir, lat=62, dest=dest)
         file.write(a)
 
     #  sama frequens fyri øll dýpir
-    if option_tidal_oll_dypir:
+    if siduval_dict['tidal_oll_dypir']:
         #  Hvat fyri bins skal eg gera hettar fyri
         tempbins = list(range(1, max_bin + 1))
         tempbins = tempbins[::-1]
@@ -201,11 +220,11 @@ def skriva_doc(setup_dict):
         file.write(a)
 
     #  tekna u og v árðin vit hava tiki frequensarnir vekk og aftaná
-    if option_tidal_non_tidal_bins:
+    if siduval_dict['tidal_non_tidal_bins']:
         a = tidal_non_tidal_bins(top_mid_bot_layer, date, datadf, dypir, lat=62, dest=dest)
         file.write(a)
 
-    if option_sjovarfalsdrivi:
+    if siduval_dict['sjovarfalsdrivi']:
         a = tidaldomines(top_mid_bot_layer, date, datadf, dypir, lat=62, dest=dest)
         file.write(a)
 

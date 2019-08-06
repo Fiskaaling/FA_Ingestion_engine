@@ -113,6 +113,7 @@ file.write(r"""\include{setup/dokumentstilur}
 \openany
 \newpage""")
 
+
 #  Setup Hovmuller
 if option_Hovmuller:
     # finn hvat fyri bins vit skullu brúka til Hovmuller diagrammi

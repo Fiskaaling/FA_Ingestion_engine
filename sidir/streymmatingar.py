@@ -27,16 +27,18 @@ def streym(frame, root):
     #                    Hvat fyri síðir skal við
     #                    eg havi ikki brúkt hettar
     #----------------------------------------------------------------------
-    vel_sidir = {'Hovmuller'            : True, # 
-                 'speedbin'             : True, # 
-                 'rosa'                 : True, # 
-                 'progressive'          : True, # 
-                 'freqtabellir'         : True, # 
-                 'durationtabellir'     : True, # 
-                 'tidal_3_dypir'        : True, # 
-                 'tidal_oll_dypir'      : True, # 
-                 'tidal_non_tidal_bins' : True, # 
-                 'sjovarfalsdrivi'      : True  # 
+    siduval_dict = {'Language'                  : 'FO', # Møgulig mál eru FO og EN
+                    'Introducton'          : True, #
+                    'Hovmuller'            : True, #
+                    'speedbin'             : True, #
+                    'rosa'                 : True, #
+                    'progressive'          : True, #
+                    'freqtabellir'         : True, #
+                    'durationtabellir'     : True, #
+                    'tidal_3_dypir'        : True, #
+                    'tidal_oll_dypir'      : True, #
+                    'tidal_non_tidal_bins' : True, #
+                    'sjovarfalsdrivi'      : True  #
                 }
     #----------------------------------------------------------------------
     #                    GUI
@@ -47,7 +49,7 @@ def streym(frame, root):
     # Menu ovast
     menuFrame = Frame(frame)
     menuFrame.pack(side=TOP, fill=X, expand=False, anchor=N)
-    setupframe.setupmenuframe(menuFrame, setup_dict)
+    setupframe.setupmenuframe(menuFrame, setup_dict, siduval_dict)
 
     # Framin sum alt verður sett á
     BodyFrame = Frame(frame, bg='green')

@@ -5,9 +5,9 @@ from pprint import pprint
 
 from . import meta_fun, fun, setupfun
 
-def setupmenuframe(frame, setup_dict):
+def setupmenuframe(frame, setup_dict, siduval_dict):
     Button(frame, text='print', command=lambda: pprint(setup_dict)).pack(side=LEFT)
-    Button(frame, text='germappu', command=lambda: fun.germappu(setup_dict)).pack(side=LEFT)
+    Button(frame, text='germappu', command=lambda: fun.germappu(setup_dict, siduval_dict)).pack(side=LEFT)
     Button(frame, text='test', command=lambda: fun.germetafilin(setup_dict)).pack(side=LEFT)
 
 def setupmetaframe(frame, setup_dict):
