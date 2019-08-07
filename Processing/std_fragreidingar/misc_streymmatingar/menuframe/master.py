@@ -109,7 +109,6 @@ def skriva_doc(setup_dict, siduval_dict):
 
         # Introduction
         if case == 'Introduction':
-            continue
             a = 'Ókent mál'
             if siduval_dict['Language'] == 'FO':
                 a = "\\\FloatBarrier\n\\newpage\n\\section{Innleiðing}\\\\" + 'Eftir umbøn frá '+setup_dict['umb_av']+' eru kanningar gjørdar fyri at lýsa rákið í '  + setup_dict['stadarnavn'] + '. ' +\

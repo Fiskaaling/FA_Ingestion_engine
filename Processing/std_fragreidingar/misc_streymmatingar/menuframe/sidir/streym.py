@@ -297,8 +297,7 @@ def progressive_vector(bins, dato, uvdf, dypir, dest='LaTeX/', dpi=200,
         def fun(x, pos):
             if pos in [0, n-1]:
                 return mdate.num2date(x).strftime('%d %b-%y\n   %H:%M')
-            else:
-                return mdate.num2date(x).strftime('%B')
+            return mdate.num2date(x).strftime('%B')
         return fun
 
     #  finn bounds--------------------
@@ -632,4 +631,3 @@ def duration_speed(bins, dato, magdf, dypir, dest='LaTeX/',
            '\n\\caption{%s}' \
            '\n\\end{table}' \
            '\n\\newpage\n' % (section, filnovn[0], caption[0], filnovn[1], caption[1], filnovn[2], caption[2])
-

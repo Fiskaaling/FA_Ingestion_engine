@@ -44,8 +44,8 @@ def germappu(setup_dict, siduval_dict):
     metafil.close()
     try:
         master.skriva_doc(setup_dict, siduval_dict)
-    except:
-        print('har var ein feilur')
+    except Exception as e:
+        print('feilurin %s hendi í %s' % (e.message, e.args))
 
     os.chdir(startdir)
 
