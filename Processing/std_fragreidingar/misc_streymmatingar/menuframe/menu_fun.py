@@ -19,7 +19,7 @@ def germappu(setup_dict, siduval_dict):
     if not 'LaTeX' in os.listdir():
         os.mkdir('LaTeX')
     os.chdir('LaTeX')
-    if len(os.listdir())>0:
+    if len(os.listdir()) > 0:
         os.chdir(startdir)
         print('mappan er ikki tóm')
         Exception('mappan er ikki tóm')
