@@ -26,6 +26,7 @@ import matplotlib.ticker as mticker
 from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
 from screeninfo import get_monitors
 
+
 class Window(Frame):
     def __init__(self, master=None):
         Frame.__init__(self, master)
