@@ -1,12 +1,14 @@
+import os
+import bisect
+import time
 from matplotlib import pyplot as plt
 import matplotlib as mpl
+
+
 from matplotlib import dates as mdate
 import numpy as np
-import os
 import pandas as pd
 import datetime as dt
-import time
-import bisect
 from pprint import pprint
 
 
@@ -56,22 +58,6 @@ def skriva_doc(setup_dict, siduval_dict):
     #  frequensir sum tidal_oll_dypir sakal brúka
     tidal_oll_Frqs = setup_dict['tidal_oll_Frqs']
     #--------------------------------------------------------------------------------
-    #                         Hvat fyri plot skal verða við
-    #                       hettar skal sikkurt breitast uppá
-    #                   soleiðis man kan hava tað sama fleiri ferða
-    #                          og man kann velja til og frá
-    #--------------------------------------------------------------------------------
-    option_Hovmuller = True
-    option_speedbin = True
-    option_rosa = True
-    option_progressive = True
-    option_freqtabellir = True
-    option_durationtabellir = True
-    option_tidal_3_dypir = True
-    option_tidal_oll_dypir = True
-    option_tidal_non_tidal_bins = True
-    option_sjovarfalsdrivi = True
-    #--------------------------------------------------------------------------------
 
     # inles alt dataði
     #  TODO tjekka inles
@@ -117,99 +103,125 @@ def skriva_doc(setup_dict, siduval_dict):
     \openany
     \newpage""")
 
-    # Introduction
-    if siduval_dict['Introduction']:
-        a = 'Ókent mál'
-        if siduval_dict['Language'] == 'FO':
-            a = "\\\FloatBarrier\n\\newpage\n\\section{Innleiðing}\\\\" + 'Eftir umbøn frá '+setup_dict['umb_av']+' eru kanningar gjørdar fyri at lýsa rákið í '  + setup_dict['stadarnavn'] + '. ' +\
-                'Hendan frágreiðingin lýsir hvussu úrslitini av hesum kanningum' + '\\newpage\n'
-            a += '\\section{Økið}\n' \
-                 'Økið har máta verður blabblabla'
-        elif siduval_dict['Language'] == 'EN':
-            pass
-            #a =  '\n\\FloatBarrier\n\\newpage\n\\section{%s}\n\\begin{figure}[h!]\\label{Hov%2.1f}\n\\includegraphics[scale=1]{myndir/%s}' \
-            #       '\n\\caption{%s}\n\\end{figure}\n\\newpage\n' % (section, ratning, navn, caption)
-    else:
-        a = ''
-    file.write(a)
+    print(siduval_dict['valdar_tree'].get_children(''))
+    mangullisti=[]
+    for case in siduval_dict['valdar_tree'].get_children(''):
 
-
-    #  Setup Hovmuller
-    if siduval_dict['Hovmuller']:
-        # finn hvat fyri bins vit skullu brúka til Hovmuller diagrammi
-        bins = bisect.bisect_right(dypir, Hov_hadd)
-        bins = list(range(1, bins + 1))
-
-        indexes = [str(i) for i in bins]
-
-        yaxis = dypir[:bins[-1]]
-        colnames = indexes
-
-        #  skal colorbar verða tað sama í báðum
-        #  sama_aksa verður sett longri uppi
-        if sama_aksa:
-            #  finn ein góðan collorbar
-            data = datadf[['mag' + x for x in colnames]].values.T
-            absdata = [abs(x) for y in data for x in y]
-            absdata = np.sort(absdata)
-            temp = int(.95 * len(absdata))
-            vmax = 1.1 * absdata[temp]
-            templog = -np.floor(np.log10(vmax)) + 1
-            vmax = np.ceil(vmax * 10**templog)/(10**templog)
-        else:
-            vmax = None
-
-        for ratning in Hov_rat:
-            navn = 'Hovmuller%1.0f.png' % ratning
-            #data = magdf[colnames].values.T * np.cos(np.deg2rad(dirdf[colnames].values.T - ratning))
-            if ratning == 0:
-                data = uvdatadf[['v' + x for x in colnames]].values.T
-                caption = 'Hovmüller diagram of east/west velocities for the whole deployment period. The velocity scale is in mm/s'
-            elif ratning == 90:
-                data = uvdatadf[['u' + x for x in colnames]].values.T
-                caption = 'Hovmüller diagram of north/south velocities for the whole deployment period. The velocity scale is in mm/s'
-            else:
-                data = uvdatadf[['v' + x for x in colnames]].values.T * np.cos(np.deg2rad(ratning)) + \
-                        uvdatadf[['u' + x for x in colnames]].values.T * np.sin(np.deg2rad(ratning))
-                caption = 'Hovmüller diagram of [%s] velocities for the whole deployment period. The velocity scale is in mm/s' % int(ratning)
-            a = tegnahovmuller(data, yaxis, date, ratning=ratning, navn=navn, caption=caption, vmax=vmax, dest=dest, font=font, figwidth=figwidth, figheight=figheight)
+        # Introduction
+        if case == 'Introduction':
+            continue
+            a = 'Ókent mál'
+            if siduval_dict['Language'] == 'FO':
+                a = "\\\FloatBarrier\n\\newpage\n\\section{Innleiðing}\\\\" + 'Eftir umbøn frá '+setup_dict['umb_av']+' eru kanningar gjørdar fyri at lýsa rákið í '  + setup_dict['stadarnavn'] + '. ' +\
+                    'Hendan frágreiðingin lýsir hvussu úrslitini av hesum kanningum' + '\\newpage\n'
+                a += '\\section{Økið}\n' \
+                     'Økið har máta verður blabblabla'
+            elif siduval_dict['Language'] == 'EN':
+                pass
+                #a =  '\n\\FloatBarrier\n\\newpage\n\\section{%s}\n\\begin{figure}[h!]\\label{Hov%2.1f}\n\\includegraphics[scale=1]{myndir/%s}' \
+                #       '\n\\caption{%s}\n\\end{figure}\n\\newpage\n' % (section, ratning, navn, caption)
             file.write(a)
 
-    #  tekna speedbins
-    if siduval_dict['speedbin']:
-        a = speedbins(top_mid_bot_layer, date, datadf, dypir, dest=dest,
-                     font=font, figwidth=figwidth, figheight=figheight)
-        file.write(a)
 
-    #  tekna rósu
-    if siduval_dict['rosa']:
-        umax = 4*(N-1)
+        #  Setup Hovmuller
+        elif case == 'Hovmuller':
+            # finn hvat fyri bins vit skullu brúka til Hovmuller diagrammi
+            bins = bisect.bisect_right(dypir, Hov_hadd)
+            bins = list(range(1, bins + 1))
 
-        a = tekna_dist_rose(top_mid_bot_layer, uvdatadf, N, umax, dypir, dest=dest, dpi=200,
-                           axcolor=axcolor, axline=axline, alpha=alpha,
-                           font=font, figwidth=figwidth, figheight=figheight)
-        file.write(a)
+            indexes = [str(i) for i in bins]
 
-    #  tekna Progressive vector diagrams at selected layers
-    if siduval_dict['progressive']:
-        a = progressive_vector(top_mid_bot_layer, date, uvdatadf, dypir, dest=dest,
-                              font=font, figwidth=figwidth, figheight=figheight)
-        file.write(a)
-        tempbins = list(range(1, max_bin + 1))
-        tempbins = tempbins[::-1]
-        print(max_bin)
-        a = tital_oll_dypir(date, tempbins, tidal_oll_Frqs, datadf, dypir, lat=62, dest=dest)
-        file.write(a)
+            yaxis = dypir[:bins[-1]]
+            colnames = indexes
 
-    #  tekna u og v árðin vit hava tiki frequensarnir vekk og aftaná
-    if option_tidal_non_tidal_bins:
-        a = tidal_non_tidal_bins(top_mid_bot_layer, date, datadf, dypir, lat=62, dest=dest)
-        file.write(a)
+            #  skal colorbar verða tað sama í báðum
+            #  sama_aksa verður sett longri uppi
+            if sama_aksa:
+                #  finn ein góðan collorbar
+                data = datadf[['mag' + x for x in colnames]].values.T
+                absdata = [abs(x) for y in data for x in y]
+                absdata = np.sort(absdata)
+                temp = int(.95 * len(absdata))
+                vmax = 1.1 * absdata[temp]
+                templog = -np.floor(np.log10(vmax)) + 1
+                vmax = np.ceil(vmax * 10**templog)/(10**templog)
+            else:
+                vmax = None
 
-    if option_sjovarfalsdrivi:
-        a = tidaldomines(top_mid_bot_layer, date, datadf, dypir, lat=62, dest=dest)
-        file.write(a)
+            for ratning in Hov_rat:
+                navn = 'Hovmuller%1.0f.png' % ratning
+                #data = magdf[colnames].values.T * np.cos(np.deg2rad(dirdf[colnames].values.T - ratning))
+                if ratning == 0:
+                    data = uvdatadf[['v' + x for x in colnames]].values.T
+                    caption = 'Hovmüller diagram of east/west velocities for the whole deployment period. The velocity scale is in mm/s'
+                elif ratning == 90:
+                    data = uvdatadf[['u' + x for x in colnames]].values.T
+                    caption = 'Hovmüller diagram of north/south velocities for the whole deployment period. The velocity scale is in mm/s'
+                else:
+                    data = uvdatadf[['v' + x for x in colnames]].values.T * np.cos(np.deg2rad(ratning)) + \
+                            uvdatadf[['u' + x for x in colnames]].values.T * np.sin(np.deg2rad(ratning))
+                    caption = 'Hovmüller diagram of [%s] velocities for the whole deployment period. The velocity scale is in mm/s' % int(ratning)
+                a = tegnahovmuller(data, yaxis, date, ratning=ratning, navn=navn, caption=caption, vmax=vmax, dest=dest, font=font, figwidth=figwidth, figheight=figheight)
+                file.write(a)
 
+        #  tekna speedbins
+        elif case == 'speedbin':
+            a = speedbins(top_mid_bot_layer, date, datadf, dypir, dest=dest,
+                         font=font, figwidth=figwidth, figheight=figheight)
+            file.write(a)
+
+        #  tekna rósu
+        elif case == 'rosa':
+            umax = 4*(N-1)
+
+            a = tekna_dist_rose(top_mid_bot_layer, uvdatadf, N, umax, dypir, dest=dest, dpi=200,
+                               axcolor=axcolor, axline=axline, alpha=alpha,
+                               font=font, figwidth=figwidth, figheight=figheight)
+            file.write(a)
+
+        #  tekna Progressive vector diagrams at selected layers
+        elif case == 'progressive':
+            a = progressive_vector(top_mid_bot_layer, date, uvdatadf, dypir, dest=dest,
+                                  font=font, figwidth=figwidth, figheight=figheight)
+            file.write(a)
+
+        #  tekna Frequens tabellir
+        elif case == 'freqtabellir':
+            a = frequencytabellir(datadf, dypir, dest=dest)
+            file.write(a)
+
+        #  tekna duration_speed
+        elif case == 'durationtabellir':
+            a = duration_speed(top_mid_bot_layer, date, datadf, dypir, dest=dest)
+            file.write(a)
+
+        #  rokna utide fyri 3 dýpir
+        elif case == 'tidal_3_dypir':
+            a = tidal_analysis_for_depth_bins(top_mid_bot_layer, date, datadf, dypir, lat=62, dest=dest)
+            file.write(a)
+
+        #  sama frequens fyri øll dýpir
+        elif case == 'tidal_oll_dypir':
+            #  Hvat fyri bins skal eg gera hettar fyri
+            tempbins = list(range(1, max_bin + 1))
+            tempbins = tempbins[::-1]
+            print(max_bin)
+            a = tital_oll_dypir(date, tempbins, tidal_oll_Frqs, datadf, dypir, lat=62, dest=dest)
+            file.write(a)
+
+        #  tekna u og v árðin vit hava tiki frequensarnir vekk og aftaná
+        elif case == 'tidal_non_tidal_bins':
+            a = tidal_non_tidal_bins(top_mid_bot_layer, date, datadf, dypir, lat=62, dest=dest)
+            file.write(a)
+
+        elif case == 'sjovarfalsdrivi':
+            a = tidaldomines(top_mid_bot_layer, date, datadf, dypir, lat=62, dest=dest)
+            file.write(a)
+        else:
+            print(case)
+            mangullisti.append(case)
+
+    print(mangullisti)
     #  enda texdocument
     if True:
         file.write('\n\\end{document}')

@@ -1,10 +1,13 @@
 from tkinter import *
+import tkinter.ttk as ttk
 import os
 
 from pprint import pprint
 
 from .menuframe import menu_fun
 from .metaframe import meta_fun, setupfun
+from .moguligarsidur import moguligar
+from .valdarsidur import valdar
 
 def setupmenuframe(frame, setup_dict, siduval_dict):
     Button(frame, text='print', command=lambda: pprint(setup_dict)).pack(side=LEFT)
@@ -90,3 +93,26 @@ def setupmetaframe(frame, setup_dict):
     setupfun.inset_feltir(meta)
 
     setup_dict['meta'] = meta
+
+def moguligarsidur(frame, siduval_dict):
+    moguleikar_tree = ttk.Treeview(frame, height=20)
+    moguleikar_tree.column('#0', width=200)
+    moguleikar_tree.heading("#0", text="Møguligar síður")
+
+    moguleikar_tree.grid(row=0, column=0)
+    moguleikar_tree.bind("<Double-1>", lambda event: moguligar.velsidu(event, siduval_dict))
+    moguligar.filltradi(moguleikar_tree, siduval_dict)
+    siduval_dict['møguleikar_tree'] = moguleikar_tree
+
+def valdarsigur(frame, siduval_dict):
+    valdar_tree = ttk.Treeview(frame, height=20)
+    valdar_tree.column('#0', width=200)
+    valdar_tree.heading("#0", text="Valdar síður")
+
+    valdar_tree.pack(fill=BOTH, expand=True, side=LEFT, anchor=N)
+    Button(frame, text='upp', command= lambda: valdar.upp(siduval_dict)).pack(side=LEFT)
+    Button(frame, text='niður', command= lambda: valdar.nidur(siduval_dict)).pack(side=LEFT)
+
+    valdar_tree.bind("<Double-1>", lambda event: valdar.fjerna(event, siduval_dict))
+    valdar.setup(valdar_tree)
+    siduval_dict['valdar_tree'] = valdar_tree
