@@ -18,7 +18,9 @@ import datetime
 from tkinter import messagebox
 import misc.git_toolbox as gitTB
 from misc.sha2calc import get_hash
+import Ingestion.CTD.bin_average_aux.ba_gui as ba_gui
 textsize = 16
+
 
 def bin_average_frame(frame, root2):
     global root
@@ -333,6 +335,8 @@ def processera(fig, canvas, Quality_frame):
         #downcast_stop_line = ax.plot([time_fulllength[downcast_stop], time_fulllength[downcast_stop]], [-100, 100], 'k')
     bins = np.arange(1,5+.2,.2)
 
+    event_dict = {'time_fulllength': time_fulllength, 'soak_start': soak_start, 'soak_stop': soak_stop, 'downcast_start': downcast_start, 'downcast_stop': downcast_stop, 'upcast_stop': upcast_stop}
+
     print(bins)
     print('maxd : ' + str(maxd) + ' m')
     print('n_midlingspunktir : ' + str(n_midlingspunktir))
@@ -446,43 +450,39 @@ def processera(fig, canvas, Quality_frame):
         elif event.keysym == 'j':
             if selected_event == 0:
                 soak_start -= move_amount
+                event_dict['soak_start'] -= move_amount
             elif selected_event == 1:
                 soak_stop -= move_amount
+                event_dict['soak_stop'] -= move_amount
             elif selected_event == 2:
                 downcast_start -= move_amount
+                event_dict['downcast_start'] -= move_amount
             elif selected_event == 3:
                 downcast_stop -= move_amount
+                event_dict['downcast_stop'] -= move_amount
             elif selected_event == 4:
                 upcast_stop -= move_amount
+                event_dict['upcast_stop'] -= move_amount
         elif event.keysym == 'k':
             if selected_event == 0:
                 soak_start += move_amount
+                event_dict['soak_start'] += move_amount
             elif selected_event == 1:
                 soak_stop += move_amount
+                event_dict['soak_stop'] += move_amount
             elif selected_event == 2:
                 downcast_start += move_amount
+                event_dict['downcast_start'] += move_amount
             elif selected_event == 3:
                 downcast_stop += move_amount
+                event_dict['downcast_stop'] += move_amount
             elif selected_event == 4:
                 upcast_stop += move_amount
+                event_dict['upcast_stop'] += move_amount
         elif event.keysym == 'i':
             if not zoomed_in:
                 zoomed_in = True
-                if selected_event == 0:
-                    ax.set_xlim(time_fulllength[soak_start]-5, time_fulllength[soak_start] + 5)
-                    ax.set_ylim(np.min(depth[soak_start-(5*16):soak_start+(5*16)])-0.5, np.max(depth[soak_start-(5*16):soak_start+(5*16)])+0.5)
-                if selected_event == 1:
-                    ax.set_xlim(time_fulllength[soak_stop] - 5, time_fulllength[soak_stop] + 5)
-                    ax.set_ylim(np.min(depth[soak_stop - (5 * 16):soak_stop + (5 * 16)]) - 0.5,
-                                    np.max(depth[soak_stop - (5 * 16):soak_stop + (5 * 16)]) + 0.5)
-                if selected_event == 2:
-                    ax.set_xlim(time_fulllength[downcast_start] - 5, time_fulllength[downcast_start] + 5)
-                    ax.set_ylim(np.min(depth[downcast_start - (5 * 16):downcast_start + (5 * 16)]) - 0.5,
-                                    np.max(depth[downcast_start - (5 * 16):downcast_start + (5 * 16)]) + 0.5)
-                if selected_event == 3:
-                    ax.set_xlim(time_fulllength[downcast_stop] - 5, time_fulllength[downcast_stop] + 5)
-                    ax.set_ylim(np.min(depth[downcast_stop - (5 * 16):downcast_stop + (5 * 16)]) - 0.5,
-                                    np.max(depth[downcast_stop - (5 * 16):downcast_stop + (5 * 16)]) + 0.5)
+                ba_gui.zoom_in(selected_event, ax, event_dict, depth)
                 canvas.draw()
         elif event.keysym == 'o':
             ax.set_xlim(0, time_fulllength[len(time_fulllength)-1])
@@ -532,46 +532,8 @@ def processera(fig, canvas, Quality_frame):
         if update_annotations:
             global annotation
             annotation.remove()
-            if selected_event == 0:
-                annotation = ax.annotate('Soak Start',
-                                         xy=(time_fulllength[soak_start], maxd+1),
-                                         xytext=(time_fulllength[soak_start], maxd+2),
-                                         xycoords='data',
-                                         textcoords='data',
-                                         ha='center',
-                                         arrowprops=dict(arrowstyle="->"))
-            elif selected_event == 1:
-                annotation = ax.annotate('Soak Stop',
-                                         xy=(time_fulllength[soak_stop], maxd+1),
-                                         xytext=(time_fulllength[soak_stop], maxd+2),
-                                         xycoords='data',
-                                         textcoords='data',
-                                         ha='center',
-                                         arrowprops=dict(arrowstyle="->"))
-            elif selected_event == 2:
-                annotation = ax.annotate('Downcast Start',
-                                         xy=(time_fulllength[downcast_start], maxd+1),
-                                         xytext=(time_fulllength[downcast_start], maxd+2),
-                                         xycoords='data',
-                                         textcoords='data',
-                                         ha='center',
-                                         arrowprops=dict(arrowstyle="->"))
-            elif selected_event == 3:
-                annotation = ax.annotate('Downcast Stop',
-                                         xy=(time_fulllength[downcast_stop], maxd+1),
-                                         xytext=(time_fulllength[downcast_stop], maxd+2),
-                                         xycoords='data',
-                                         textcoords='data',
-                                         ha='center',
-                                         arrowprops=dict(arrowstyle="->"))
-            elif selected_event == 4:
-                annotation = ax.annotate('Upcast Stop',
-                                         xy=(time_fulllength[upcast_stop], maxd+1),
-                                         xytext=(time_fulllength[upcast_stop], maxd+2),
-                                         xycoords='data',
-                                         textcoords='data',
-                                         ha='center',
-                                         arrowprops=dict(arrowstyle="->"))
+            annotation = ba_gui.update_annotations(selected_event, ax, event_dict, maxd)
+
             canvas.draw()
         if update_qframe:
             print('Valdur filur: ' + str(filur))
