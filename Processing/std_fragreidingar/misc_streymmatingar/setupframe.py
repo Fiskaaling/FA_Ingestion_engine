@@ -15,7 +15,7 @@ def setupmetaframe(frame, setup_dict):
     path_to_data = StringVar()
     path_to_data.set('path')
     path_to_dest = StringVar()
-    path_to_dest.set('/home/trondur/Documents/FA/FA_Ingestion_engine/sidir')
+    path_to_dest.set(os.path.dirname(os.path.dirname(__file__)))
     path_to_mynd = StringVar()
     path_to_mynd.set('path')
     navn_a_tex = StringVar()

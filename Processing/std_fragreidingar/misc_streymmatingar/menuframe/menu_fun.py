@@ -8,7 +8,7 @@ def germappu(setup_dict, siduval_dict):
     path = setup_dict['path']
 
     #  TODO hvat skal eg gera við hettar???
-    path_to_skabilon = startdir + '/sidir/nogui/LaTeX/skabilon'
+    path_to_skabilon = startdir + '/Processing/std_fragreidingar/nogui/LaTeX/skabilon'
 
     if path['dest'].get() == 'path':
         os.chdir(startdir)
