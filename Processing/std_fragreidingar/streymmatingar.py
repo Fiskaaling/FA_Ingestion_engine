@@ -69,3 +69,4 @@ def streym(frame, root):
     valdarsidir_frame = Frame(BodyFrame)
     valdarsidir_frame.grid(row=1, column=1)
     setupframe.valdarsigur(valdarsidir_frame, siduval_dict)
+    # TODO okkurt til at velja parametrarnar

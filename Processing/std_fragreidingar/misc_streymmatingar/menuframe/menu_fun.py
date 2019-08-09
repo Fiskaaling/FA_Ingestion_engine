@@ -7,8 +7,7 @@ def germappu(setup_dict, siduval_dict):
     startdir = os.getcwd()
     path = setup_dict['path']
 
-    #  TODO hvat skal eg gera við hettar???
-    path_to_skabilon = startdir + '/Processing/std_fragreidingar/nogui/LaTeX/skabilon'
+    path_to_skabilon = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'skabilon')
 
     if path['dest'].get() == 'path':
         os.chdir(startdir)
@@ -36,8 +35,7 @@ def germappu(setup_dict, siduval_dict):
         os.mkdir(os.path.join('myndir', 'permumynd'))
         mynd_navn = os.path.split(path['mynd'].get())[1]
         Myndin = os.path.join('myndir', 'permumynd', mynd_navn)
-        shutil.copy2(path['mynd'].get(), os.path.join(os.getcwd(), 'myndir', 'permumynd', mynd_navn)
-)
+        shutil.copy2(path['mynd'].get(), os.path.join(os.getcwd(), 'myndir', 'permumynd', mynd_navn))
 
     metafil = open(os.path.join('setup', 'metadata.tex'), 'w')
     metafil.write(germetafilin(setup_dict, Myndin))
@@ -45,7 +43,9 @@ def germappu(setup_dict, siduval_dict):
     try:
         master.skriva_doc(setup_dict, siduval_dict)
     except Exception as e:
-        print('feilurin %s hendi í %s' % (e.message, e.args))
+        print(e.args)
+        print()
+        print(dir(e))
 
     os.chdir(startdir)
 

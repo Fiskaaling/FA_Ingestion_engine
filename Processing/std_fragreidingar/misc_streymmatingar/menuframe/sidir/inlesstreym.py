@@ -5,17 +5,29 @@ import datetime as dt
 
 
 
-def inles(path_to_data):
+def inles(path_to_data, dictionary=False):
+    '''
+    Innlesur streym frá 'path_to_data', sorterar tað vánaliga dataði
+    vekk og gevur aftur eitt set av variablum (date, dypir, max_bin, datadf, uvdatadf)
+
+    returns:
+    date:   tíðspunkti á mátingunum við formati frá matplotlib.dates
+    dypir:  dýpi á teimun forskelligu bins "dypir[n]" er dýpið á bin nr n+1
+    max_bin:    størsta bin sum er við í datasettinum
+    datadf:     mag, dir og w av dataðinum á øllum dýpinum
+    datadf:     u, v og w av dataðinum á øllum dýpinum
+    --------------------------------------------------------------------------------
+    vánaligt data er definera til quali > 2
+    fyrsta bin er altíð nr 1
+    '''
     qualidf = pd.read_csv(path_to_data + 'quali.csv')
-    #  finn hvar mátarin er farin á skjógv
+    #  finn hvar mátarin er farin á skjógv og har dataði er markera vánaligt
     keys = list(qualidf.keys())
     keys.remove('dateTime')
     mask = qualidf[keys].min(axis=1).values
-    mask = np.argwhere(mask>2).flatten()
+    mask = np.argwhere(mask > 2).flatten()
 
     # inless dataði og fjerna dataði har mátarin ikki er komin á skjógv
-    #  TODO kanska ikki inles alt og so fjerna
-    #  TODO hint kanska bara inles tað sum skal brúkast
     qualidf = qualidf.drop(mask).reset_index(drop=True)
     datadf = pd.read_csv(path_to_data + 'magdirdata.csv').drop(mask).reset_index(drop=True)
     uvdatadf = pd.read_csv(path_to_data + 'uvdata.csv').drop(mask).reset_index(drop=True)
@@ -28,21 +40,16 @@ def inles(path_to_data):
     Bin_Size = float(metadf['bin_size'])
     firstbinrange = float(metadf['firstbinrange'])
     max_bin = int(metadf['maxbin'])
-    #  TODO eftirhigg hvussu hettar dýpið verður funni
     dypid = float(metadf['median_dypid'])
 
     #  skriva ein variabil til brúka sum ref til hvat dýpi allar mátingarnar eru gjørdar á
-    #  TODO sirg fyri at hettar verður gjørt rætt allastani
-    #  TODO Hint indexi er eitt minni enn tað er í datafylini
     dypir = [float(metadf['bin' + str(x)]) - dypid for x in range(1, max_bin+1)]
 
     #  finn hvat fyri bins skullu droppast
-    #  TODO skal eg bara breita uppá max dypid uppá hendan mátan??
     droppa_meg = [ i+1 for i in range(len(dypir)) if dypir[i] >= 0]
     if len(droppa_meg) != 0:
         max_bin = droppa_meg[0] - 1
 
-    #  TODO skriva hettar ordiligt
     dypir = [dypir[i] for i in range(len(dypir)-len(droppa_meg))]
 
     #  tak ting úr datadf
@@ -62,5 +69,9 @@ def inles(path_to_data):
         if key[1:].isdigit():
             uvdatadf[key] = np.round(uvdatadf[key].values*1000)
 
+    if dictionary:
+        return {'data':date, 'dypid':dypid, 'max_bin':max_bin,
+                'datadf':datadf, 'uvdatadf':uvdatadf
+               }
     return date, dypir, max_bin, datadf, uvdatadf
 
