@@ -8,7 +8,6 @@ import utide
 
 def tidal_analysis_for_depth(tin, uin, vin, lat=62,
               navn='tide.tex', caption='one layer', dest='LaTeX/', label=''):
-    #  TODO tjekka um u og v eru røtt
     coef = utide.solve(tin, uin, vin, lat=lat)
     col = ['Const', 'Freq', 'E-ampl', 'E-gpl', 'N-ampl', 'N-gpl', 'Major', 'minor', 'Theta', 'Graphl', 'R']
     supcol = ['', 'c/hr', 'mm/sec', 'deg', 'mm/sec', 'deg', 'mm/sec', 'mm/sec', 'deg', 'deg', '']
@@ -76,7 +75,6 @@ def tidal_analysis_for_depth_bins(bins, dato, datadf, dypir, lat=62,
                                   section='Tidal analysis for selected depths',
                                   dest = 'LaTeX/'):
     out = '\n\\FloatBarrier\n\\newpage\n\\section{%s}\n' % (section,)
-    #  TODO skriva hettar til at taka uv data inn
     for i, mytempbin in enumerate(bins):
         if i == 0:
             prelabel = 'Surface layer'
@@ -87,7 +85,6 @@ def tidal_analysis_for_depth_bins(bins, dato, datadf, dypir, lat=62,
             out += '\\newpage\n'
         u = datadf['mag' + str(mytempbin)].values * np.sin(np.deg2rad(datadf['dir' + str(mytempbin)].values))
         v = datadf['mag' + str(mytempbin)].values * np.cos(np.deg2rad(datadf['dir' + str(mytempbin)].values))
-        # TODO 5 var get_dypid
         caption = '%s, bin no: %s. at %2.0fm Depth' % (prelabel, mytempbin, -dypir[mytempbin - 1])
         out += tidal_analysis_for_depth(np.array(dato), u, v, lat=lat,
                                      navn='tide%s.tex' % (mytempbin,), caption=caption, dest=dest,
@@ -188,7 +185,9 @@ def tidal_non_tidal_plot(dato, direct, mag, figwidth=6, figheight=7.1, dpi=200,
     u = mag * np.sin(np.deg2rad(direct))
     v = mag * np.cos(np.deg2rad(direct))
     coef = utide.solve(tin, u, v, lat=lat, verbose=verbose, trend=True)
-    #  TODO skal eg fjerna mean
+    #  mean verður fjerna fyri at tá vit hava tiki tingini frá hvørjum ørum
+    #  so er munirin mitt í data settinum, tað er ikki heilt ratt men
+    #  tað sar ratt ut tá tað skal síggja ratt út
     coef.umean = float(0)
     coef.vmean = float(0)
     reconstruckt = utide.reconstruct(tin, coef=coef, verbose=verbose)
@@ -219,10 +218,8 @@ def tidal_non_tidal_bins(bins, dato, datadf, dypir,
                          dest='LaTeX/'):
     out = '\n\\FloatBarrier\n\\newpage'
     out += '\n\\section{%s}' % (section,)
-    #  TODO partur av analysini er í caption ??? :/
     for i, item in enumerate(bins):
         figname = 'tidal_and_nontidal_%s.pdf' % (item,)
-        caption = 'this is a caption'  # TODO del me
         if i == 0:
             prelabel = 'Surface layer'
         elif i == 1:

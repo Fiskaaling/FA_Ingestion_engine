@@ -75,7 +75,6 @@ def tegnahovmuller(data, dypid, dato, ratning=0, nrplots=11, figwidth=6, figheig
         axs[i].xaxis.set_minor_locator(mdate.DayLocator(interval=1))
         axs[i].set_ylabel('Djúbd')
         axs[i].tick_params(axis='x', which='major', pad=0)
-    # TODO skriva tiks ordiligt
     # finn hvat tiks skullu verða á color bar
     fig.colorbar(contours, cax=axs[nrplots], orientation='horizontal', ticks=np.linspace(-vmax, vmax, 9))
     mpl.rcParams['font.size'] = 7
@@ -140,7 +139,7 @@ def speedbins(bins, dato, df, dypir, dest='', dpi=200,
            '\n\\caption{%s}\n\\end{figure}\n\\newpage\n' % (section, navn, caption)
 
 
-def plotrose(ax, N, umax, lv, Es, Ns, eind='mm/s', axline=.5, axcolor='k', alpha=.5, kon=False):
+def plotrose(ax, N, umax, lv, Es, Ns, eind='mm/s', axline=.5, axcolor='k', alpha=.5):
     '''
     teknar eina rósu har eg fari at reina at gera tað møguligt at tekna tað í bins
     og í confidens interval
@@ -155,7 +154,6 @@ def plotrose(ax, N, umax, lv, Es, Ns, eind='mm/s', axline=.5, axcolor='k', alpha
     :param axline:  tjúktin á linjunum
     :param axcolor: farvan á linjunum
     :param alpha:   alpha á linjunum
-    :param kon:     hvissi True plottar tað konfidens intarvali um false plotta vit bins
     :return:        figurin út aftur við øllum breitingunum
                     (veit ikki um tað er neyðut at returna hann)
     '''
@@ -180,42 +178,9 @@ def plotrose(ax, N, umax, lv, Es, Ns, eind='mm/s', axline=.5, axcolor='k', alpha
     #  ger eitt interpolering uppá eitt størri data sett eftir hvat er í F
     #til at gera eitt stórt contour til confidens
 
-    #TODO skriva kon ordiligt
-    if kon:
-        part = sum([y for x in F for y in x])
-        xs = np.linspace(-umax, umax, 1001)
-        Xi, Yi = np.meshgrid(xs, xs)
-        Zi = griddata((X.flatten(), Y.flatten()), F.flatten(), (Xi, Yi), method='linear')
-
-        #  normalisera Zi soleis at totali summurin er tað vit hava fingið við frá Rádatainum
-        Zi *= part / sum([y for x in Zi for y in x])
-        #  byrja at sortera dataði soleis at eg kann gera eitt konfidens interval
-        sh = Zi.shape
-        Zj = Zi.flatten()
-        #  set ein parametur til at sortera aftur eftir tá eg havi set virðir inn til at gera konfidens interval
-        Zj = [[k, Zj[k]] for k in range(sh[0] * sh[1])]
-        #  sortera ratt
-        Zj = sorted(Zj, key=lambda x: x[1])
-        count = 1
-        for k in range(len(Zj)):
-            #  set virðini inn til at gera konfidens interval
-            temp = count - Zj[k][1]
-            Zj[k][1] = count
-            count = temp
-
-        #  set elimentini uppá pláss aftur
-        Zj = sorted(Zj, key=lambda x: x[0])
-        Zj = [Zj[k][1] for k in range(sh[0] * sh[1])]
-        Zj = np.array(Zj)
-        #  enda við at forma dataði uppá pláss aftur
-        Zi = np.reshape(Zj, sh)
-        con = ax.contourf(Xi, Yi, Zi, levels=lv, cmap=cm.jet_r)
-        cb = plt.colorbar(con, ax=ax)
-        cb.set_label('Confidens økir')
-    else:
-        con = ax.contourf(X, Y, F, levels=lv, cmap=cm.jet)
-        cb = plt.colorbar(con, ax=ax)
-        cb.set_ticks([])
+    con = ax.contourf(X, Y, F, levels=lv, cmap=cm.jet)
+    cb = plt.colorbar(con, ax=ax)
+    cb.set_ticks([])
 
     #  tekna allar aksarnir vannratt loddratt diagonalt og ein sirkul á [0,0] radius 100
     ax.plot([0, 0], [-umax, umax], c=axcolor, linewidth=axline, alpha=alpha)
@@ -234,6 +199,29 @@ def tekna_dist_rose(bins, data, N, umax, dypir, dest='LaTeX/', dpi=200,
                     navn='Rosa.pdf', section='Rose diagrams at selected layers',
                     axcolor='k', axline=0.5, alpha=0.5, font=8, figwidth=6,
                     figheight=7.1):
+    '''
+    Ger eina síðu við rósuplottum á trimun forskelligum dýpum
+
+    :param bins:        [list int] len(bins)==3 tríggjar bins, [surface layer,
+                                                                Center layer,
+                                                                Bottom layer]
+    :param data:        Dataði sum skal til at tekna rósurnar
+    :param N:           Hvussu nógvar bins dataði skal sorterast í av fyrstan tíð
+    :param umax:        Hvar greinsunar á ásunum skullu verða
+    :param dypir        Ein listi av øllum dýpinum har dýpi er dypir(bin+1)
+    :param dest:        Hvat fyri mappu skullu plottini í (undirmappu)
+    :param dpi:         Upplysningurin á figurinum
+    :param navn:        Navnið á figurinum
+    :param section:     Navni á sectiónini
+    :param axcolor:     Farvan á axanum (matplotlib)
+    :param axline:      Tjúktin á axanum
+    :param alpha:       alpha á axanum
+    :param font:        Støddin á tekstinum
+    :param figwidth:    Breiddin á fig
+    :param figheight:   Hæddin á fig
+
+    :return:        ein string sum kann setast inní eitt latex document
+    '''
 
     if len(bins) != 3:
         print(bins)
@@ -259,10 +247,10 @@ def tekna_dist_rose(bins, data, N, umax, dypir, dest='LaTeX/', dpi=200,
         umax2 = umax2[int(0.95 * len(umax2))]
 
         plotrose(axs[i, 0], N, umax2, lv=10, Es=Es, Ns=Ns,
-             kon=False, axcolor=axcolor, axline=axline, alpha=alpha)
+             axcolor=axcolor, axline=axline, alpha=alpha)
         axs[i, 0].set_ylabel(prelabel + '\n' + axs[i, 0].get_ylabel())
         plotrose(axs[i, 1], N, umax, lv=10, Es=Es, Ns=Ns,
-             kon=False, axcolor=axcolor, axline=axline, alpha=alpha)
+             axcolor=axcolor, axline=axline, alpha=alpha)
         axs[i, 1].set_ylabel('')
     caption = 'Distribution of velocity vectors: ' \
               'a) Bin %s at %2.0f m depth, b) Bin %s at %2.0f m depth, and c) Bin %s at %2.0f m depth.' \
@@ -282,8 +270,22 @@ def progressive_vector(bins, dato, uvdf, dypir, dest='LaTeX/', dpi=200,
                        section='Progressive vector diagrams at selected layers',
                        font=7, figwidth=6, figheight=7.1):
     '''
+    Teknar eitt Progresiv vector plot í trimum forskelligum dýpum
+    :param bins:        [list int] len(bins)==3 tríggjar bins, [surface layer,
+                                                                Center layer,
+                                                                Bottom layer]
+    :param dato:        dato á øllum mátingunum
     :param dato:        dato í mdate
-    :param uvdf:        uv data í [m/s]
+    :param uvdf:        uv data í [mm/s]
+    :param dest:        Hvat fyri mappu skullu plottini í (undirmappu)
+    :param dpi:         Upplysningurin á figurinum
+    :param navn:        Navnið á figurinum
+    :param section:     Navni á sectiónini
+    :param font:        Støddin á tekstinum
+    :param figwidth:    Breiddin á fig
+    :param figheight:   Hæddin á fig
+
+    :return:        ein string sum kann setast inní eitt latex document
     '''
     if len(bins) != 3:
         raise ValueError('bins skal hava 3 bins')
@@ -407,6 +409,16 @@ def progressive_vector(bins, dato, uvdf, dypir, dest='LaTeX/', dpi=200,
 
 def frequencytabellir(datadf, dypir, dest='LaTeX/',
               navn='Frqtabel.tex', sections=['Frequency of high speeds', 'Frequency of low speeds']):
+    '''
+    skrivar tvær frequens tabellir eina við høgum streymi og hina við lágum
+    :param datadf:  Ein dataframe við mag av streyminum
+    :param dypir:   ein listi sum vísur hvussu djúpt tað er í binninum
+    :param dest:        Hvat fyri mappu skullu plottini í (undirmappu)
+    :param navn:        Navnið á figurinum
+    :param section:     Navni á sectiónini
+
+    :return:        ein string sum kann setast inní eitt latex document
+    '''
     #  Freequency of high speeds
     inforows = ['no.', 'm']
     infospeed = [str(x) for x in [50, 100, 150, 200, 250, 350, 400, 450, 500, 600, 700, 800, 900, 1000, 1500]]
@@ -470,8 +482,6 @@ def frequencytabellir(datadf, dypir, dest='LaTeX/',
             highstr += '\\\\\n\\hline\n'
         else:
             highstr += '\\\\\n'
-        #  TODO eg havi set minusini í regluni niðanfyri hvissi ettar endar gali so er tað kanska tað
-        #  TODO asso '''-int(''' tingini
         highstr += key.rjust(4) + '&\t' + str(-int(Depth)).rjust(4)
         for x in highspeedtabelround[0:-1]:
             highstr += '&\t' + str(x).rjust(4)
@@ -488,8 +498,6 @@ def frequencytabellir(datadf, dypir, dest='LaTeX/',
             lowstr += '\\\\\n\\hline\n'
         else:
             lowstr += '\\\\\n'
-        #  TODO eg havi set minusini í regluni niðanfyri hvissi ettar endar gali so er tað kanska tað
-        #  TODO asso '''-int(''' tingini
         lowstr += key.rjust(4) + '&\t' + str(-int(Depth)).rjust(4)
         for x in lowspeedtabelround[0:-1]:
             lowstr += '&\t' + str(x).rjust(4)
@@ -529,6 +537,20 @@ def frequencytabellir(datadf, dypir, dest='LaTeX/',
 
 def duration_speed(bins, dato, magdf, dypir, dest='LaTeX/',
               navn='Duration_high.tex', section='Duration of high speed periods'):
+    '''
+    skrivar tríggjar tabellir eina fyri hvørt dýpið í bins
+    :param bins:        [list int] len(bins)==3 tríggjar bins, [surface layer,
+                                                                Center layer,
+                                                                Bottom layer]
+    :param dato:        dato á øllum mátingunum
+    :param magdf:  Ein dataframe við mag av streyminum
+    :param dypir:   ein listi sum vísur hvussu djúpt tað er í binninum
+    :param dest:        Hvat fyri mappu skullu plottini í (undirmappu)
+    :param navn:        Navnið á figurinum
+    :param section:     Navni á sectiónini
+
+    :return:        ein string sum kann setast inní eitt latex document
+    '''
     if len(bins) != 3:
         raise ValueError('bins skal hava 3 bins')
     duration = list(range(60, 1020 + 60, 60))
@@ -568,7 +590,6 @@ def duration_speed(bins, dato, magdf, dypir, dest='LaTeX/',
                         tabell[s][d] += 1
         #  skriva tex tabell
         texstr = '\\begin{tabular}{|' + (1 + len(duration))*'r|' + '}\n'
-        #  TODO higg eftri |c| í nastu reglu
         texstr += '\\hline\nSpeed&\t\\multicolumn{%s}{c|}{Duration (minutes)}\\\\\\hline\n' % (len(duration),)
         texstr += 'mm/s'
         for x in duration:

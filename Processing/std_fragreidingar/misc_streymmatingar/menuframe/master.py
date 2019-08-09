@@ -1,10 +1,10 @@
 import os
 import bisect
 import time
+
+
 from matplotlib import pyplot as plt
 import matplotlib as mpl
-
-
 from matplotlib import dates as mdate
 import numpy as np
 import pandas as pd
@@ -60,7 +60,6 @@ def skriva_doc(setup_dict, siduval_dict):
     #--------------------------------------------------------------------------------
 
     # inles alt dataði
-    #  TODO tjekka inles
     date, dypir, max_bin, datadf, uvdatadf = inles(path_to_data)
 
     # hvat fyri 3 bins skal eg brúka
