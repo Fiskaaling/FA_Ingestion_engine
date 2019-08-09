@@ -9,7 +9,8 @@ def streym(frame, root):
     #----------------------------------------------------------------------
     #                    Start parametrar til alt
     #----------------------------------------------------------------------
-    setup_dict = {'N'                   : 31,   # Hvussu nógvar kassar í rósini
+    setup_dict = {'Language'            : 'FO', # Møgulig mál eru FO og EN
+                  'N'                   : 31,   # Hvussu nógvar kassar í rósini
                   'axcolor'             : 'k',
                   'axline'              : 0.5,
                   'alpha'               : 0.5,
@@ -27,18 +28,17 @@ def streym(frame, root):
     #                    Hvat fyri síðir skal við
     #                    eg havi ikki brúkt hettar
     #----------------------------------------------------------------------
-    siduval_dict = {'Language'                  : 'FO', # Møgulig mál eru FO og EN
-                    'Introduction'         : False, #
-                    'Hovmuller'            : True, #
+    siduval_dict = {'Introduction'         : False, #
+                    'Hovmuller'            : False, #
                     'speedbin'             : True, #
-                    'rosa'                 : True, #
-                    'progressive'          : True, #
-                    'freqtabellir'         : True, #
-                    'durationtabellir'     : True, #
-                    'tidal_3_dypir'        : True, #
-                    'tidal_oll_dypir'      : True, #
-                    'tidal_non_tidal_bins' : True, #
-                    'sjovarfalsdrivi'      : True  #
+                    'rosa'                 : False, #
+                    'progressive'          : False, #
+                    'freqtabellir'         : False, #
+                    'durationtabellir'     : False, #
+                    'tidal_3_dypir'        : False, #
+                    'tidal_oll_dypir'      : False, #
+                    'tidal_non_tidal_bins' : False, #
+                    'sjovarfalsdrivi'      : False  #
                 }
     #----------------------------------------------------------------------
     #                    GUI
@@ -55,8 +55,17 @@ def streym(frame, root):
     BodyFrame = Frame(frame, bg='green')
     BodyFrame.pack(fill=BOTH, expand=True, anchor=N + W)
 
+    # Framin har metadataði verður sett inn
     meta_frame = Frame(BodyFrame)
-    meta_frame.grid(row=0, column=0)
+    meta_frame.grid(row=0, column=0, columnspan=10)
     setupframe.setupmetaframe(meta_frame, setup_dict)
 
+    # Framin har síðinar vera valdar frá
+    siduval_frame = Frame(BodyFrame)
+    siduval_frame.grid(row=1, column=0)
+    setupframe.moguligarsidur(siduval_frame, siduval_dict)
 
+    # Framin har vit hava valt síðir
+    valdarsidir_frame = Frame(BodyFrame)
+    valdarsidir_frame.grid(row=1, column=1)
+    setupframe.valdarsigur(valdarsidir_frame, siduval_dict)

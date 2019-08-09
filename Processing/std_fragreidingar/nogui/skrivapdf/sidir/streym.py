@@ -297,8 +297,7 @@ def progressive_vector(bins, dato, uvdf, dypir, dest='LaTeX/', dpi=200,
         def fun(x, pos):
             if pos in [0, n-1]:
                 return mdate.num2date(x).strftime('%d %b-%y\n   %H:%M')
-            else:
-                return mdate.num2date(x).strftime('%B')
+            return mdate.num2date(x).strftime('%B')
         return fun
 
     #  finn bounds--------------------
@@ -355,20 +354,20 @@ def progressive_vector(bins, dato, uvdf, dypir, dest='LaTeX/', dpi=200,
             punktir[2].append(process_dato)
         plots.append(punktir)
 
-    for i in range(len(plots)):
+    for i, tempplot in enumerate(plots):
         if i == 0:
             prelabel = 'Surface layer'
         elif i == 1:
             prelabel = 'Center layer'
         else:
             prelabel = 'Bottom layer'
-        punktir = plots[i]
+        punktir = tempplot
         xmin = np.min(punktir[0])
         xmax = np.max(punktir[0])
         ymin = np.min(punktir[1])
         ymax = np.max(punktir[1])
 
-        axs.plot(plots[i][0], plots[i][1], linewidth=2.5, alpha=.05, color='k')
+        axs.plot(tempplot[0], tempplot[1], linewidth=2.5, alpha=.05, color='k')
 
         tempdato = np.array(punktir[2])
         punktir = np.array([np.array(punktir[0]), np.array(punktir[1])]).T.reshape(-1, 1, 2)
@@ -380,7 +379,7 @@ def progressive_vector(bins, dato, uvdf, dypir, dest='LaTeX/', dpi=200,
         lc.set_linewidth(2)
         line = axs.add_collection(lc)
 
-        axs.scatter(plots[i][0][-1], plots[i][1][-1], label=prelabel)
+        axs.scatter(tempplot[0][-1], tempplot[1][-1], label=prelabel)
         glxmax = max(xmax, glxmax)
         glymax = max(ymax, glymax)
         glxmin = max(xmin, glxmin)
@@ -496,12 +495,12 @@ def frequencytabellir(datadf, dypir, dest='LaTeX/',
             lowstr += '&\t' + str(x).rjust(4)
     highstr += '\\\\\\hline\n\\end{tabular}'
     lowstr += '\\\\\\hline\n\\end{tabular}'
-    file = open(dest + 'Talvur/high_' + navn, 'w')
-    file.write(highstr)
-    file.close()
-    file = open(dest + 'Talvur/low_' + navn, 'w')
-    file.write(lowstr)
-    file.close()
+    myfile = open(dest + 'Talvur/high_' + navn, 'w')
+    myfile.write(highstr)
+    myfile.close()
+    myfile = open(dest + 'Talvur/low_' + navn, 'w')
+    myfile.write(lowstr)
+    myfile.close()
 
     if len(dypir) > 15:
         newpage = '\\newpage\n'
@@ -575,12 +574,12 @@ def duration_speed(bins, dato, magdf, dypir, dest='LaTeX/',
         for x in duration:
             texstr += '&\t' + str(x).rjust(4)
         texstr += '\\\\\\hline\n'
-        for s in range(len(speed)):
-            texstr += str(speed[s]).rjust(4)
+        for index, s in enumerate(speed):
+            texstr += str(s).rjust(4)
             for d in range(len(duration)):
                 #  temp er tað nasta talið sum skal inní tabellina
                 #  tað er ok at sama total verður brúkt til alt tí tað er sama data
-                temp = 1000 * tabell[s][d] / total
+                temp = 1000 * tabell[index][d] / total
                 if 0.005 < temp < 1:
                     temp = np.round(temp, 2)
                 else:
@@ -632,4 +631,3 @@ def duration_speed(bins, dato, magdf, dypir, dest='LaTeX/',
            '\n\\caption{%s}' \
            '\n\\end{table}' \
            '\n\\newpage\n' % (section, filnovn[0], caption[0], filnovn[1], caption[1], filnovn[2], caption[2])
-
