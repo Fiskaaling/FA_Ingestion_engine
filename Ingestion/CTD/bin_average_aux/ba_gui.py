@@ -1,6 +1,23 @@
 # Hesin fílurin er til at minka um gui skrambul í bin_average fílinum
 import numpy as np
 
+def kanna_events(event_dict, log_w):
+    if event_dict['soak_start'] == -1:
+        log_w('Ávaring! Soak Start er ikki funnið')
+        event_dict['soak_start'] = 50
+    if event_dict['soak_stop'] == -1:
+        log_w('Ávaring! Soak Stop er ikki funnið')
+        event_dict['soak_stop'] = 100
+    if event_dict['downcast_start'] == -1:
+        log_w('Ávaring! Downcast Start er ikki funnið')
+        event_dict['downcast_start'] = 150
+    if event_dict['downcast_stop'] == -1:
+        log_w('Ávaring! Downcast Stop er ikki funnið')
+        event_dict['downcast_stop'] = 200
+    if event_dict['upcast_stop'] == -1:
+        log_w('Ávaring! Upcast Stop er ikki funnið')
+        event_dict['upcast_stop'] = 250
+
 
 def zoom_in(selected_event, ax, event_dict, depth):
     time_fulllength = event_dict['time_fulllength']
