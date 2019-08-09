@@ -14,6 +14,7 @@ def qcontrol(Quality_subframe, depth, event_dict, pump_on, filnavn):
     cast_quality=0
     downcast_quality=0
     upcast_quality=0
+
     # TODO: kanna um ymsku tingini eru funnin?
     # Soaking stabilitetur
     soakvar = np.var(depth[event_dict['soak_start']:event_dict['soak_stop']])

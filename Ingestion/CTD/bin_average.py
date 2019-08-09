@@ -4,7 +4,6 @@ from misc.faLog import *
 import pandas as pd
 import getpass # Til at fáa brúkaranavn
 import numpy as np
-import platform
 import os
 from shutil import copyfile
 import subprocess
@@ -23,7 +22,7 @@ textsize = 16
 def bin_average_frame(frame, root2):
     global root
     global mappunavn
-    #mappunavn = './Ingestion/CTD/Lokalt_Data/2019-01-31/75_All_ASCII_Out'
+    # mappunavn = './Ingestion/CTD/Lokalt_Data/2019-01-31/75_All_ASCII_Out'
     mappunavn = './Ingestion/CTD/Lokalt_Data/2019-06-04/75_All_ASCII_Out'
     root = root2
     for widget in frame.winfo_children():
@@ -218,7 +217,6 @@ def processera(fig, canvas, Quality_frame):
     if downcast_stop != -1:
         downcast_stop_d = dypid[downcast_stop]
         #downcast_stop_line = ax.plot([time_fulllength[downcast_stop], time_fulllength[downcast_stop]], [-100, 100], 'k')
-    bins = np.arange(1,5+.2,.2)
 
     event_dict = {'time_fulllength': time_fulllength, 'soak_start': soak_start, 'soak_stop': soak_stop, 'downcast_start': downcast_start, 'downcast_stop': downcast_stop, 'upcast_stop': upcast_stop}
 
@@ -250,7 +248,6 @@ def processera(fig, canvas, Quality_frame):
     qcontrol(quality_subframe, depth, event_dict, pump_on, filnavn[filur])
 
     def key(event):
-        global soak_start, soak_stop, downcast_start, downcast_stop, upcast_stop
         global selected_event, filur
         print(event.keysym)
         update_annotations = False
@@ -274,13 +271,13 @@ def processera(fig, canvas, Quality_frame):
             print('Calculating')
             print(data.columns.values)
             downcast_Data = pd.DataFrame(
-                {'DepSM': data.DepSM.iloc[downcast_start:downcast_stop], 'T068C': data.T068C.iloc[downcast_start:downcast_stop], 'FlECO-AFL': data['FlECO-AFL'].iloc[downcast_start:downcast_stop], 'Sal00': data['Sal00'].iloc[downcast_start:downcast_stop],
-                 'Sigma-é00': data['Sigma-é00'].iloc[downcast_start:downcast_stop], 'Sbeox0Mg/L': data['Sbeox0Mg/L'].iloc[downcast_start:downcast_stop]}) ## TODO: ger hettar betri. Set hettar í egna funku
+                {'DepSM': data.DepSM.iloc[event_dict['downcast_start']:event_dict['downcast_stop']], 'T068C': data.T068C.iloc[event_dict['downcast_start']:event_dict['downcast_stop']], 'FlECO-AFL': data['FlECO-AFL'].iloc[event_dict['downcast_start']:event_dict['downcast_stop']], 'Sal00': data['Sal00'].iloc[event_dict['downcast_start']:event_dict['downcast_stop']],
+                 'Sigma-é00': data['Sigma-é00'].iloc[event_dict['downcast_start']:event_dict['downcast_stop']], 'Sbeox0Mg/L': data['Sbeox0Mg/L'].iloc[event_dict['downcast_start']:event_dict['downcast_stop']]}) ## TODO: ger hettar betri. Set hettar í egna funku
             if not os.path.isdir(parent_folder + '/ASCII_Downcast'):
                 os.mkdir(parent_folder + '/ASCII_Downcast')
             downcast_Data.to_csv(parent_folder + '/ASCII_Downcast/' + filnavn[filur], index=False)
             print('Assesing quality')
-            summary = qcontrol(quality_subframe, depth, time_fulllength, soak_start, soak_stop, downcast_start, downcast_stop, upcast_stop, pump_on, filnavn[filur])
+            summary = qcontrol(quality_subframe, depth, event_dict, pump_on, filnavn[filur])
 
             confirmation = False
             if summary['downcast_quality'] < 0:
@@ -314,35 +311,25 @@ def processera(fig, canvas, Quality_frame):
                 update_annotations = True
         elif event.keysym == 'j':
             if selected_event == 0:
-                soak_start -= move_amount
                 event_dict['soak_start'] -= move_amount
             elif selected_event == 1:
-                soak_stop -= move_amount
                 event_dict['soak_stop'] -= move_amount
             elif selected_event == 2:
-                downcast_start -= move_amount
                 event_dict['downcast_start'] -= move_amount
             elif selected_event == 3:
-                downcast_stop -= move_amount
                 event_dict['downcast_stop'] -= move_amount
             elif selected_event == 4:
-                upcast_stop -= move_amount
                 event_dict['upcast_stop'] -= move_amount
         elif event.keysym == 'k':
             if selected_event == 0:
-                soak_start += move_amount
                 event_dict['soak_start'] += move_amount
             elif selected_event == 1:
-                soak_stop += move_amount
                 event_dict['soak_stop'] += move_amount
             elif selected_event == 2:
-                downcast_start += move_amount
                 event_dict['downcast_start'] += move_amount
             elif selected_event == 3:
-                downcast_stop += move_amount
                 event_dict['downcast_stop'] += move_amount
             elif selected_event == 4:
-                upcast_stop += move_amount
                 event_dict['upcast_stop'] += move_amount
         elif event.keysym == 'i':
             if not zoomed_in:
@@ -358,8 +345,7 @@ def processera(fig, canvas, Quality_frame):
             log_clear()
             processera(fig, canvas, Quality_frame)
         elif event.keysym == 'onehalf':
-            qcontrol(quality_subframe, depth, time_fulllength, soak_start, soak_stop, downcast_start, downcast_stop,
-                     upcast_stop, pump_on, filnavn[filur])
+            qcontrol(quality_subframe, depth, event_dict, pump_on, filnavn[filur])
         elif event.keysym == 'Delete':
             if os.path.exists(parent_folder + '/ASCII_Downcast/' + filnavn[filur].split('.')[0] + '_do_not_use_.csv'):
                 if messagebox.askyesno('Vátta', 'Strika at casti ikki skal brúkast?'):
@@ -379,19 +365,19 @@ def processera(fig, canvas, Quality_frame):
             global soak_start_line, soak_stop_line, downcast_start_line, downcast_stop_line, upcast_stop_line
             if selected_event == 0:
                 soak_start_line.pop(0).remove()
-                soak_start_line = ax.plot([time_fulllength[soak_start], time_fulllength[soak_start]], [-100, 100], 'k')
+                soak_start_line = ax.plot([time_fulllength[event_dict['soak_start']], time_fulllength[event_dict['soak_start']]], [-100, 100], 'k')
             if selected_event == 1:
                 soak_stop_line.pop(0).remove()
-                soak_stop_line = ax.plot([time_fulllength[soak_stop], time_fulllength[soak_stop]], [-100, 100], 'k')
+                soak_stop_line = ax.plot([time_fulllength[event_dict['soak_stop']], time_fulllength[event_dict['soak_stop']]], [-100, 100], 'k')
             if selected_event == 2:
                 downcast_start_line.pop(0).remove()
-                downcast_start_line = ax.plot([time_fulllength[downcast_start], time_fulllength[downcast_start]], [-100, 100], 'k')
+                downcast_start_line = ax.plot([time_fulllength[event_dict['downcast_start']], time_fulllength[event_dict['downcast_start']]], [-100, 100], 'k')
             if selected_event == 3:
                 downcast_stop_line.pop(0).remove()
-                downcast_stop_line = ax.plot([time_fulllength[downcast_stop], time_fulllength[downcast_stop]], [-100, 100], 'k')
+                downcast_stop_line = ax.plot([time_fulllength[event_dict['downcast_stop']], time_fulllength[event_dict['downcast_stop']]], [-100, 100], 'k')
             if selected_event == 4:
                 upcast_stop_line.pop(0).remove()
-                upcast_stop_line = ax.plot([time_fulllength[upcast_stop], time_fulllength[upcast_stop]], [-100, 100], 'k')
+                upcast_stop_line = ax.plot([time_fulllength[event_dict['upcast_stop']], time_fulllength[event_dict['upcast_stop']]], [-100, 100], 'k')
             #update_annotations = True
             canvas.draw()
         if update_annotations:
