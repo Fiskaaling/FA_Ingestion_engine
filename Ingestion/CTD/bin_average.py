@@ -63,34 +63,34 @@ def velFil():
     mappunavn = filedialog.askdirectory(title='Vel túramappu', initialdir='./Ingestion/CTD/Lokalt_Data/')
 
 
-def qcontrol(Quality_subframe, depth, time_fulllength, soak_start, soak_stop, downcast_start, downcast_stop, upcast_stop, pump_on, filnavn):
+def qcontrol(Quality_subframe, depth, event_dict, pump_on, filnavn):
     for widget in Quality_subframe.winfo_children(): # Tømur quality frame
         widget.destroy()
-
+    time_fulllength = event_dict['time_fulllength']
     cast_quality=0
     downcast_quality=0
     upcast_quality=0
-
+    # TODO: kanna um ymsku tingini eru funnin?
     # Soaking stabilitetur
     soakvar = np.var(depth[soak_start:soak_stop])
     print('Sample variansur á soak er: ' + str(soakvar))
     cast_quality -= min(soakvar, 1)
     # Downcast stabilitetur
-    downcast_diff = np.diff(depth[downcast_start:downcast_stop])
+    downcast_diff = np.diff(depth[event_dict['downcast_start']:event_dict['downcast_stop']])
     downcast_slope = -1
     if len(downcast_diff)>1:
-        downcast_slope, intercept, downcast_r_value, p_value, std_err = stats.linregress(time_fulllength[downcast_start:downcast_stop], depth[downcast_start:downcast_stop])
+        downcast_slope, intercept, downcast_r_value, p_value, std_err = stats.linregress(time_fulllength[event_dict['downcast_start']:event_dict['downcast_stop']], depth[event_dict['downcast_start']:event_dict['downcast_stop']])
         print('Downcast R value: ' + str(downcast_r_value))
     # Upcast stabilitetur
     # Fitta linju og rokna error
-    slope, intercept, upcast_r_value, p_value, std_err = stats.linregress(time_fulllength[downcast_stop:upcast_stop], depth[downcast_stop:upcast_stop])
+    slope, intercept, upcast_r_value, p_value, std_err = stats.linregress(time_fulllength[event_dict['downcast_stop']:event_dict['upcast_stop']], depth[event_dict['downcast_stop']:event_dict['upcast_stop']])
     upcast_r_value = abs(upcast_r_value)
     print('Upcast R value: ' + str(upcast_r_value))
     # Pumpa tendrar
     if pump_on == -1:
         Label(Quality_subframe, text='Pumpan tendraði ikki', font=("Helvetica", textsize), bg="red").pack(side=TOP, anchor=W)
         cast_quality -= 100
-    elif (time_fulllength[pump_on] + 10 < time_fulllength[downcast_start])\
+    elif (time_fulllength[pump_on] + 10 < time_fulllength[event_dict['downcast_start']])\
             and (time_fulllength[soak_start] < time_fulllength[pump_on] < time_fulllength[soak_stop]):
         Label(Quality_subframe, text='Pumpan tendraði til tíðuna', font=("Courier", textsize), bg="lightgreen").pack(side=TOP, anchor=W)
         cast_quality += 1
@@ -157,7 +157,7 @@ def qcontrol(Quality_subframe, depth, time_fulllength, soak_start, soak_stop, do
 
     Label(Quality_subframe, text='Kvalitetur: ' + str(np.round(cast_quality+downcast_quality+upcast_quality,2)), font=("Helvetica", textsize)).pack(side=TOP, anchor=W)
     datetimestring = filnavn.split()
-    measurement_time = datetime.datetime.strptime(datetimestring[0], '%Y-%m-%dt%H%M%S') + datetime.timedelta(0,time_fulllength[downcast_start])
+    measurement_time = datetime.datetime.strptime(datetimestring[0], '%Y-%m-%dt%H%M%S') + datetime.timedelta(0,time_fulllength[event_dict['downcast_start']])
     print(measurement_time)
 
 
@@ -337,35 +337,15 @@ def processera(fig, canvas, Quality_frame):
 
     event_dict = {'time_fulllength': time_fulllength, 'soak_start': soak_start, 'soak_stop': soak_stop, 'downcast_start': downcast_start, 'downcast_stop': downcast_stop, 'upcast_stop': upcast_stop}
 
-    print(bins)
-    print('maxd : ' + str(maxd) + ' m')
-    print('n_midlingspunktir : ' + str(n_midlingspunktir))
-    print('soak_start : ' + str(soak_start))
-    print('soak_stop : ' + str(soak_stop))
-    print('soak_time :' + str(soaktime) + ' sec')
-    print('soak_depth : ' + str(soak_depth) + ' m')
     global soak_start_line, soak_stop_line, downcast_start_line, downcast_stop_line, upcast_stop_line
-    if soak_start == -1:
-        log_w('Ávaring! Soak Start er ikki funnið')
-        soak_start = 50
-    if soak_stop == -1:
-        log_w('Ávaring! Soak Stop er ikki funnið')
-        soak_stop = 100
-    if downcast_start == -1:
-        log_w('Ávaring! Downcast Start er ikki funnið')
-        downcast_start = 150
-    if downcast_stop == -1:
-        log_w('Ávaring! Downcast Stop er ikki funnið')
-        downcast_stop = 200
-    if upcast_stop == -1:
-        log_w('Ávaring! Upcast Stop er ikki funnið')
-        upcast_stop = 250
 
-    soak_start_line = ax.plot([time_fulllength[soak_start], time_fulllength[soak_start]], [-100, 100], 'k')
-    soak_stop_line = ax.plot([time_fulllength[soak_stop], time_fulllength[soak_stop]], [-100, 100], 'k')
-    downcast_start_line = ax.plot([time_fulllength[downcast_start], time_fulllength[downcast_start]], [-100, 100], 'k')
-    downcast_stop_line = ax.plot([time_fulllength[downcast_stop], time_fulllength[downcast_stop]], [-100, 100], 'k')
-    upcast_stop_line = ax.plot([time_fulllength[upcast_stop], time_fulllength[upcast_stop]], [-100, 100], 'k')
+    ba_gui.kanna_events(event_dict, log_w)
+
+    soak_start_line = ax.plot([time_fulllength[event_dict['soak_start']], time_fulllength[event_dict['soak_start']]], [-100, 100], 'k')
+    soak_stop_line = ax.plot([time_fulllength[event_dict['soak_stop']], time_fulllength[event_dict['soak_stop']]], [-100, 100], 'k')
+    downcast_start_line = ax.plot([time_fulllength[event_dict['downcast_start']], time_fulllength[event_dict['downcast_start']]], [-100, 100], 'k')
+    downcast_stop_line = ax.plot([time_fulllength[event_dict['downcast_stop']], time_fulllength[event_dict['downcast_stop']]], [-100, 100], 'k')
+    upcast_stop_line = ax.plot([time_fulllength[event_dict['upcast_stop']], time_fulllength[event_dict['upcast_stop']]], [-100, 100], 'k')
 
     global selected_event
     selected_event = 0
@@ -382,7 +362,7 @@ def processera(fig, canvas, Quality_frame):
                              ha='center',
                              arrowprops=dict(arrowstyle="->"))
 
-    qcontrol(quality_subframe, depth, time_fulllength, soak_start, soak_stop, downcast_start, downcast_stop, upcast_stop, pump_on, filnavn[filur])
+    qcontrol(quality_subframe, depth, event_dict, pump_on, filnavn[filur])
 
     def key(event):
         global soak_start, soak_stop, downcast_start, downcast_stop, upcast_stop
@@ -554,11 +534,6 @@ def processera(fig, canvas, Quality_frame):
 
     root.bind('<Key>', key)
 
-    #ax.scatter(farts, np.ones([1, len(farts)])*-3, color = 'green')
-    #ax.scatter(upcast, np.ones([1, len(upcast)]) * -3, color='red')
-
-    #ax.fill_between(range(1030), -100, 100, where=farts, facecolor='green', alpha=0.2)
-    #ax2.set_ylabel(data.columns[1], color='b')
     canvas.draw()
     canvas.get_tk_widget().pack(fill=BOTH, expand=1)
     log_e()
