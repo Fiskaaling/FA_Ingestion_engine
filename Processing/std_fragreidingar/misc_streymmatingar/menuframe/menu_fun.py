@@ -40,12 +40,15 @@ def germappu(setup_dict, siduval_dict):
     metafil = open(os.path.join('setup', 'metadata.tex'), 'w')
     metafil.write(germetafilin(setup_dict, Myndin))
     metafil.close()
+    master.skriva_doc(setup_dict, siduval_dict)
+    '''
     try:
         master.skriva_doc(setup_dict, siduval_dict)
     except Exception as e:
         print(e.args)
         print()
         print(dir(e))
+    '''
 
     os.chdir(startdir)
 

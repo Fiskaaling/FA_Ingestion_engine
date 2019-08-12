@@ -21,13 +21,15 @@ def streym(frame, root):
                   'top_mid_bot_layer'   : False, # Set inn hvat fyrði bins skullu brúkast
                   'Hov_hadd'            : -10,  # Ovara greinsa á Hovmuller
                   'sama_aksa'           : True,
-                  'Hov_rat'             : [0, 90], # Ratning á Hov
-                  'tidal_oll_Frqs'      : ['M2', 'S2', 'N2', 'O1', 'K1'] # Frq til tidal_oll_dypir
+                  'Hov_rat'             : [0, 90, -35], # Ratning á Hov
+                  'tidal_oll_Frqs'      : ['M2', 'S2', 'N2', 'O1', 'K1'], # Frq til tidal_oll_dypir
+                  'minmax'              : True # speedbin subsections
                  }
     #----------------------------------------------------------------------
     #                    Hvat fyri síðir skal við
     #                    eg havi ikki brúkt hettar
     #----------------------------------------------------------------------
+    # TODO hettar verður undur  ongun umstøðum brúkt sum ein dict
     siduval_dict = {'Introduction'         : False, #
                     'Hovmuller'            : False, #
                     'speedbin'             : True, #
