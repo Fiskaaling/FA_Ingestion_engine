@@ -20,7 +20,6 @@ textsize = 16
 
 
 def bin_average_frame(frame, root2):
-    global root
     # mappunavn = './Ingestion/CTD/Lokalt_Data/2019-01-31/75_All_ASCII_Out'
     mappunavn = './Ingestion/CTD/Lokalt_Data/2019-06-04/75_All_ASCII_Out'
     mappunavn_dict = {'mappunavn': mappunavn}
@@ -34,7 +33,7 @@ def bin_average_frame(frame, root2):
     velMappuBtn = Button(controlsFrame, text='Vel Fílir', command=lambda: velFil(mappunavn_dict))
     velMappuBtn.pack(side=LEFT, anchor=W)
 
-    processBtn = Button(controlsFrame, text='Processera', command=lambda: processera(fig, canvas, Quality_frame, mappunavn_dict))
+    processBtn = Button(controlsFrame, text='Processera', command=lambda: processera(root, fig, canvas, Quality_frame, mappunavn_dict))
     processBtn.pack(side=LEFT, anchor=W)
 
     Right_frame = Frame(frame)
@@ -50,16 +49,16 @@ def bin_average_frame(frame, root2):
     log_frame = Frame(Right_frame, height=300, width=600, borderwidth=1, highlightbackground="green", highlightcolor="green", highlightthickness=1)
     log_frame.pack(fill=X, expand=False, side=BOTTOM, anchor=W)
     gerlog(log_frame, root)
-    global filur
-    filur = 0
+    mappunavn_dict['filur'] = 0
 
-    processera(fig, canvas, Quality_frame, mappunavn_dict)
+    processera(root, fig, canvas, Quality_frame, mappunavn_dict)
 
 
 def velFil(mappunavn):
     mappunavn['mappunavn'] = filedialog.askdirectory(title='Vel túramappu', initialdir='./Ingestion/CTD/Lokalt_Data/')
 
-def processera(fig, canvas, Quality_frame, mappunavn_dict):
+def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
+    # Todo: kanna um metadatafílur er gjørdur, um hann er les virðini frá honum
     mappunavn = mappunavn_dict['mappunavn']
     log_b()
     midlingstid = 2 # sek
@@ -67,8 +66,8 @@ def processera(fig, canvas, Quality_frame, mappunavn_dict):
     ax = fig.subplots()
     filnavn = os.listdir(mappunavn)
     filnavn.sort()
-    global filur
-    data = pd.read_csv(mappunavn + '/' + filnavn[filur], encoding='latin-1') # Les fíl
+
+    data = pd.read_csv(mappunavn + '/' + filnavn[mappunavn_dict['filur']], encoding='latin-1') # Les fíl
 
     for widget in Quality_frame.winfo_children(): # Tømur quality frame
         widget.destroy()
@@ -81,7 +80,7 @@ def processera(fig, canvas, Quality_frame, mappunavn_dict):
             casttext += ' ✓'
         if os.path.exists(parent_folder + '/ASCII_Downcast/' + cast.split('.')[0] + '_do_not_use_.csv'):
             casttext += ' X'
-        if cast == filnavn[filur]:
+        if cast == filnavn[mappunavn_dict['filur']]:
             Label(Quality_frame, text=casttext, font=("Courier", textsize, 'underline')).pack(side=TOP, anchor=W)
         else:
             Label(Quality_frame, text=casttext, font=("Courier", textsize)).pack(side=TOP, anchor=W)
@@ -175,7 +174,7 @@ def processera(fig, canvas, Quality_frame, mappunavn_dict):
     if os.path.isdir(parent_folder + '/0_RAW_DATA'):
         raw_filar = os.listdir(parent_folder + '/0_RAW_DATA/')
         raw_filnavn = '-1'
-        hesin_filur = filnavn[filur].upper()
+        hesin_filur = filnavn[mappunavn_dict['filur']].upper()
         for raw_file in raw_filar: # Hettar finnur rætta xml fílin
             print(raw_file)
             print(hesin_filur)
@@ -232,19 +231,18 @@ def processera(fig, canvas, Quality_frame, mappunavn_dict):
 
     zoomed_in_dict = {'zoomed_in':  False}
 
-    global annotation
-    annotation = ax.annotate('Soak Start',
-                             xy=(time_fulllength[soak_start], maxd + 1),
-                             xytext=(time_fulllength[soak_start], maxd + 2),
-                             xycoords='data',
-                             textcoords='data',
-                             ha='center',
-                             arrowprops=dict(arrowstyle="->"))
 
-    qcontrol(quality_subframe, depth, event_dict, pump_on, filnavn[filur])
+    soak_line_dict['annotation'] = ax.annotate('Soak Start',
+                                               xy=(time_fulllength[soak_start], maxd + 1),
+                                               xytext=(time_fulllength[soak_start], maxd + 2),
+                                               xycoords='data',
+                                               textcoords='data',
+                                               ha='center',
+                                               arrowprops=dict(arrowstyle="->"))
+
+    qcontrol(quality_subframe, depth, event_dict, pump_on, filnavn[mappunavn_dict['filur']])
 
     def key(event):
-        global filur
         print(event.keysym)
         update_annotations = False
         update_qframe = False
@@ -254,12 +252,12 @@ def processera(fig, canvas, Quality_frame, mappunavn_dict):
             move_amount = 8
 
         if event.keysym == 'w':
-            if filur < len(filnavn)-1:
-                filur += 1
+            if mappunavn_dict['filur'] < len(filnavn)-1:
+                mappunavn_dict['filur'] += 1
                 update_qframe = True
         elif event.keysym == 'q':
-            if filur != 0:
-                filur -= 1
+            if mappunavn_dict['filur'] != 0:
+                mappunavn_dict['filur'] -= 1
                 update_qframe = True
         elif event.keysym == 'Return':
             log_b()
@@ -270,9 +268,9 @@ def processera(fig, canvas, Quality_frame, mappunavn_dict):
                  'Sigma-é00': data['Sigma-é00'].iloc[event_dict['downcast_start']:event_dict['downcast_stop']], 'Sbeox0Mg/L': data['Sbeox0Mg/L'].iloc[event_dict['downcast_start']:event_dict['downcast_stop']]}) ## TODO: ger hettar betri. Set hettar í egna funku
             if not os.path.isdir(parent_folder + '/ASCII_Downcast'):
                 os.mkdir(parent_folder + '/ASCII_Downcast')
-            downcast_Data.to_csv(parent_folder + '/ASCII_Downcast/' + filnavn[filur], index=False)
+            downcast_Data.to_csv(parent_folder + '/ASCII_Downcast/' + filnavn[mappunavn_dict['filur']], index=False)
             print('Assesing quality')
-            summary = qcontrol(quality_subframe, depth, event_dict, pump_on, filnavn[filur])
+            summary = qcontrol(quality_subframe, depth, event_dict, pump_on, filnavn[mappunavn_dict['filur']])
 
             confirmation = False
             if summary['downcast_quality'] < 0:
@@ -282,15 +280,15 @@ def processera(fig, canvas, Quality_frame, mappunavn_dict):
                 confirmation = True
             if confirmation:
                 metadatafile = 'key,value\n'
-                metadatafile += 'Data_File_Name,' + filnavn[filur] + '\n'
-                sha256_hash = get_hash(parent_folder + '/ASCII_Downcast/' + filnavn[filur])
+                metadatafile += 'Data_File_Name,' + filnavn[mappunavn_dict['filur']] + '\n'
+                sha256_hash = get_hash(parent_folder + '/ASCII_Downcast/' + filnavn[mappunavn_dict['filur']])
                 metadatafile += 'sha256_hash,' + sha256_hash + '\n'
                 metadatafile += 'processed_by,' + getpass.getuser() + '\n'
                 for key, value in summary.items():
                     metadatafile += key + ',' + str(value) + '\n'
                 print(metadatafile)
 
-                text_file = open(parent_folder + '/ASCII_Downcast/' + filnavn[filur].split('.')[0] + '_metadata.csv', "w")
+                text_file = open(parent_folder + '/ASCII_Downcast/' + filnavn[mappunavn_dict['filur']].split('.')[0] + '_metadata.csv', "w")
                 text_file.write(metadatafile)
                 text_file.close()
                 update_qframe = True
@@ -339,16 +337,16 @@ def processera(fig, canvas, Quality_frame, mappunavn_dict):
             canvas.draw()
         elif event.keysym == 'space':
             log_clear()
-            processera(fig, canvas, Quality_frame, mappunavn_dict)
+            processera(root, fig, canvas, Quality_frame, mappunavn_dict)
         elif event.keysym == 'onehalf':
-            qcontrol(quality_subframe, depth, event_dict, pump_on, filnavn[filur])
+            qcontrol(quality_subframe, depth, event_dict, pump_on, filnavn[mappunavn_dict['filur']])
         elif event.keysym == 'Delete':
-            if os.path.exists(parent_folder + '/ASCII_Downcast/' + filnavn[filur].split('.')[0] + '_do_not_use_.csv'):
+            if os.path.exists(parent_folder + '/ASCII_Downcast/' + filnavn[mappunavn_dict['filur']].split('.')[0] + '_do_not_use_.csv'):
                 if messagebox.askyesno('Vátta', 'Strika at casti ikki skal brúkast?'):
-                    os.remove(parent_folder + '/ASCII_Downcast/' + filnavn[filur].split('.')[0] + '_do_not_use_.csv')
+                    os.remove(parent_folder + '/ASCII_Downcast/' + filnavn[mappunavn_dict['filur']].split('.')[0] + '_do_not_use_.csv')
             else:
                 if messagebox.askyesno('Vátta', 'Markera hettar casti sum tað ikki skal brúkast?'):
-                    text_file = open(parent_folder + '/ASCII_Downcast/' + filnavn[filur].split('.')[0] + '_do_not_use_.csv', "w")
+                    text_file = open(parent_folder + '/ASCII_Downcast/' + filnavn[mappunavn_dict['filur']].split('.')[0] + '_do_not_use_.csv', "w")
                     text_file.write('Hesin fílurin er brúktur til at markera at hettar casti ikki skal brúkast')
                     text_file.close()
 
@@ -358,7 +356,6 @@ def processera(fig, canvas, Quality_frame, mappunavn_dict):
             event_dict['selected_event'] = 4
 
         if event.keysym == 'j' or event.keysym == 'k':
-            global soak_stop_line, downcast_start_line, downcast_stop_line, upcast_stop_line
             if event_dict['selected_event'] == 0:
                 soak_line_dict['soak_start_line'].pop(0).remove()
                 soak_line_dict['soak_start_line'] = ax.plot([time_fulllength[event_dict['soak_start']], time_fulllength[event_dict['soak_start']]], [-100, 100], 'k')
@@ -377,13 +374,12 @@ def processera(fig, canvas, Quality_frame, mappunavn_dict):
             #update_annotations = True
             canvas.draw()
         if update_annotations:
-            global annotation
-            annotation.remove()
-            annotation = ba_gui.update_annotations(event_dict['selected_event'], ax, event_dict, maxd)
+            soak_line_dict['annotation'].remove()
+            soak_line_dict['annotation'] = ba_gui.update_annotations(event_dict['selected_event'], ax, event_dict, maxd)
 
             canvas.draw()
         if update_qframe:
-            print('Valdur filur: ' + str(filur))
+            print('Valdur filur: ' + str(mappunavn_dict['filur']))
             for widget in Quality_frame.winfo_children():  # Tømur quality frame
                 widget.destroy()
             for cast in list_of_casts:
@@ -392,7 +388,7 @@ def processera(fig, canvas, Quality_frame, mappunavn_dict):
                     casttext += ' ✓'
                 if os.path.exists(parent_folder + '/ASCII_Downcast/' + cast.split('.')[0] + '_do_not_use_.csv'):
                     casttext += ' ⃠'
-                if cast == filnavn[filur]:
+                if cast == filnavn[mappunavn_dict['filur']]:
                     Label(Quality_frame, text=casttext, font=("Courier", textsize), bg="Green").pack(side=TOP, anchor=W)
                 else:
                     Label(Quality_frame, text=casttext, font=("Courier", textsize)).pack(side=TOP, anchor=W)
