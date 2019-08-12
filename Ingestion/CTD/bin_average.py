@@ -21,9 +21,9 @@ textsize = 16
 
 def bin_average_frame(frame, root2):
     global root
-    global mappunavn
     # mappunavn = './Ingestion/CTD/Lokalt_Data/2019-01-31/75_All_ASCII_Out'
     mappunavn = './Ingestion/CTD/Lokalt_Data/2019-06-04/75_All_ASCII_Out'
+    mappunavn_dict = {'mappunavn': mappunavn}
     root = root2
     for widget in frame.winfo_children():
         widget.destroy()
@@ -31,10 +31,10 @@ def bin_average_frame(frame, root2):
     Label(frame, text='Bin Average').pack(side=TOP, anchor=W)
     controlsFrame = Frame(frame)
     controlsFrame.pack(side=TOP, anchor=W)
-    velMappuBtn = Button(controlsFrame, text='Vel Fílir', command=velFil)
+    velMappuBtn = Button(controlsFrame, text='Vel Fílir', command=lambda: velFil(mappunavn_dict))
     velMappuBtn.pack(side=LEFT, anchor=W)
 
-    processBtn = Button(controlsFrame, text='Processera', command=lambda: processera(fig, canvas, Quality_frame))
+    processBtn = Button(controlsFrame, text='Processera', command=lambda: processera(fig, canvas, Quality_frame, mappunavn_dict))
     processBtn.pack(side=LEFT, anchor=W)
 
     Right_frame = Frame(frame)
@@ -53,14 +53,14 @@ def bin_average_frame(frame, root2):
     global filur
     filur = 0
 
-    processera(fig, canvas, Quality_frame)
+    processera(fig, canvas, Quality_frame, mappunavn_dict)
 
-def velFil():
-    global mappunavn
-    mappunavn = filedialog.askdirectory(title='Vel túramappu', initialdir='./Ingestion/CTD/Lokalt_Data/')
 
-def processera(fig, canvas, Quality_frame):
-    global mappunavn
+def velFil(mappunavn):
+    mappunavn['mappunavn'] = filedialog.askdirectory(title='Vel túramappu', initialdir='./Ingestion/CTD/Lokalt_Data/')
+
+def processera(fig, canvas, Quality_frame, mappunavn_dict):
+    mappunavn = mappunavn_dict['mappunavn']
     log_b()
     midlingstid = 2 # sek
     fig.clf()
