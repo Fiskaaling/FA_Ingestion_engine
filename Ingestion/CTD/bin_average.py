@@ -194,8 +194,7 @@ def processera(fig, canvas, Quality_frame, mappunavn_dict):
         pump_on = -1
         pump_off = -1
         lastLine = 0
-        for i in range(len(raw_data)):
-            line = raw_data[i]
+        for i, line in enumerate(raw_data):
             if line:
                 if line[0] == '1' and lastLine == '0':
                     pump_on = i
