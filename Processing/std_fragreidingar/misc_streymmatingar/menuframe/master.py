@@ -112,19 +112,15 @@ def skriva_doc(setup_dict, siduval_dict):
     print(siduval_dict['valdar_tree'].get_children(''))
     mangullisti=[]
     for case in siduval_dict['valdar_tree'].get_children(''):
-        #  TODO eg havi ikki gjørt naka við hettar ífylgi mál
-        #  TODO sum er riggar hettar ikki tí eg havi tiki siduval_dict['Language'] vekk Sorry :'(
-
         # Introduction
         if case == 'Introduction':
-            continue
             a = 'Ókent mál'
-            if siduval_dict['Language'] == 'FO':
+            if mal == 'FO':
                 a = "\\\FloatBarrier\n\\newpage\n\\section{Innleiðing}\\\\" + 'Eftir umbøn frá '+setup_dict['umb_av']+' eru kanningar gjørdar fyri at lýsa rákið í '  + setup_dict['stadarnavn'] + '. ' +\
                     'Hendan frágreiðingin lýsir hvussu úrslitini av hesum kanningum' + '\\newpage\n'
                 a += '\\section{Økið}\n' \
                      'Økið har máta verður blabblabla'
-            elif siduval_dict['Language'] == 'EN':
+            elif mal == 'EN':
                 pass
                 #a =  '\n\\FloatBarrier\n\\newpage\n\\section{%s}\n\\begin{figure}[h!]\\label{Hov%2.1f}\n\\includegraphics[scale=1]{myndir/%s}' \
                 #       '\n\\caption{%s}\n\\end{figure}\n\\newpage\n' % (section, ratning, navn, caption)

@@ -5,7 +5,7 @@ import os
 from pprint import pprint
 
 from .menuframe import menu_fun
-from .metaframe import meta_fun, setupfun
+from .metaframe import meta_fun
 from .moguligarsidur import moguligar
 from .valdarsidur import valdar
 
@@ -90,18 +90,16 @@ def setupmetaframe(frame, setup_dict):
     meta['leitiord'] = Entry(frame, width=100)
     meta['leitiord'].grid(row=14, column=1)
 
-    setupfun.inset_feltir(meta)
-
     setup_dict['meta'] = meta
 
-def moguligarsidur(frame, siduval_dict):
+def moguligarsidur(frame, siduval_dict, siduval_list):
     moguleikar_tree = ttk.Treeview(frame, height=20)
     moguleikar_tree.column('#0', width=200)
     moguleikar_tree.heading("#0", text="Møguligar síður")
 
     moguleikar_tree.grid(row=0, column=0)
     moguleikar_tree.bind("<Double-1>", lambda event: moguligar.velsidu(event, siduval_dict))
-    moguligar.filltradi(moguleikar_tree, siduval_dict)
+    moguligar.filltradi(moguleikar_tree, siduval_dict, siduval_list)
     siduval_dict['møguleikar_tree'] = moguleikar_tree
 
 def valdarsigur(frame, siduval_dict):
