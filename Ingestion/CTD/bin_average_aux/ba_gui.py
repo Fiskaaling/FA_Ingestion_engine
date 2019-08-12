@@ -1,6 +1,7 @@
 # Hesin fílurin er til at minka um gui skrambul í bin_average fílinum
 import numpy as np
 
+
 def kanna_events(event_dict, log_w):
     if event_dict['soak_start'] == -1:
         log_w('Ávaring! Soak Start er ikki funnið')
