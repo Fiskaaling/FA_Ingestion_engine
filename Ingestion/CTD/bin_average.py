@@ -72,8 +72,11 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
     list_of_casts = os.listdir(mappunavn)
     list_of_casts.sort()
     parent_folder = os.path.dirname(mappunavn)
-    metadata = ba_gui.refresh_qframe(Quality_frame, list_of_casts, parent_folder, filnavn, mappunavn_dict)
-
+    metadata, finished_processing = ba_gui.refresh_qframe(Quality_frame, list_of_casts, parent_folder, filnavn, mappunavn_dict)
+    print('Finished_processing?: ' + str(finished_processing))
+    if finished_processing:
+        continuebtn = Button(Quality_frame, text='Halt áfram')
+        continuebtn.pack(side=TOP, anchor=W)
     Label(Quality_frame, text=('―'*20), font=("Courier", textsize)).pack(side=TOP, anchor=W)
     quality_subframe = Frame(Quality_frame)
     quality_subframe.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
@@ -229,7 +232,6 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
     qcontrol(quality_subframe, depth, event_dict, pump_on, filnavn[mappunavn_dict['filur']])
 
     def key(event):
-        print(event.keysym)
         update_annotations = False
         update_qframe = False
         if zoomed_in_dict['zoomed_in']:
@@ -353,20 +355,15 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
 
         if event.keysym == 'j' or event.keysym == 'k':
             if event_dict['selected_event'] == 0:
-                soak_line_dict['soak_start_line'].pop(0).remove()
-                soak_line_dict['soak_start_line'] = ax.plot([time_fulllength[event_dict['soak_start']], time_fulllength[event_dict['soak_start']]], [-100, 100], 'k')
+                soak_line_dict['soak_start_line'][0].set_data([time_fulllength[event_dict['soak_start']], time_fulllength[event_dict['soak_start']]], [-100, 100])
             if event_dict['selected_event'] == 1:
-                soak_line_dict['soak_stop_line'].pop(0).remove()
-                soak_line_dict['soak_stop_line'] = ax.plot([time_fulllength[event_dict['soak_stop']], time_fulllength[event_dict['soak_stop']]], [-100, 100], 'k')
+                soak_line_dict['soak_stop_line'][0].set_data([time_fulllength[event_dict['soak_stop']], time_fulllength[event_dict['soak_stop']]], [-100, 100])
             if event_dict['selected_event'] == 2:
-                soak_line_dict['downcast_start_line'].pop(0).remove()
-                soak_line_dict['downcast_start_line'] = ax.plot([time_fulllength[event_dict['downcast_start']], time_fulllength[event_dict['downcast_start']]], [-100, 100], 'k')
+                soak_line_dict['downcast_start_line'][0].set_data([time_fulllength[event_dict['downcast_start']], time_fulllength[event_dict['downcast_start']]], [-100, 100])
             if event_dict['selected_event'] == 3:
-                soak_line_dict['downcast_stop_line'].pop(0).remove()
-                soak_line_dict['downcast_stop_line'] = ax.plot([time_fulllength[event_dict['downcast_stop']], time_fulllength[event_dict['downcast_stop']]], [-100, 100], 'k')
+                soak_line_dict['downcast_stop_line'][0].set_data([time_fulllength[event_dict['downcast_stop']], time_fulllength[event_dict['downcast_stop']]], [-100, 100])
             if event_dict['selected_event'] == 4:
-                soak_line_dict['upcast_stop_line'].pop(0).remove()
-                soak_line_dict['upcast_stop_line'] = ax.plot([time_fulllength[event_dict['upcast_stop']], time_fulllength[event_dict['upcast_stop']]], [-100, 100], 'k')
+                soak_line_dict['upcast_stop_line'][0].set_data([time_fulllength[event_dict['upcast_stop']], time_fulllength[event_dict['upcast_stop']]], [-100, 100])
             #update_annotations = True
             canvas.draw()
         if update_annotations:

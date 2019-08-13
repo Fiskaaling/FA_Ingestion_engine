@@ -9,6 +9,7 @@ def refresh_qframe(Quality_frame, list_of_casts, parent_folder, filnavn, mappuna
     metadata = []
     for widget in Quality_frame.winfo_children(): # Tømur quality frame
         widget.destroy()
+    finished_processing = True
     for cast in list_of_casts:
         casttext = cast
         if os.path.exists(parent_folder + '/ASCII_Downcast/metadata/' + cast.split('.')[0] + '_metadata.csv'):
@@ -26,13 +27,16 @@ def refresh_qframe(Quality_frame, list_of_casts, parent_folder, filnavn, mappuna
                 casttext += ' -'
             else:
                 casttext += ' ✓'
+        else:
+            finished_processing = False
         if os.path.exists(parent_folder + '/ASCII_Downcast/metadata/' + cast.split('.')[0] + '_do_not_use_.csv'):
             casttext += ' X'
+            finished_processing = True
         if cast == filnavn[mappunavn_dict['filur']]:
             Label(Quality_frame, text=casttext, font=("Courier", textsize, 'underline')).pack(side=TOP, anchor=W)
         else:
             Label(Quality_frame, text=casttext, font=("Courier", textsize)).pack(side=TOP, anchor=W)
-    return metadata
+    return metadata, finished_processing
 
 
 def kanna_events(event_dict, log_w):
