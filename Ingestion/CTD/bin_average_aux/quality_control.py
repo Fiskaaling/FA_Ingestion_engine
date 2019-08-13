@@ -6,6 +6,7 @@ import misc.git_toolbox as gitTB
 from misc.faLog import *
 
 def qcontrol(Quality_subframe, depth, event_dict, pump_on, filnavn):
+    # TODO: Ger so at min kvalitetur er -10 og mesti er +10 og vektra ymsku parametrarnir eitt sindur betur
     textsize = 16 # TODO: Set hettar í ein settings fíl
     for widget in Quality_subframe.winfo_children(): # Tømur quality frame
         widget.destroy()

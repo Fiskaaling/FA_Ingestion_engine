@@ -16,6 +16,7 @@ from tkinter import messagebox
 from misc.sha2calc import get_hash
 import Ingestion.CTD.bin_average_aux.ba_gui as ba_gui
 from Ingestion.CTD.bin_average_aux.quality_control import qcontrol
+import Ingestion.CTD.skraset_stodir
 textsize = 16
 
 
@@ -51,6 +52,8 @@ def bin_average_frame(frame, root2):
     gerlog(log_frame, root)
     mappunavn_dict['filur'] = 0
 
+    mappunavn_dict['continuebtn'] = Button(Quality_frame, text='Halt áfram', command=lambda: Ingestion.CTD.skraset_stodir(frame, root2))
+
     processera(root, fig, canvas, Quality_frame, mappunavn_dict)
 
 
@@ -75,8 +78,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
     metadata, finished_processing = ba_gui.refresh_qframe(Quality_frame, list_of_casts, parent_folder, filnavn, mappunavn_dict)
     print('Finished_processing?: ' + str(finished_processing))
     if finished_processing:
-        continuebtn = Button(Quality_frame, text='Halt áfram')
-        continuebtn.pack(side=TOP, anchor=W)
+        mappunavn_dict['continuebtn'].pack(side=TOP, anchor=W)
     Label(Quality_frame, text=('―'*20), font=("Courier", textsize)).pack(side=TOP, anchor=W)
     quality_subframe = Frame(Quality_frame)
     quality_subframe.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
@@ -269,9 +271,8 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
             if confirmation:
                 # Kanna um metadatamappan er til
                 if not os.path.isdir(parent_folder + '/ASCII_Downcast/metadata'):
-                    os.makedirs(parent_folder + '/ASCII_Downcast/metadata')
-
-
+                    os.makedirs(parent_folder + '/ASCII_Downcast/metadata') # Um ikki, ger hana
+                # Hettar ger metadatafílin
                 metadatafile = 'key,value\n'
                 metadatafile += 'Data_File_Name,' + filnavn[mappunavn_dict['filur']] + '\n'
                 sha256_hash = get_hash(parent_folder + '/ASCII_Downcast/' + filnavn[mappunavn_dict['filur']])
@@ -285,13 +286,12 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
                 metadatafile += 'downcast_stop,' + str(event_dict['downcast_stop']) + '\n'
                 metadatafile += 'upcast_stop,' + str(event_dict['upcast_stop']) + '\n'
                 print(metadatafile)
-
+                # Og her verður metadata fílurin goymdur
                 text_file = open(parent_folder + '/ASCII_Downcast/metadata/' + filnavn[mappunavn_dict['filur']].split('.')[0] + '_metadata.csv', "w")
                 text_file.write(metadatafile)
                 text_file.close()
                 update_qframe = True
                 print('Done exporting')
-
             log_e()
         elif event.keysym == 'l':
             if not zoomed_in_dict['zoomed_in']:
