@@ -74,10 +74,24 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
     list_of_casts = os.listdir(mappunavn)
     list_of_casts.sort()
     parent_folder = os.path.dirname(mappunavn)
+    metadata = []
     for cast in list_of_casts:
         casttext = cast
         if os.path.exists(parent_folder + '/ASCII_Downcast/' + cast.split('.')[0] + '_metadata.csv'):
-            casttext += ' ✓'
+            cast_metadata_df = pd.read_csv(parent_folder + '/ASCII_Downcast/' + cast.split('.')[0] + '_metadata.csv', index_col=False)
+            cast_metadata_keys = cast_metadata_df.key
+            cast_metadata_values = cast_metadata_df.value
+            cast_metadata = {}
+            for i, key in enumerate(cast_metadata_keys):
+                cast_metadata[key] = cast_metadata_values[i]
+
+            if cast == filnavn[mappunavn_dict['filur']]:
+                metadata = cast_metadata
+
+            if float(cast_metadata['cast_quality']) < 0:
+                casttext += ' -'
+            else:
+                casttext += ' ✓'
         if os.path.exists(parent_folder + '/ASCII_Downcast/' + cast.split('.')[0] + '_do_not_use_.csv'):
             casttext += ' X'
         if cast == filnavn[mappunavn_dict['filur']]:
@@ -103,8 +117,6 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
     ax.set_ylim(-1, maxd+1)
     ax.set_xlabel('Tíð [s]')
     ax.set_ylabel('Dýpið [m]', color='k')
-    #ax2 = ax.twinx()
-    #ax2.tick_params('y', colors='b')
     myvar = []
     n_midlingspunktir = int(np.ceil(midlingstid / (max(data.TimeS) / len(data))))
     dypid = data[data.columns[0]]
@@ -115,61 +127,67 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
     diff_d = []
     for i in range(1, len(depth)):
         diff_d.append((depth[i-1]-depth[i])/(time_fulllength.iloc[i-1]-time_fulllength.iloc[i]))
-    #ax2.plot(timeAx, myvar)
-    #ax2.plot(time_fulllength[1:], diff_d)
-    #ax2.set_ylim([-1, 1])
-    #diff_d = np.diff(data[data.columns[0]])
     states = ["PreSoak", "soak_start", "soak_stop", "downcast_start", "downcast_stop", "upcast_start", "upcast_stop"]
     current_stat = states[0]
     print(current_stat)
-    soak_start = -1
-    soak_stop = -1
+
     soaktime = -1
     soak_depth = -1
-    downcast_start = -1
-    downcast_stop = -1
-    upcast_stop = -1
-    for i, d in enumerate(depth): # Hettar er kodan ið finnur nær tey ymsku tingini henda
-        if current_stat == "PreSoak": # Bíða 5 sek áðrenn byrja verður at leita eftir hvar soak byrjar
-            print(time_fulllength[i])
-            if time_fulllength[i] > 5:
-                current_stat = "soak_start"
-        if current_stat == "soak_start":
-            if d < 5:
-                continue
+
+    if not metadata:
+        soak_start = -1
+        soak_stop = -1
+        downcast_start = -1
+        downcast_stop = -1
+        upcast_stop = -1
+        for i, d in enumerate(depth):  # Hettar er kodan ið finnur nær tey ymsku tingini henda
+            if current_stat == "PreSoak":  # Bíða 5 sek áðrenn byrja verður at leita eftir hvar soak byrjar
+                print(time_fulllength[i])
+                if time_fulllength[i] > 5:
+                    current_stat = "soak_start"
+            if current_stat == "soak_start":
+                if d < 5:
+                    continue
+                else:
+                    if np.var(dypid[i:i + n_midlingspunktir]) < 0.01:
+                        soak_start = i
+                        current_stat = "soak_stop"
+                    #    print('Farts '+ str(i))
+            elif current_stat == "soak_stop":
+                if np.var(dypid[i:i + n_midlingspunktir]) > 0.01:
+                    soak_stop = i + n_midlingspunktir
+                    soaktime = time_fulllength[soak_stop] - time_fulllength[soak_start]
+                    soak_depth = np.round(np.mean(dypid[soak_start:soak_stop]), 3)
+                    current_stat = "downcast_prepare"
+            elif current_stat == "downcast_prepare":
+                if d > 5:
+                    continue
+                else:
+                    if d < 2 and np.var(dypid[i:i + n_midlingspunktir]) < 0.01:
+                        current_stat = "downcast_start"
+            elif current_stat == "downcast_start":
+                if np.var(dypid[i:i + n_midlingspunktir]) > 0.01:
+                    downcast_start = i + n_midlingspunktir
+                    current_stat = "downcast_stop"
+            elif current_stat == "downcast_stop":
+                # if np.var(dypid[i:i+n_midlingspunktir]) < 0.01 and d > 5:
+                #    downcast_stop = i
+                #    current_stat = "upcast_start"
+                if d == maxd:
+                    downcast_stop = i
+                    current_stat = "upcast_stop"
+            elif current_stat == "upcast_stop":
+                if np.var(dypid[i:i + n_midlingspunktir]) > 0.01:
+                    upcast_stop = i
             else:
-                if np.var(dypid[i:i+n_midlingspunktir]) < 0.01:
-                    soak_start = i
-                    current_stat = "soak_stop"
-                #    print('Farts '+ str(i))
-        elif current_stat == "soak_stop":
-            if np.var(dypid[i:i+n_midlingspunktir]) > 0.01:
-                soak_stop = i + n_midlingspunktir
-                soaktime = time_fulllength[soak_stop] - time_fulllength[soak_start]
-                soak_depth = np.round(np.mean(dypid[soak_start:soak_stop]), 3)
-                current_stat = "downcast_prepare"
-        elif current_stat == "downcast_prepare":
-            if d > 5:
-                continue
-            else:
-                if d < 2 and np.var(dypid[i:i+n_midlingspunktir]) < 0.01:
-                    current_stat = "downcast_start"
-        elif current_stat == "downcast_start":
-            if np.var(dypid[i:i+n_midlingspunktir]) > 0.01:
-                downcast_start = i + n_midlingspunktir
-                current_stat = "downcast_stop"
-        elif current_stat == "downcast_stop":
-            #if np.var(dypid[i:i+n_midlingspunktir]) < 0.01 and d > 5:
-            #    downcast_stop = i
-            #    current_stat = "upcast_start"
-            if d == maxd:
-                downcast_stop = i
-                current_stat = "upcast_stop"
-        elif current_stat == "upcast_stop":
-            if np.var(dypid[i:i + n_midlingspunktir]) > 0.01:
-                upcast_stop = i
-        else:
-            pass
+                pass
+    else:
+        print('Lesur goymd event virðir')
+        soak_start = int(metadata['soak_start'])
+        soak_stop = int(metadata['soak_stop'])
+        downcast_start = int(metadata['downcast_start'])
+        downcast_stop = int(metadata['downcast_stop'])
+        upcast_stop = int(metadata['upcast_stop'])
 
     if os.path.isdir(parent_folder + '/0_RAW_DATA'):
         raw_filar = os.listdir(parent_folder + '/0_RAW_DATA/')
@@ -213,25 +231,18 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
         downcast_start_d = dypid[downcast_start]
     if downcast_stop != -1:
         downcast_stop_d = dypid[downcast_stop]
-        #downcast_stop_line = ax.plot([time_fulllength[downcast_stop], time_fulllength[downcast_stop]], [-100, 100], 'k')
 
     event_dict = {'time_fulllength': time_fulllength, 'soak_start': soak_start, 'soak_stop': soak_stop, 'downcast_start': downcast_start, 'downcast_stop': downcast_stop, 'upcast_stop': upcast_stop}
 
-
     ba_gui.kanna_events(event_dict, log_w)
 
-    soak_line_dict = {}
-    soak_line_dict['soak_start_line'] = ax.plot([time_fulllength[event_dict['soak_start']], time_fulllength[event_dict['soak_start']]], [-100, 100], 'k')
-    soak_line_dict['soak_stop_line'] = ax.plot([time_fulllength[event_dict['soak_stop']], time_fulllength[event_dict['soak_stop']]], [-100, 100], 'k')
-    soak_line_dict['downcast_start_line'] = ax.plot([time_fulllength[event_dict['downcast_start']], time_fulllength[event_dict['downcast_start']]], [-100, 100], 'k')
-    soak_line_dict['downcast_stop_line'] = ax.plot([time_fulllength[event_dict['downcast_stop']], time_fulllength[event_dict['downcast_stop']]], [-100, 100], 'k')
-    soak_line_dict['upcast_stop_line'] = ax.plot([time_fulllength[event_dict['upcast_stop']], time_fulllength[event_dict['upcast_stop']]], [-100, 100], 'k')
+    soak_line_dict = {'soak_start_line': ax.plot([time_fulllength[event_dict['soak_start']], time_fulllength[event_dict['soak_start']]], [-100, 100], 'k'), 'soak_stop_line': ax.plot([time_fulllength[event_dict['soak_stop']], time_fulllength[event_dict['soak_stop']]], [-100, 100], 'k'),
+                      'downcast_start_line': ax.plot([time_fulllength[event_dict['downcast_start']], time_fulllength[event_dict['downcast_start']]], [-100, 100], 'k'),
+                      'downcast_stop_line': ax.plot([time_fulllength[event_dict['downcast_stop']], time_fulllength[event_dict['downcast_stop']]], [-100, 100], 'k'),
+                      'upcast_stop_line': ax.plot([time_fulllength[event_dict['upcast_stop']], time_fulllength[event_dict['upcast_stop']]], [-100, 100], 'k')}
 
     event_dict['selected_event'] = 0
-
     zoomed_in_dict = {'zoomed_in':  False}
-
-
     soak_line_dict['annotation'] = ax.annotate('Soak Start',
                                                xy=(time_fulllength[soak_start], maxd + 1),
                                                xytext=(time_fulllength[soak_start], maxd + 2),
@@ -286,6 +297,11 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
                 metadatafile += 'processed_by,' + getpass.getuser() + '\n'
                 for key, value in summary.items():
                     metadatafile += key + ',' + str(value) + '\n'
+                metadatafile += 'soak_start,' + str(event_dict['soak_start']) + '\n'
+                metadatafile += 'soak_stop,' + str(event_dict['soak_stop']) + '\n'
+                metadatafile += 'downcast_start,' + str(event_dict['downcast_start']) + '\n'
+                metadatafile += 'downcast_stop,' + str(event_dict['downcast_stop']) + '\n'
+                metadatafile += 'upcast_stop,' + str(event_dict['upcast_stop']) + '\n'
                 print(metadatafile)
 
                 text_file = open(parent_folder + '/ASCII_Downcast/' + filnavn[mappunavn_dict['filur']].split('.')[0] + '_metadata.csv', "w")

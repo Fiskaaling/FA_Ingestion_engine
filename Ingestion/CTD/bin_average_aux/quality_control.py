@@ -100,6 +100,8 @@ def qcontrol(Quality_subframe, depth, event_dict, pump_on, filnavn):
     if 'Master' not in text:
         Label(Quality_subframe, text='Git koyrur ikki á Master branch', font=("Helvetica", textsize), bg="orange").pack(side=TOP, anchor=W)
 
+    cast_quality = cast_quality + downcast_quality + upcast_quality
+
     Label(Quality_subframe, text='Kvalitetur: ' + str(np.round(cast_quality+downcast_quality+upcast_quality,2)), font=("Helvetica", textsize)).pack(side=TOP, anchor=W)
     datetimestring = filnavn.split()
     measurement_time = datetime.datetime.strptime(datetimestring[0], '%Y-%m-%dt%H%M%S') + datetime.timedelta(0,time_fulllength[event_dict['downcast_start']])
@@ -113,6 +115,5 @@ def qcontrol(Quality_subframe, depth, event_dict, pump_on, filnavn):
 
     summary = {'downcast_quality': downcast_quality, 'upcast_quality': upcast_quality, 'cast_quality': cast_quality, 'soak_time': time_fulllength[event_dict['soak_stop']] - time_fulllength[event_dict['soak_start']],
                'soak_depth': np.mean(depth[event_dict['soak_start']:event_dict['soak_stop']]), 'soak_var': soakvar, 'downcast_time': measurement_time, 'downcast_speed': downcast_slope, 'max_depth': max(depth)}
-
 
     return summary
