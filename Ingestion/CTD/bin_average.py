@@ -69,35 +69,10 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
 
     data = pd.read_csv(mappunavn + '/' + filnavn[mappunavn_dict['filur']], encoding='latin-1') # Les fíl
 
-    for widget in Quality_frame.winfo_children(): # Tømur quality frame
-        widget.destroy()
     list_of_casts = os.listdir(mappunavn)
     list_of_casts.sort()
     parent_folder = os.path.dirname(mappunavn)
-    metadata = []
-    for cast in list_of_casts:
-        casttext = cast
-        if os.path.exists(parent_folder + '/ASCII_Downcast/' + cast.split('.')[0] + '_metadata.csv'):
-            cast_metadata_df = pd.read_csv(parent_folder + '/ASCII_Downcast/' + cast.split('.')[0] + '_metadata.csv', index_col=False)
-            cast_metadata_keys = cast_metadata_df.key
-            cast_metadata_values = cast_metadata_df.value
-            cast_metadata = {}
-            for i, key in enumerate(cast_metadata_keys):
-                cast_metadata[key] = cast_metadata_values[i]
-
-            if cast == filnavn[mappunavn_dict['filur']]:
-                metadata = cast_metadata
-
-            if float(cast_metadata['cast_quality']) < 0:
-                casttext += ' -'
-            else:
-                casttext += ' ✓'
-        if os.path.exists(parent_folder + '/ASCII_Downcast/' + cast.split('.')[0] + '_do_not_use_.csv'):
-            casttext += ' X'
-        if cast == filnavn[mappunavn_dict['filur']]:
-            Label(Quality_frame, text=casttext, font=("Courier", textsize, 'underline')).pack(side=TOP, anchor=W)
-        else:
-            Label(Quality_frame, text=casttext, font=("Courier", textsize)).pack(side=TOP, anchor=W)
+    metadata = ba_gui.refresh_qframe(Quality_frame, list_of_casts, parent_folder, filnavn, mappunavn_dict)
 
     Label(Quality_frame, text=('―'*20), font=("Courier", textsize)).pack(side=TOP, anchor=W)
     quality_subframe = Frame(Quality_frame)
@@ -290,6 +265,11 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
             else:
                 confirmation = True
             if confirmation:
+                # Kanna um metadatamappan er til
+                if not os.path.isdir(parent_folder + '/ASCII_Downcast/metadata'):
+                    os.makedirs(parent_folder + '/ASCII_Downcast/metadata')
+
+
                 metadatafile = 'key,value\n'
                 metadatafile += 'Data_File_Name,' + filnavn[mappunavn_dict['filur']] + '\n'
                 sha256_hash = get_hash(parent_folder + '/ASCII_Downcast/' + filnavn[mappunavn_dict['filur']])
@@ -304,7 +284,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
                 metadatafile += 'upcast_stop,' + str(event_dict['upcast_stop']) + '\n'
                 print(metadatafile)
 
-                text_file = open(parent_folder + '/ASCII_Downcast/' + filnavn[mappunavn_dict['filur']].split('.')[0] + '_metadata.csv', "w")
+                text_file = open(parent_folder + '/ASCII_Downcast/metadata/' + filnavn[mappunavn_dict['filur']].split('.')[0] + '_metadata.csv', "w")
                 text_file.write(metadatafile)
                 text_file.close()
                 update_qframe = True
@@ -357,12 +337,12 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
         elif event.keysym == 'onehalf':
             qcontrol(quality_subframe, depth, event_dict, pump_on, filnavn[mappunavn_dict['filur']])
         elif event.keysym == 'Delete':
-            if os.path.exists(parent_folder + '/ASCII_Downcast/' + filnavn[mappunavn_dict['filur']].split('.')[0] + '_do_not_use_.csv'):
+            if os.path.exists(parent_folder + '/ASCII_Downcast/metadata/' + filnavn[mappunavn_dict['filur']].split('.')[0] + '_do_not_use_.csv'):
                 if messagebox.askyesno('Vátta', 'Strika at casti ikki skal brúkast?'):
-                    os.remove(parent_folder + '/ASCII_Downcast/' + filnavn[mappunavn_dict['filur']].split('.')[0] + '_do_not_use_.csv')
+                    os.remove(parent_folder + '/ASCII_Downcast/metadata/' + filnavn[mappunavn_dict['filur']].split('.')[0] + '_do_not_use_.csv')
             else:
                 if messagebox.askyesno('Vátta', 'Markera hettar casti sum tað ikki skal brúkast?'):
-                    text_file = open(parent_folder + '/ASCII_Downcast/' + filnavn[mappunavn_dict['filur']].split('.')[0] + '_do_not_use_.csv', "w")
+                    text_file = open(parent_folder + '/ASCII_Downcast/metadata/' + filnavn[mappunavn_dict['filur']].split('.')[0] + '_do_not_use_.csv', "w")
                     text_file.write('Hesin fílurin er brúktur til at markera at hettar casti ikki skal brúkast')
                     text_file.close()
 
@@ -395,20 +375,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
 
             canvas.draw()
         if update_qframe:
-            print('Valdur filur: ' + str(mappunavn_dict['filur']))
-            for widget in Quality_frame.winfo_children():  # Tømur quality frame
-                widget.destroy()
-            for cast in list_of_casts:
-                casttext = cast
-                if os.path.exists(parent_folder + '/ASCII_Downcast/' + cast.split('.')[0] + '_metadata.csv'):
-                    casttext += ' ✓'
-                if os.path.exists(parent_folder + '/ASCII_Downcast/' + cast.split('.')[0] + '_do_not_use_.csv'):
-                    casttext += ' ⃠'
-                if cast == filnavn[mappunavn_dict['filur']]:
-                    Label(Quality_frame, text=casttext, font=("Courier", textsize), bg="Green").pack(side=TOP, anchor=W)
-                else:
-                    Label(Quality_frame, text=casttext, font=("Courier", textsize)).pack(side=TOP, anchor=W)
-            Label(Quality_frame, text=('―' * 20), font=("Courier", textsize)).pack(side=TOP, anchor=W)
+            ba_gui.refresh_qframe(Quality_frame, list_of_casts, parent_folder, filnavn, mappunavn_dict)
 
     root.bind('<Key>', key)
 

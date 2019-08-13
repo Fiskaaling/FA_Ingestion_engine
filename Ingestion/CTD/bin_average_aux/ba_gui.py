@@ -1,5 +1,38 @@
 # Hesin fílurin er til at minka um gui skrambul í bin_average fílinum
+import os
 import numpy as np
+from tkinter import Label, TOP, W
+import pandas as pd
+
+def refresh_qframe(Quality_frame, list_of_casts, parent_folder, filnavn, mappunavn_dict):
+    textsize = 16  # TODO: Set hettar í ein settings fíl
+    metadata = []
+    for widget in Quality_frame.winfo_children(): # Tømur quality frame
+        widget.destroy()
+    for cast in list_of_casts:
+        casttext = cast
+        if os.path.exists(parent_folder + '/ASCII_Downcast/metadata/' + cast.split('.')[0] + '_metadata.csv'):
+            cast_metadata_df = pd.read_csv(parent_folder + '/ASCII_Downcast/metadata/' + cast.split('.')[0] + '_metadata.csv', index_col=False)
+            cast_metadata_keys = cast_metadata_df.key
+            cast_metadata_values = cast_metadata_df.value
+            cast_metadata = {}
+            for i, key in enumerate(cast_metadata_keys):
+                cast_metadata[key] = cast_metadata_values[i]
+
+            if cast == filnavn[mappunavn_dict['filur']]:
+                metadata = cast_metadata
+
+            if float(cast_metadata['cast_quality']) < 0:
+                casttext += ' -'
+            else:
+                casttext += ' ✓'
+        if os.path.exists(parent_folder + '/ASCII_Downcast/metadata/' + cast.split('.')[0] + '_do_not_use_.csv'):
+            casttext += ' X'
+        if cast == filnavn[mappunavn_dict['filur']]:
+            Label(Quality_frame, text=casttext, font=("Courier", textsize, 'underline')).pack(side=TOP, anchor=W)
+        else:
+            Label(Quality_frame, text=casttext, font=("Courier", textsize)).pack(side=TOP, anchor=W)
+    return metadata
 
 
 def kanna_events(event_dict, log_w):

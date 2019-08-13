@@ -5,7 +5,6 @@ import datetime
 import misc.git_toolbox as gitTB
 from misc.faLog import *
 
-
 def qcontrol(Quality_subframe, depth, event_dict, pump_on, filnavn):
     textsize = 16 # TODO: Set hettar í ein settings fíl
     for widget in Quality_subframe.winfo_children(): # Tømur quality frame
