@@ -59,6 +59,7 @@ def inles(path_to_data, dictionary=False):
     uvdatadf.drop([ '%s%s' % (typa, int(tal)) for typa in ['u', 'v', 'w'] for tal in droppa_meg],
                   axis=1, inplace=True)
 
+    #  TODO kanna um eg geri tað sama fyri uvdatadf
     #  ger datði til [mm/s] ístaðinfyri [m/s]
     for key in datadf.keys():
         if 'mag' in key or key[1:].isdigit():
