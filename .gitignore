@@ -8,6 +8,7 @@ data/
 work/
 sor/
 sidir/LaTeX/
+projektir/*
 
 *pytest_cache*
 *temp.*

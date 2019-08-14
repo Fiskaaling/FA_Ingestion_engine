@@ -14,7 +14,7 @@ import Ingestion.CTD.init
 import vatnstoduanalysa.vatnstoduanalysa
 import Ingestion.seaguard.seaguard as seaguard
 import FA_DB_Interface.init
-import sidir.init
+import Processing.std_fragreidingar.init as std_fragreidingar
 import subprocess
 from Ingestion.Aanderaa import init as AADI
 import sys
@@ -67,7 +67,7 @@ def OnDoubleClick(event, tree, clo):
         minimize += Ingestion.Botnkort.tilCsv.check_click(item, RightFrame, root)
         minimize += Ingestion.CTD.init.check_click(item, RightFrame, root)
         minimize += FA_DB_Interface.init.check_click(item, RightFrame, root)
-        minimize += sidir.init.check_click(item, RightFrame, root)
+        minimize += std_fragreidingar.check_click(item, RightFrame, root)
         minimize += AADI.check_click(item, RightFrame, root)
 
 
@@ -137,7 +137,7 @@ Ingestion.oxygenkeda.init(ingestion_listbox)
 Ingestion.Botnkort.tilCsv.init(ingestion_listbox)
 Ingestion.CTD.init.init(ingestion_listbox)
 FA_DB_Interface.init.init(ingestion_listbox)
-sidir.init.init(ingestion_listbox)
+std_fragreidingar.init(ingestion_listbox)
 AADI.init(ingestion_listbox)
 
 alduboya = ingestion_listbox.insert("", 0, text='Alduboya')

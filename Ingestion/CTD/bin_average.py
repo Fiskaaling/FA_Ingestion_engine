@@ -4,7 +4,6 @@ from misc.faLog import *
 import pandas as pd
 import getpass # Til at fáa brúkaranavn
 import numpy as np
-import platform
 import os
 from shutil import copyfile
 import subprocess
@@ -13,18 +12,18 @@ import matplotlib
 matplotlib.use('TkAgg')
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
-from scipy import stats
-import datetime
 from tkinter import messagebox
-import misc.git_toolbox as gitTB
 from misc.sha2calc import get_hash
+import Ingestion.CTD.bin_average_aux.ba_gui as ba_gui
+from Ingestion.CTD.bin_average_aux.quality_control import qcontrol
+import Ingestion.CTD.skraset_stodir
 textsize = 16
 
+
 def bin_average_frame(frame, root2):
-    global root
-    global mappunavn
-    #mappunavn = './Ingestion/CTD/Lokalt_Data/2019-01-31/75_All_ASCII_Out'
+    # mappunavn = './Ingestion/CTD/Lokalt_Data/2019-01-31/75_All_ASCII_Out'
     mappunavn = './Ingestion/CTD/Lokalt_Data/2019-06-04/75_All_ASCII_Out'
+    mappunavn_dict = {'mappunavn': mappunavn}
     root = root2
     for widget in frame.winfo_children():
         widget.destroy()
@@ -32,10 +31,10 @@ def bin_average_frame(frame, root2):
     Label(frame, text='Bin Average').pack(side=TOP, anchor=W)
     controlsFrame = Frame(frame)
     controlsFrame.pack(side=TOP, anchor=W)
-    velMappuBtn = Button(controlsFrame, text='Vel Fílir', command=velFil)
+    velMappuBtn = Button(controlsFrame, text='Vel Fílir', command=lambda: velFil(mappunavn_dict))
     velMappuBtn.pack(side=LEFT, anchor=W)
 
-    processBtn = Button(controlsFrame, text='Processera', command=lambda: processera(fig, canvas, Quality_frame))
+    processBtn = Button(controlsFrame, text='Processera', command=lambda: processera(root, fig, canvas, Quality_frame, mappunavn_dict))
     processBtn.pack(side=LEFT, anchor=W)
 
     Right_frame = Frame(frame)
@@ -51,155 +50,36 @@ def bin_average_frame(frame, root2):
     log_frame = Frame(Right_frame, height=300, width=600, borderwidth=1, highlightbackground="green", highlightcolor="green", highlightthickness=1)
     log_frame.pack(fill=X, expand=False, side=BOTTOM, anchor=W)
     gerlog(log_frame, root)
-    global filur
-    filur = 0
+    mappunavn_dict['filur'] = 0
 
-    processera(fig, canvas, Quality_frame)
-
-def velFil():
-    global mappunavn
-    mappunavn = filedialog.askdirectory(title='Vel túramappu', initialdir='./Ingestion/CTD/Lokalt_Data/')
+    mappunavn_dict['continuebtn'] = Button(Quality_frame, text='Halt áfram', command=lambda: Ingestion.CTD.skraset_stodir(frame, root2))
+    mappunavn_dict['continuebtn'].pack(side=TOP, anchor=W)
+    processera(root, fig, canvas, Quality_frame, mappunavn_dict)
 
 
-def qcontrol(Quality_subframe, depth, time_fulllength, soak_start, soak_stop, downcast_start, downcast_stop, upcast_stop, pump_on, filnavn):
-    for widget in Quality_subframe.winfo_children(): # Tømur quality frame
-        widget.destroy()
+def velFil(mappunavn):
+    mappunavn['mappunavn'] = filedialog.askdirectory(title='Vel túramappu', initialdir='./Ingestion/CTD/Lokalt_Data/')
 
-    cast_quality=0
-    downcast_quality=0
-    upcast_quality=0
-
-    # Soaking stabilitetur
-    soakvar = np.var(depth[soak_start:soak_stop])
-    print('Sample variansur á soak er: ' + str(soakvar))
-    cast_quality -= min(soakvar, 1)
-    # Downcast stabilitetur
-    downcast_diff = np.diff(depth[downcast_start:downcast_stop])
-    downcast_slope = -1
-    if len(downcast_diff)>1:
-        downcast_slope, intercept, downcast_r_value, p_value, std_err = stats.linregress(time_fulllength[downcast_start:downcast_stop], depth[downcast_start:downcast_stop])
-        print('Downcast R value: ' + str(downcast_r_value))
-    # Upcast stabilitetur
-    # Fitta linju og rokna error
-    slope, intercept, upcast_r_value, p_value, std_err = stats.linregress(time_fulllength[downcast_stop:upcast_stop], depth[downcast_stop:upcast_stop])
-    upcast_r_value = abs(upcast_r_value)
-    print('Upcast R value: ' + str(upcast_r_value))
-    # Pumpa tendrar
-    if pump_on == -1:
-        Label(Quality_subframe, text='Pumpan tendraði ikki', font=("Helvetica", textsize), bg="red").pack(side=TOP, anchor=W)
-        cast_quality -= 100
-    elif (time_fulllength[pump_on] + 10 < time_fulllength[downcast_start])\
-            and (time_fulllength[soak_start] < time_fulllength[pump_on] < time_fulllength[soak_stop]):
-        Label(Quality_subframe, text='Pumpan tendraði til tíðuna', font=("Courier", textsize), bg="lightgreen").pack(side=TOP, anchor=W)
-        cast_quality += 1
-    else:
-        Label(Quality_subframe, text='Pumpan tendraði ikki tá hon burdi', font=("Helvetica", textsize),
-              bg="red").pack(side=TOP, anchor=W)
-        cast_quality -= 1
-    # Soak tíð og varians
-    if time_fulllength[soak_stop] - time_fulllength[soak_start] > 60:
-        Label(Quality_subframe, text='Soak er nóg miki langt', font=("Courier", textsize), bg="lightgreen").pack(
-            side=TOP, anchor=W)
-        cast_quality += 1
-        if soakvar < 0.1:
-            Label(Quality_subframe, text='Variansurin á soak er OK', font=("Courier", textsize), bg="lightgreen").pack(
-                side=TOP, anchor=W)
-        else:
-            Label(Quality_subframe, text='Variansurin á soak er høgur', font=("Helvetica", textsize), bg="orange").pack(
-                side=TOP,
-                anchor=W)
-    else:
-        Label(Quality_subframe, text='Soak er ikki nóg langt', font=("Helvetica", textsize), bg="red").pack(side=TOP,
-                                                                                                          anchor=W)
-        cast_quality -= 1
-
-    if len(downcast_diff) > 1:
-        if np.min(downcast_diff) >= 0:
-            Label(Quality_subframe, text='Downcast fer ikki upp', font=("Courier", textsize), bg="lightgreen").pack(side=TOP, anchor=W)
-            downcast_quality += 1
-        else:
-            Label(Quality_subframe, text='Downcast fer upp', font=("Helvetica", textsize), bg="red").pack(side=TOP,anchor=W)
-            downcast_quality -= 1
-
-        if downcast_r_value > 0.99:
-            Label(Quality_subframe, text='Downcast er stabilt', font=("Courier", textsize), bg="lightgreen").pack(side=TOP, anchor=W)
-        else:
-            Label(Quality_subframe, text='Downcast er ikki stabilt', font=("Helvetica", textsize), bg="red").pack(side=TOP, anchor=W)
-        downcast_quality += downcast_r_value
-
-        if upcast_r_value > 0.97:
-            Label(Quality_subframe, text='Upcast er stabilt', font=("Courier", textsize), bg="lightgreen").pack(side=TOP, anchor=W)
-        else:
-            Label(Quality_subframe, text='Upcast er ikki stabilt', font=("Helvetica", textsize), bg="red").pack(side=TOP, anchor=W)
-        upcast_quality += upcast_r_value
-
-        if 0.5 < downcast_slope < 1:
-            Label(Quality_subframe, text='Downcast ferð er ok', font=("Courier", textsize), bg="lightgreen").pack(side=TOP, anchor=W)
-            downcast_quality += 1
-        else:
-            if downcast_slope < 0.5:
-                Label(Quality_subframe, text='Downcast ferð er ov lág', font=("Helvetica", textsize), bg="red").pack(side=TOP, anchor=W)
-            else:
-                Label(Quality_subframe, text='Downcast ferð er ov høg', font=("Helvetica", textsize), bg="red").pack(side=TOP, anchor=W)
-            downcast_quality -= 1
-
-    text, is_dirty = gitTB.get_info()
-    if is_dirty:
-        Label(Quality_subframe, text='Git commit broytingar', font=("Helvetica", textsize), bg="red").pack(side=TOP, anchor=W)
-        cast_quality -= 1
-    else:
-        Label(Quality_subframe, text='Git er ok', font=("Helvetica", textsize), bg="lightgreen").pack(side=TOP, anchor=W)
-
-    if 'Master' not in text:
-        Label(Quality_subframe, text='Git koyrur ikki á Master branch', font=("Helvetica", textsize), bg="orange").pack(side=TOP, anchor=W)
-
-    Label(Quality_subframe, text='Kvalitetur: ' + str(np.round(cast_quality+downcast_quality+upcast_quality,2)), font=("Helvetica", textsize)).pack(side=TOP, anchor=W)
-    datetimestring = filnavn.split()
-    measurement_time = datetime.datetime.strptime(datetimestring[0], '%Y-%m-%dt%H%M%S') + datetime.timedelta(0,time_fulllength[downcast_start])
-    print(measurement_time)
-
-
-
-    Label(Quality_subframe, text=('―' * 40), font=("Courier", 8)).pack(side=TOP, anchor=W) ## Seperator
-    Label(Quality_subframe, text='Soaktid: ' + str(time_fulllength[soak_stop] - time_fulllength[soak_start]) + ' sek', font=("Courier", textsize-4)).pack(side=TOP, anchor=W)
-    Label(Quality_subframe, text='Soakdypið:' + str(np.round(np.mean(depth[soak_start:soak_stop]), 3)) + ' m', font=("Courier", textsize-4)).pack(side=TOP, anchor=W)
-    Label(Quality_subframe, text='Støðsta dýpið: ' + str(np.round(max(depth), 2)) + ' m', font=("Courier", textsize - 4)).pack(side=TOP, anchor=W)
-    Label(Quality_subframe, text='Downcast ferð: ' + str(np.round(downcast_slope, 2)) + ' m/s', font=("Courier", textsize - 4)).pack(side=TOP, anchor=W)
-
-    summary = {'downcast_quality': downcast_quality, 'upcast_quality': upcast_quality, 'cast_quality': cast_quality, 'soak_time': time_fulllength[soak_stop] - time_fulllength[soak_start], 'soak_depth': np.mean(depth[soak_start:soak_stop]),
-               'soak_var': soakvar, 'downcast_time': measurement_time, 'downcast_speed': downcast_slope, 'max_depth': max(depth)}
-
-
-    return summary
-
-
-def processera(fig, canvas, Quality_frame):
-    global mappunavn
+def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
+    # Todo: kanna um metadatafílur er gjørdur, um hann er les virðini frá honum
+    mappunavn = mappunavn_dict['mappunavn']
     log_b()
     midlingstid = 2 # sek
     fig.clf()
     ax = fig.subplots()
     filnavn = os.listdir(mappunavn)
     filnavn.sort()
-    global filur
-    data = pd.read_csv(mappunavn + '/' + filnavn[filur], encoding='latin-1') # Les fíl
 
-    for widget in Quality_frame.winfo_children(): # Tømur quality frame
-        widget.destroy()
+    data = pd.read_csv(mappunavn + '/' + filnavn[mappunavn_dict['filur']], encoding='latin-1') # Les fíl
+
     list_of_casts = os.listdir(mappunavn)
     list_of_casts.sort()
     parent_folder = os.path.dirname(mappunavn)
-    for cast in list_of_casts:
-        casttext = cast
-        if os.path.exists(parent_folder + '/ASCII_Downcast/' + cast.split('.')[0] + '_metadata.csv'):
-            casttext += ' ✓'
-        if os.path.exists(parent_folder + '/ASCII_Downcast/' + cast.split('.')[0] + '_do_not_use_.csv'):
-            casttext += ' X'
-        if cast == filnavn[filur]:
-            Label(Quality_frame, text=casttext, font=("Courier", textsize, 'underline')).pack(side=TOP, anchor=W)
-        else:
-            Label(Quality_frame, text=casttext, font=("Courier", textsize)).pack(side=TOP, anchor=W)
-
+    metadata, finished_processing = ba_gui.refresh_qframe(Quality_frame, list_of_casts, parent_folder, filnavn, mappunavn_dict)
+    print('Finished_processing?: ' + str(finished_processing))
+    if finished_processing:
+        pass
+    #        mappunavn_dict['continuebtn'].lift()
     Label(Quality_frame, text=('―'*20), font=("Courier", textsize)).pack(side=TOP, anchor=W)
     quality_subframe = Frame(Quality_frame)
     quality_subframe.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
@@ -216,10 +96,8 @@ def processera(fig, canvas, Quality_frame):
     timeAx = data.TimeS[start_index:]
     ax.plot(timeAx, depth[start_index:])
     ax.set_ylim(-1, maxd+1)
-    ax.set_xlabel('Tíð [?]')
-    ax.set_ylabel('Dýpið', color='k')
-    #ax2 = ax.twinx()
-    #ax2.tick_params('y', colors='b')
+    ax.set_xlabel('Tíð [s]')
+    ax.set_ylabel('Dýpið [m]', color='k')
     myvar = []
     n_midlingspunktir = int(np.ceil(midlingstid / (max(data.TimeS) / len(data))))
     dypid = data[data.columns[0]]
@@ -230,67 +108,72 @@ def processera(fig, canvas, Quality_frame):
     diff_d = []
     for i in range(1, len(depth)):
         diff_d.append((depth[i-1]-depth[i])/(time_fulllength.iloc[i-1]-time_fulllength.iloc[i]))
-    #ax2.plot(timeAx, myvar)
-    #ax2.plot(time_fulllength[1:], diff_d)
-    #ax2.set_ylim([-1, 1])
-    #diff_d = np.diff(data[data.columns[0]])
     states = ["PreSoak", "soak_start", "soak_stop", "downcast_start", "downcast_stop", "upcast_start", "upcast_stop"]
     current_stat = states[0]
     print(current_stat)
-    global soak_start, soak_stop, downcast_start, downcast_stop, upcast_stop
-    soak_start = -1
-    soak_stop = -1
+
     soaktime = -1
     soak_depth = -1
-    downcast_start = -1
-    downcast_stop = -1
-    upcast_stop = -1
-    for i, d in enumerate(depth): # Hettar er kodan ið finnur nær tey ymsku tingini henda
-        if current_stat == "PreSoak": # Bíða 5 sek áðrenn byrja verður at leita eftir hvar soak byrjar
-            print(time_fulllength[i])
-            if time_fulllength[i] > 5:
-                current_stat = "soak_start"
-        if current_stat == "soak_start":
-            if d < 5:
-                continue
+
+    if not metadata:
+        soak_start = -1
+        soak_stop = -1
+        downcast_start = -1
+        downcast_stop = -1
+        upcast_stop = -1
+        for i, d in enumerate(depth):  # Hettar er kodan ið finnur nær tey ymsku tingini henda
+            if current_stat == "PreSoak":  # Bíða 5 sek áðrenn byrja verður at leita eftir hvar soak byrjar
+                print(time_fulllength[i])
+                if time_fulllength[i] > 5:
+                    current_stat = "soak_start"
+            if current_stat == "soak_start":
+                if d < 5:
+                    continue
+                else:
+                    if np.var(dypid[i:i + n_midlingspunktir]) < 0.01:
+                        soak_start = i
+                        current_stat = "soak_stop"
+                    #    print('Farts '+ str(i))
+            elif current_stat == "soak_stop":
+                if np.var(dypid[i:i + n_midlingspunktir]) > 0.01:
+                    soak_stop = i + n_midlingspunktir
+                    soaktime = time_fulllength[soak_stop] - time_fulllength[soak_start]
+                    soak_depth = np.round(np.mean(dypid[soak_start:soak_stop]), 3)
+                    current_stat = "downcast_prepare"
+            elif current_stat == "downcast_prepare":
+                if d > 5:
+                    continue
+                else:
+                    if d < 2 and np.var(dypid[i:i + n_midlingspunktir]) < 0.01:
+                        current_stat = "downcast_start"
+            elif current_stat == "downcast_start":
+                if np.var(dypid[i:i + n_midlingspunktir]) > 0.01:
+                    downcast_start = i + n_midlingspunktir
+                    current_stat = "downcast_stop"
+            elif current_stat == "downcast_stop":
+                # if np.var(dypid[i:i+n_midlingspunktir]) < 0.01 and d > 5:
+                #    downcast_stop = i
+                #    current_stat = "upcast_start"
+                if d == maxd:
+                    downcast_stop = i
+                    current_stat = "upcast_stop"
+            elif current_stat == "upcast_stop":
+                if np.var(dypid[i:i + n_midlingspunktir]) > 0.01:
+                    upcast_stop = i
             else:
-                if np.var(dypid[i:i+n_midlingspunktir]) < 0.01:
-                    soak_start = i
-                    current_stat = "soak_stop"
-                #    print('Farts '+ str(i))
-        elif current_stat == "soak_stop":
-            if np.var(dypid[i:i+n_midlingspunktir]) > 0.01:
-                soak_stop = i + n_midlingspunktir
-                soaktime = time_fulllength[soak_stop] - time_fulllength[soak_start]
-                soak_depth = np.round(np.mean(dypid[soak_start:soak_stop]), 3)
-                current_stat = "downcast_prepare"
-        elif current_stat == "downcast_prepare":
-            if d > 5:
-                continue
-            else:
-                if d < 2 and np.var(dypid[i:i+n_midlingspunktir]) < 0.01:
-                    current_stat = "downcast_start"
-        elif current_stat == "downcast_start":
-            if np.var(dypid[i:i+n_midlingspunktir]) > 0.01:
-                downcast_start = i + n_midlingspunktir
-                current_stat = "downcast_stop"
-        elif current_stat == "downcast_stop":
-            #if np.var(dypid[i:i+n_midlingspunktir]) < 0.01 and d > 5:
-            #    downcast_stop = i
-            #    current_stat = "upcast_start"
-            if d == maxd:
-                downcast_stop = i
-                current_stat = "upcast_stop"
-        elif current_stat == "upcast_stop":
-            if np.var(dypid[i:i + n_midlingspunktir]) > 0.01:
-                upcast_stop = i
-        else:
-            pass
+                pass
+    else:
+        print('Lesur goymd event virðir')
+        soak_start = int(metadata['soak_start'])
+        soak_stop = int(metadata['soak_stop'])
+        downcast_start = int(metadata['downcast_start'])
+        downcast_stop = int(metadata['downcast_stop'])
+        upcast_stop = int(metadata['upcast_stop'])
 
     if os.path.isdir(parent_folder + '/0_RAW_DATA'):
         raw_filar = os.listdir(parent_folder + '/0_RAW_DATA/')
         raw_filnavn = '-1'
-        hesin_filur = filnavn[filur].upper()
+        hesin_filur = filnavn[mappunavn_dict['filur']].upper()
         for raw_file in raw_filar: # Hettar finnur rætta xml fílin
             print(raw_file)
             print(hesin_filur)
@@ -309,8 +192,7 @@ def processera(fig, canvas, Quality_frame):
         pump_on = -1
         pump_off = -1
         lastLine = 0
-        for i in range(len(raw_data)):
-            line = raw_data[i]
+        for i, line in enumerate(raw_data):
             if line:
                 if line[0] == '1' and lastLine == '0':
                     pump_on = i
@@ -330,88 +212,56 @@ def processera(fig, canvas, Quality_frame):
         downcast_start_d = dypid[downcast_start]
     if downcast_stop != -1:
         downcast_stop_d = dypid[downcast_stop]
-        #downcast_stop_line = ax.plot([time_fulllength[downcast_stop], time_fulllength[downcast_stop]], [-100, 100], 'k')
-    bins = np.arange(1,5+.2,.2)
 
-    print(bins)
-    print('maxd : ' + str(maxd) + ' m')
-    print('n_midlingspunktir : ' + str(n_midlingspunktir))
-    print('soak_start : ' + str(soak_start))
-    print('soak_stop : ' + str(soak_stop))
-    print('soak_time :' + str(soaktime) + ' sec')
-    print('soak_depth : ' + str(soak_depth) + ' m')
-    global soak_start_line, soak_stop_line, downcast_start_line, downcast_stop_line, upcast_stop_line
-    if soak_start == -1:
-        log_w('Ávaring! Soak Start er ikki funnið')
-        soak_start = 50
-    if soak_stop == -1:
-        log_w('Ávaring! Soak Stop er ikki funnið')
-        soak_stop = 100
-    if downcast_start == -1:
-        log_w('Ávaring! Downcast Start er ikki funnið')
-        downcast_start = 150
-    if downcast_stop == -1:
-        log_w('Ávaring! Downcast Stop er ikki funnið')
-        downcast_stop = 200
-    if upcast_stop == -1:
-        log_w('Ávaring! Upcast Stop er ikki funnið')
-        upcast_stop = 250
+    event_dict = {'time_fulllength': time_fulllength, 'soak_start': soak_start, 'soak_stop': soak_stop, 'downcast_start': downcast_start, 'downcast_stop': downcast_stop, 'upcast_stop': upcast_stop}
 
-    soak_start_line = ax.plot([time_fulllength[soak_start], time_fulllength[soak_start]], [-100, 100], 'k')
-    soak_stop_line = ax.plot([time_fulllength[soak_stop], time_fulllength[soak_stop]], [-100, 100], 'k')
-    downcast_start_line = ax.plot([time_fulllength[downcast_start], time_fulllength[downcast_start]], [-100, 100], 'k')
-    downcast_stop_line = ax.plot([time_fulllength[downcast_stop], time_fulllength[downcast_stop]], [-100, 100], 'k')
-    upcast_stop_line = ax.plot([time_fulllength[upcast_stop], time_fulllength[upcast_stop]], [-100, 100], 'k')
+    ba_gui.kanna_events(event_dict, log_w)
 
-    global selected_event
-    selected_event = 0
+    soak_line_dict = {'soak_start_line': ax.plot([time_fulllength[event_dict['soak_start']], time_fulllength[event_dict['soak_start']]], [-100, 100], 'k'), 'soak_stop_line': ax.plot([time_fulllength[event_dict['soak_stop']], time_fulllength[event_dict['soak_stop']]], [-100, 100], 'k'),
+                      'downcast_start_line': ax.plot([time_fulllength[event_dict['downcast_start']], time_fulllength[event_dict['downcast_start']]], [-100, 100], 'k'),
+                      'downcast_stop_line': ax.plot([time_fulllength[event_dict['downcast_stop']], time_fulllength[event_dict['downcast_stop']]], [-100, 100], 'k'),
+                      'upcast_stop_line': ax.plot([time_fulllength[event_dict['upcast_stop']], time_fulllength[event_dict['upcast_stop']]], [-100, 100], 'k')}
 
-    global zoomed_in
-    zoomed_in = False
+    event_dict['selected_event'] = 0
+    zoomed_in_dict = {'zoomed_in':  False}
+    soak_line_dict['annotation'] = ax.annotate('Soak Start',
+                                               xy=(time_fulllength[soak_start], maxd + 1),
+                                               xytext=(time_fulllength[soak_start], maxd + 2),
+                                               xycoords='data',
+                                               textcoords='data',
+                                               ha='center',
+                                               arrowprops=dict(arrowstyle="->"))
 
-    global annotation
-    annotation = ax.annotate('Soak Start',
-                             xy=(time_fulllength[soak_start], maxd + 1),
-                             xytext=(time_fulllength[soak_start], maxd + 2),
-                             xycoords='data',
-                             textcoords='data',
-                             ha='center',
-                             arrowprops=dict(arrowstyle="->"))
-
-    qcontrol(quality_subframe, depth, time_fulllength, soak_start, soak_stop, downcast_start, downcast_stop, upcast_stop, pump_on, filnavn[filur])
+    qcontrol(quality_subframe, depth, event_dict, pump_on, filnavn[mappunavn_dict['filur']])
 
     def key(event):
-        global soak_start, soak_stop, downcast_start, downcast_stop, upcast_stop
-        global selected_event, filur
-        print(event.keysym)
         update_annotations = False
         update_qframe = False
-        global zoomed_in
-        if zoomed_in:
+        if zoomed_in_dict['zoomed_in']:
             move_amount = 1
         else:
             move_amount = 8
 
         if event.keysym == 'w':
-            if filur < len(filnavn)-1:
-                filur += 1
+            if mappunavn_dict['filur'] < len(filnavn)-1:
+                mappunavn_dict['filur'] += 1
                 update_qframe = True
         elif event.keysym == 'q':
-            if filur != 0:
-                filur -= 1
+            if mappunavn_dict['filur'] != 0:
+                mappunavn_dict['filur'] -= 1
                 update_qframe = True
         elif event.keysym == 'Return':
             log_b()
             print('Calculating')
             print(data.columns.values)
             downcast_Data = pd.DataFrame(
-                {'DepSM': data.DepSM.iloc[downcast_start:downcast_stop], 'T068C': data.T068C.iloc[downcast_start:downcast_stop], 'FlECO-AFL': data['FlECO-AFL'].iloc[downcast_start:downcast_stop], 'Sal00': data['Sal00'].iloc[downcast_start:downcast_stop],
-                 'Sigma-é00': data['Sigma-é00'].iloc[downcast_start:downcast_stop], 'Sbeox0Mg/L': data['Sbeox0Mg/L'].iloc[downcast_start:downcast_stop]}) ## TODO: ger hettar betri. Set hettar í egna funku
+                {'DepSM': data.DepSM.iloc[event_dict['downcast_start']:event_dict['downcast_stop']], 'T068C': data.T068C.iloc[event_dict['downcast_start']:event_dict['downcast_stop']], 'FlECO-AFL': data['FlECO-AFL'].iloc[event_dict['downcast_start']:event_dict['downcast_stop']], 'Sal00': data['Sal00'].iloc[event_dict['downcast_start']:event_dict['downcast_stop']],
+                 'Sigma-é00': data['Sigma-é00'].iloc[event_dict['downcast_start']:event_dict['downcast_stop']], 'Sbeox0Mg/L': data['Sbeox0Mg/L'].iloc[event_dict['downcast_start']:event_dict['downcast_stop']]}) ## TODO: ger hettar betri. Set hettar í egna funku
             if not os.path.isdir(parent_folder + '/ASCII_Downcast'):
                 os.mkdir(parent_folder + '/ASCII_Downcast')
-            downcast_Data.to_csv(parent_folder + '/ASCII_Downcast/' + filnavn[filur], index=False)
+            downcast_Data.to_csv(parent_folder + '/ASCII_Downcast/' + filnavn[mappunavn_dict['filur']], index=False)
             print('Assesing quality')
-            summary = qcontrol(quality_subframe, depth, time_fulllength, soak_start, soak_stop, downcast_start, downcast_stop, upcast_stop, pump_on, filnavn[filur])
+            summary = qcontrol(quality_subframe, depth, event_dict, pump_on, filnavn[mappunavn_dict['filur']])
 
             confirmation = False
             if summary['downcast_quality'] < 0:
@@ -420,183 +270,113 @@ def processera(fig, canvas, Quality_frame):
             else:
                 confirmation = True
             if confirmation:
+                # Kanna um metadatamappan er til
+                if not os.path.isdir(parent_folder + '/ASCII_Downcast/metadata'):
+                    os.makedirs(parent_folder + '/ASCII_Downcast/metadata') # Um ikki, ger hana
+                # Hettar ger metadatafílin
                 metadatafile = 'key,value\n'
-                metadatafile += 'Data_File_Name,' + filnavn[filur] + '\n'
-                sha256_hash = get_hash(parent_folder + '/ASCII_Downcast/' + filnavn[filur])
+                metadatafile += 'Data_File_Name,' + filnavn[mappunavn_dict['filur']] + '\n'
+                sha256_hash = get_hash(parent_folder + '/ASCII_Downcast/' + filnavn[mappunavn_dict['filur']])
                 metadatafile += 'sha256_hash,' + sha256_hash + '\n'
                 metadatafile += 'processed_by,' + getpass.getuser() + '\n'
                 for key, value in summary.items():
                     metadatafile += key + ',' + str(value) + '\n'
+                metadatafile += 'soak_start,' + str(event_dict['soak_start']) + '\n'
+                metadatafile += 'soak_stop,' + str(event_dict['soak_stop']) + '\n'
+                metadatafile += 'downcast_start,' + str(event_dict['downcast_start']) + '\n'
+                metadatafile += 'downcast_stop,' + str(event_dict['downcast_stop']) + '\n'
+                metadatafile += 'upcast_stop,' + str(event_dict['upcast_stop']) + '\n'
                 print(metadatafile)
-
-                text_file = open(parent_folder + '/ASCII_Downcast/' + filnavn[filur].split('.')[0] + '_metadata.csv', "w")
+                # Og her verður metadata fílurin goymdur
+                text_file = open(parent_folder + '/ASCII_Downcast/metadata/' + filnavn[mappunavn_dict['filur']].split('.')[0] + '_metadata.csv', "w")
                 text_file.write(metadatafile)
                 text_file.close()
+                update_qframe = True
                 print('Done exporting')
-
             log_e()
         elif event.keysym == 'l':
-            if not zoomed_in:
-                selected_event += 1
+            if not zoomed_in_dict['zoomed_in']:
+                event_dict['selected_event'] += 1
                 update_annotations = True
         elif event.keysym == 'h':
-            if not zoomed_in:
-                selected_event -= 1
+            if not zoomed_in_dict['zoomed_in']:
+                event_dict['selected_event'] -= 1
                 update_annotations = True
         elif event.keysym == 'j':
-            if selected_event == 0:
-                soak_start -= move_amount
-            elif selected_event == 1:
-                soak_stop -= move_amount
-            elif selected_event == 2:
-                downcast_start -= move_amount
-            elif selected_event == 3:
-                downcast_stop -= move_amount
-            elif selected_event == 4:
-                upcast_stop -= move_amount
+            if event_dict['selected_event'] == 0:
+                event_dict['soak_start'] -= move_amount
+            elif event_dict['selected_event'] == 1:
+                event_dict['soak_stop'] -= move_amount
+            elif event_dict['selected_event'] == 2:
+                event_dict['downcast_start'] -= move_amount
+            elif event_dict['selected_event'] == 3:
+                event_dict['downcast_stop'] -= move_amount
+            elif event_dict['selected_event'] == 4:
+                event_dict['upcast_stop'] -= move_amount
         elif event.keysym == 'k':
-            if selected_event == 0:
-                soak_start += move_amount
-            elif selected_event == 1:
-                soak_stop += move_amount
-            elif selected_event == 2:
-                downcast_start += move_amount
-            elif selected_event == 3:
-                downcast_stop += move_amount
-            elif selected_event == 4:
-                upcast_stop += move_amount
+            if event_dict['selected_event'] == 0:
+                event_dict['soak_start'] += move_amount
+            elif event_dict['selected_event'] == 1:
+                event_dict['soak_stop'] += move_amount
+            elif event_dict['selected_event'] == 2:
+                event_dict['downcast_start'] += move_amount
+            elif event_dict['selected_event'] == 3:
+                event_dict['downcast_stop'] += move_amount
+            elif event_dict['selected_event'] == 4:
+                event_dict['upcast_stop'] += move_amount
         elif event.keysym == 'i':
-            if not zoomed_in:
-                zoomed_in = True
-                if selected_event == 0:
-                    ax.set_xlim(time_fulllength[soak_start]-5, time_fulllength[soak_start] + 5)
-                    ax.set_ylim(np.min(depth[soak_start-(5*16):soak_start+(5*16)])-0.5, np.max(depth[soak_start-(5*16):soak_start+(5*16)])+0.5)
-                if selected_event == 1:
-                    ax.set_xlim(time_fulllength[soak_stop] - 5, time_fulllength[soak_stop] + 5)
-                    ax.set_ylim(np.min(depth[soak_stop - (5 * 16):soak_stop + (5 * 16)]) - 0.5,
-                                    np.max(depth[soak_stop - (5 * 16):soak_stop + (5 * 16)]) + 0.5)
-                if selected_event == 2:
-                    ax.set_xlim(time_fulllength[downcast_start] - 5, time_fulllength[downcast_start] + 5)
-                    ax.set_ylim(np.min(depth[downcast_start - (5 * 16):downcast_start + (5 * 16)]) - 0.5,
-                                    np.max(depth[downcast_start - (5 * 16):downcast_start + (5 * 16)]) + 0.5)
-                if selected_event == 3:
-                    ax.set_xlim(time_fulllength[downcast_stop] - 5, time_fulllength[downcast_stop] + 5)
-                    ax.set_ylim(np.min(depth[downcast_stop - (5 * 16):downcast_stop + (5 * 16)]) - 0.5,
-                                    np.max(depth[downcast_stop - (5 * 16):downcast_stop + (5 * 16)]) + 0.5)
+            if not zoomed_in_dict['zoomed_in']:
+                zoomed_in_dict['zoomed_in'] = True
+                ba_gui.zoom_in(event_dict['selected_event'], ax, event_dict, depth)
                 canvas.draw()
         elif event.keysym == 'o':
             ax.set_xlim(0, time_fulllength[len(time_fulllength)-1])
             ax.set_ylim(-1, maxd + 1)
-            zoomed_in = False
+            zoomed_in_dict['zoomed_in'] = False
             canvas.draw()
         elif event.keysym == 'space':
             log_clear()
-            processera(fig, canvas, Quality_frame)
+            processera(root, fig, canvas, Quality_frame, mappunavn_dict)
         elif event.keysym == 'onehalf':
-            qcontrol(quality_subframe, depth, time_fulllength, soak_start, soak_stop, downcast_start, downcast_stop,
-                     upcast_stop, pump_on, filnavn[filur])
+            qcontrol(quality_subframe, depth, event_dict, pump_on, filnavn[mappunavn_dict['filur']])
         elif event.keysym == 'Delete':
-            if os.path.exists(parent_folder + '/ASCII_Downcast/' + filnavn[filur].split('.')[0] + '_do_not_use_.csv'):
+            if os.path.exists(parent_folder + '/ASCII_Downcast/metadata/' + filnavn[mappunavn_dict['filur']].split('.')[0] + '_do_not_use_.csv'):
                 if messagebox.askyesno('Vátta', 'Strika at casti ikki skal brúkast?'):
-                    os.remove(parent_folder + '/ASCII_Downcast/' + filnavn[filur].split('.')[0] + '_do_not_use_.csv')
+                    os.remove(parent_folder + '/ASCII_Downcast/metadata/' + filnavn[mappunavn_dict['filur']].split('.')[0] + '_do_not_use_.csv')
             else:
                 if messagebox.askyesno('Vátta', 'Markera hettar casti sum tað ikki skal brúkast?'):
-                    text_file = open(parent_folder + '/ASCII_Downcast/' + filnavn[filur].split('.')[0] + '_do_not_use_.csv', "w")
+                    text_file = open(parent_folder + '/ASCII_Downcast/metadata/' + filnavn[mappunavn_dict['filur']].split('.')[0] + '_do_not_use_.csv', "w")
                     text_file.write('Hesin fílurin er brúktur til at markera at hettar casti ikki skal brúkast')
                     text_file.close()
 
-        if selected_event == -1: # Fyri at ikki kunna velja eina linju ið ikki er til
-            selected_event = 0
-        elif selected_event == 5:
-            selected_event = 4
+        if event_dict['selected_event'] == -1: # Fyri at ikki kunna velja eina linju ið ikki er til
+            event_dict['selected_event'] = 0
+        elif event_dict['selected_event'] == 5:
+            event_dict['selected_event'] = 4
 
         if event.keysym == 'j' or event.keysym == 'k':
-            global soak_start_line, soak_stop_line, downcast_start_line, downcast_stop_line, upcast_stop_line
-            if selected_event == 0:
-                soak_start_line.pop(0).remove()
-                soak_start_line = ax.plot([time_fulllength[soak_start], time_fulllength[soak_start]], [-100, 100], 'k')
-            if selected_event == 1:
-                soak_stop_line.pop(0).remove()
-                soak_stop_line = ax.plot([time_fulllength[soak_stop], time_fulllength[soak_stop]], [-100, 100], 'k')
-            if selected_event == 2:
-                downcast_start_line.pop(0).remove()
-                downcast_start_line = ax.plot([time_fulllength[downcast_start], time_fulllength[downcast_start]], [-100, 100], 'k')
-            if selected_event == 3:
-                downcast_stop_line.pop(0).remove()
-                downcast_stop_line = ax.plot([time_fulllength[downcast_stop], time_fulllength[downcast_stop]], [-100, 100], 'k')
-            if selected_event == 4:
-                upcast_stop_line.pop(0).remove()
-                upcast_stop_line = ax.plot([time_fulllength[upcast_stop], time_fulllength[upcast_stop]], [-100, 100], 'k')
+            if event_dict['selected_event'] == 0:
+                soak_line_dict['soak_start_line'][0].set_data([time_fulllength[event_dict['soak_start']], time_fulllength[event_dict['soak_start']]], [-100, 100])
+            if event_dict['selected_event'] == 1:
+                soak_line_dict['soak_stop_line'][0].set_data([time_fulllength[event_dict['soak_stop']], time_fulllength[event_dict['soak_stop']]], [-100, 100])
+            if event_dict['selected_event'] == 2:
+                soak_line_dict['downcast_start_line'][0].set_data([time_fulllength[event_dict['downcast_start']], time_fulllength[event_dict['downcast_start']]], [-100, 100])
+            if event_dict['selected_event'] == 3:
+                soak_line_dict['downcast_stop_line'][0].set_data([time_fulllength[event_dict['downcast_stop']], time_fulllength[event_dict['downcast_stop']]], [-100, 100])
+            if event_dict['selected_event'] == 4:
+                soak_line_dict['upcast_stop_line'][0].set_data([time_fulllength[event_dict['upcast_stop']], time_fulllength[event_dict['upcast_stop']]], [-100, 100])
             #update_annotations = True
             canvas.draw()
         if update_annotations:
-            global annotation
-            annotation.remove()
-            if selected_event == 0:
-                annotation = ax.annotate('Soak Start',
-                                         xy=(time_fulllength[soak_start], maxd+1),
-                                         xytext=(time_fulllength[soak_start], maxd+2),
-                                         xycoords='data',
-                                         textcoords='data',
-                                         ha='center',
-                                         arrowprops=dict(arrowstyle="->"))
-            elif selected_event == 1:
-                annotation = ax.annotate('Soak Stop',
-                                         xy=(time_fulllength[soak_stop], maxd+1),
-                                         xytext=(time_fulllength[soak_stop], maxd+2),
-                                         xycoords='data',
-                                         textcoords='data',
-                                         ha='center',
-                                         arrowprops=dict(arrowstyle="->"))
-            elif selected_event == 2:
-                annotation = ax.annotate('Downcast Start',
-                                         xy=(time_fulllength[downcast_start], maxd+1),
-                                         xytext=(time_fulllength[downcast_start], maxd+2),
-                                         xycoords='data',
-                                         textcoords='data',
-                                         ha='center',
-                                         arrowprops=dict(arrowstyle="->"))
-            elif selected_event == 3:
-                annotation = ax.annotate('Downcast Stop',
-                                         xy=(time_fulllength[downcast_stop], maxd+1),
-                                         xytext=(time_fulllength[downcast_stop], maxd+2),
-                                         xycoords='data',
-                                         textcoords='data',
-                                         ha='center',
-                                         arrowprops=dict(arrowstyle="->"))
-            elif selected_event == 4:
-                annotation = ax.annotate('Upcast Stop',
-                                         xy=(time_fulllength[upcast_stop], maxd+1),
-                                         xytext=(time_fulllength[upcast_stop], maxd+2),
-                                         xycoords='data',
-                                         textcoords='data',
-                                         ha='center',
-                                         arrowprops=dict(arrowstyle="->"))
+            soak_line_dict['annotation'].remove()
+            soak_line_dict['annotation'] = ba_gui.update_annotations(event_dict['selected_event'], ax, event_dict, maxd)
+
             canvas.draw()
         if update_qframe:
-            print('Valdur filur: ' + str(filur))
-            for widget in Quality_frame.winfo_children():  # Tømur quality frame
-                widget.destroy()
-            global mappunavn
-            for cast in list_of_casts:
-                casttext = cast
-                if os.path.exists(parent_folder + '/ASCII_Downcast/' + cast.split('.')[0] + '_metadata.csv'):
-                    casttext += ' ✓'
-                if os.path.exists(parent_folder + '/ASCII_Downcast/' + cast.split('.')[0] + '_do_not_use_.csv'):
-                    casttext += ' ⃠'
-                if cast == filnavn[filur]:
-                    Label(Quality_frame, text=casttext, font=("Courier", textsize), bg="Green").pack(side=TOP, anchor=W)
-                else:
-                    Label(Quality_frame, text=casttext, font=("Courier", textsize)).pack(side=TOP, anchor=W)
-            Label(Quality_frame, text=('―' * 20), font=("Courier", textsize)).pack(side=TOP, anchor=W)
+            ba_gui.refresh_qframe(Quality_frame, list_of_casts, parent_folder, filnavn, mappunavn_dict)
 
     root.bind('<Key>', key)
 
-    #ax.scatter(farts, np.ones([1, len(farts)])*-3, color = 'green')
-    #ax.scatter(upcast, np.ones([1, len(upcast)]) * -3, color='red')
-
-    #ax.fill_between(range(1030), -100, 100, where=farts, facecolor='green', alpha=0.2)
-    #ax2.set_ylabel(data.columns[1], color='b')
     canvas.draw()
     canvas.get_tk_widget().pack(fill=BOTH, expand=1)
     log_e()
