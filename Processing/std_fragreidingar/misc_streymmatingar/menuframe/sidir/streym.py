@@ -218,7 +218,7 @@ def speedbins2(bins, dato, df, max_bin, dypir, minmax=True, mal='FO', dest='', d
     #   finn miðalstreym
     max_v, min_v = minmaxvika(df, max_bin)
 
-    if isinstansof(minmax, (int, float)):
+    if isinstance(minmax, (int, float)):
         if minmax == 0:
             tidarskeid = 7
         else:
