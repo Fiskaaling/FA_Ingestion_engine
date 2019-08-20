@@ -53,7 +53,7 @@ def bin_average_frame(frame, root2):
     mappunavn_dict['filur'] = 0
 
     mappunavn_dict['continuebtn'] = Button(Quality_frame, text='Halt áfram', command=lambda: Ingestion.CTD.skraset_stodir(frame, root2))
-
+    mappunavn_dict['continuebtn'].pack(side=TOP, anchor=W)
     processera(root, fig, canvas, Quality_frame, mappunavn_dict)
 
 
@@ -78,7 +78,8 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
     metadata, finished_processing = ba_gui.refresh_qframe(Quality_frame, list_of_casts, parent_folder, filnavn, mappunavn_dict)
     print('Finished_processing?: ' + str(finished_processing))
     if finished_processing:
-        mappunavn_dict['continuebtn'].pack(side=TOP, anchor=W)
+        pass
+    #        mappunavn_dict['continuebtn'].lift()
     Label(Quality_frame, text=('―'*20), font=("Courier", textsize)).pack(side=TOP, anchor=W)
     quality_subframe = Frame(Quality_frame)
     quality_subframe.pack(fill=BOTH, expand=True, side=TOP, anchor=W)

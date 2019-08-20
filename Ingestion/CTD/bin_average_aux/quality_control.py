@@ -97,7 +97,7 @@ def qcontrol(Quality_subframe, depth, event_dict, pump_on, filnavn):
     else:
         Label(Quality_subframe, text='Git er ok', font=("Helvetica", textsize), bg="lightgreen").pack(side=TOP, anchor=W)
 
-    if 'Master' not in text:
+    if 'master' not in text:
         Label(Quality_subframe, text='Git koyrur ikki á Master branch', font=("Helvetica", textsize), bg="orange").pack(side=TOP, anchor=W)
 
     cast_quality = cast_quality + downcast_quality + upcast_quality
