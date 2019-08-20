@@ -15,7 +15,6 @@ from pprint import pprint
 from .sidir.inlesstreym import inles
 from .sidir.streym import tegnahovmuller
 from .sidir.streym import speedbins
-from .sidir.streym import speedbins2
 from .sidir.streym import tekna_dist_rose
 from .sidir.streym import progressive_vector
 from .sidir.streym import frequencytabellir

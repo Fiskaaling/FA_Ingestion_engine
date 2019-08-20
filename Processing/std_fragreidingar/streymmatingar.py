@@ -23,7 +23,7 @@ def streym(frame, root):
                   'top_mid_bot_layer'   : False, # Set inn hvat fyrði bins skullu brúkast
                   'Hov_hadd'            : -10,  # Ovara greinsa á Hovmuller
                   'sama_aksa'           : True,
-                  'Hov_rat'             : [0, 90, -35], # Ratning á Hov
+                  'Hov_rat'             : [0, 90], # Ratning á Hov
                   'tidal_oll_Frqs'      : ['M2', 'S2', 'N2', 'O1', 'K1'], # Frq til tidal_oll_dypir
                   'minmax'              : True # speedbin subsections
                  }
@@ -65,6 +65,9 @@ def streym(frame, root):
     valdarsidir_frame.grid(row=1, column=1)
     setupframe.valdarsigur(valdarsidir_frame, siduval_dict)
 
+    parametur_frame = Frame(BodyFrame)
+    parametur_frame.grid(row=1, column=2)
+
     # TODO okkurt til at velja parametrarnar
 
     # inlesur setup.txt
@@ -80,9 +83,9 @@ def streym(frame, root):
         if key in setup_dict['meta'].keys():
             setup_dict['meta'][key].delete(0, END)
             if str(temp[key]) != 'nan':
-                setup_dict['meta'][key].insert(0, temp[key])
+                setup_dict['meta'][key].insert(0, temp[key].strip())
         elif key in setup_dict['path'].keys():
-            setup_dict['path'][key].set(temp[key])
+            setup_dict['path'][key].set(temp[key].strip())
         elif key in siduval_list:
             if temp[key].strip().lower() == 'true' and not siduval_dict['valdar_tree'].exists(key):
                 siduval_dict['valdar_tree'].insert('', 'end', key, text=key)
