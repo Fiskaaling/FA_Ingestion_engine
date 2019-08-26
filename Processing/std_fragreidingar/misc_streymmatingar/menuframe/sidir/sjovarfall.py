@@ -92,10 +92,16 @@ def tidal_analysis_for_depth_bins(bins, dato, datadf, dypir, mal='FO', lat=62,
             out += '\\newpage\n'
         u = datadf['mag' + str(mytempbin)].values * np.sin(np.deg2rad(datadf['dir' + str(mytempbin)].values))
         v = datadf['mag' + str(mytempbin)].values * np.cos(np.deg2rad(datadf['dir' + str(mytempbin)].values))
-        if mal == 'EN':
-            caption = '%s, bin no: %s. at %2.0fm Depth' % (prelabel, mytempbin, -dypir[mytempbin - 1])
+
+        if mytempbin == '10m':
+            tempdypid = 10
         else:
-            caption = '%s, bin no: %s. at %2.0fm Depth' % (prelabel, mytempbin, -dypir[mytempbin - 1])
+            tempdypid = -dypir[mytempbin - 1]
+
+        if mal == 'EN':
+            caption = '%s, bin no: %s. at %2.0fm Depth' % (prelabel, mytempbin, tempdypid)
+        else:
+            caption = '%s, bin no: %s. at %2.0fm Depth' % (prelabel, mytempbin, tempdypid)
         out += tidal_analysis_for_depth(np.array(dato), u, v, lat=lat,
                                      navn='tide%s.tex' % (mytempbin,), caption=caption, dest=dest,
                                      label='\\label{tidal_bin%s}' % (mytempbin,))
@@ -252,10 +258,17 @@ def tidal_non_tidal_bins(bins, dato, datadf, dypir, mal='FO',
             prelabel = 'Center layer'
         else:
             prelabel = 'Bottom layer'
-        if mal == 'EN':
-            caption = '%s bin %s at %3.0f m' % (prelabel, item, -dypir[item - 1])
+
+        if item == '10m':
+            tempdypid = 10
         else:
-            caption = '%s bin %s at %3.0f m' % (prelabel, item, -dypir[item - 1])
+            tempdypid = -dypir[item - 1]
+
+        if mal == 'EN':
+            caption = '%s bin %s at %3.0f m' % (prelabel, item, tempdypid)
+        else:
+            caption = '%s bin %s at %3.0f m' % (prelabel, item, tempdypid)
+
         tidal_non_tidal_plot(dato, datadf['dir' + str(item)].values, datadf['mag' + str(item)].values, lat=lat, verbose=verbose,
                              figname=figname, dest=dest)
         out += '\n\\begin{figure}[!ht]\\label{tidal_non%s}' % (item,)
@@ -266,6 +279,7 @@ def tidal_non_tidal_bins(bins, dato, datadf, dypir, mal='FO',
         out += '\n\\newpage\n'
     return out
 
+#  TODO hvar brúki eg hettar
 def tidaldominesrekkja(item, mag, direct, dato, dypid, lat=62, verbose=True):
     tin = np.array(dato)
     u = mag * np.sin(np.deg2rad(direct))
@@ -283,6 +297,7 @@ def tidaldominesrekkja(item, mag, direct, dato, dypid, lat=62, verbose=True):
     out +='\\\\\n'
     return out
 
+#  TODO Havi eg brúkt hettar nakrastani
 def tidaldomines(bins, dato, datadf, dypir, lat=62, verbose=True, section='Sjovarfall', dest='LaTeX/'):
     colonnir = ['bin', 'dypid', 'varratio', 'sum', 'sjóvarfalsdrivin']
     tabel = '\\begin{tabular}{|r|r|r|r|c|}\n'

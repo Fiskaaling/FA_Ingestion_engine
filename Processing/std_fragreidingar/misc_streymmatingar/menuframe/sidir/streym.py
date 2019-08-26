@@ -172,19 +172,35 @@ def speedbins1(bins, dato, df, dypir, mal='FO', dest='', dpi=200,
         axs[i].set_ylim(bottom=0)
 
     if mal=='EN':
-        caption = 'Timeseries of speed at three selected bins:' \
-                'a) %2.0f m depth, b) %2.0f m depth' \
-                  ' and c) %2.0f m depth.' \
-                  % (-dypir[bins[0]],
-                     -dypir[bins[1]],
-                     -dypir[bins[2]])
+        if bins[0] == '10m':
+            caption = 'Timeseries of speed at three selected bins:' \
+                    'a) %2.0f m depth, b) %2.0f m depth' \
+                      ' and c) %2.0f m depth.' \
+                      % (10,
+                         -dypir[bins[1] - 1],
+                         -dypir[bins[2] - 1])
+        else:
+            caption = 'Timeseries of speed at three selected bins:' \
+                    'a) %2.0f m depth, b) %2.0f m depth' \
+                      ' and c) %2.0f m depth.' \
+                      % (-dypir[bins[0] - 1],
+                         -dypir[bins[1] - 1],
+                         -dypir[bins[2] - 1])
     else:
-        caption = 'Streymferð á trimum valdum dýpum frá øllum mátitíðarskeiðnum.' \
-                'a) %2.0f m depth, b) %2.0f m depth' \
-                  ' and c) %2.0f m depth.' \
-                  % (-dypir[bins[0]],
-                     -dypir[bins[1]],
-                     -dypir[bins[2]])
+        if bins[0] == '10m':
+            caption = 'Streymferð á trimum valdum dýpum frá øllum mátitíðarskeiðnum.' \
+                    'a) %2.0f m depth, b) %2.0f m depth' \
+                      ' and c) %2.0f m depth.' \
+                      % (10,
+                         -dypir[bins[1] - 1],
+                         -dypir[bins[2] - 1])
+        else:
+            caption = 'Streymferð á trimum valdum dýpum frá øllum mátitíðarskeiðnum.' \
+                    'a) %2.0f m depth, b) %2.0f m depth' \
+                      ' and c) %2.0f m depth.' \
+                      % (-dypir[bins[0] - 1],
+                         -dypir[bins[1] - 1],
+                         -dypir[bins[2] - 1])
 
     plt.subplots_adjust(left=0.1, bottom=0.05, right=0.95, top=0.95, wspace=0.0, hspace=0.2)
     fig.savefig(dest + 'myndir/%s' % navn, dpi=dpi)
@@ -289,19 +305,36 @@ def speedbins2(bins, dato, df, max_bin, dypir, minmax=True, mal='FO', dest='', d
         axs3[i].set_ylim(top=tempmax3)
 
     if mal == 'EN':
-        caption = 'Timeseries of speed at three selected bins:' \
-                'a) %2.0f m depth, b) %2.0f m depth' \
-                  ' and c) %2.0f m depth.' \
-                  % (-dypir[bins[0]],
-                     -dypir[bins[1]],
-                     -dypir[bins[2]])
+        if bins[0] == '10m':
+            caption = 'Timeseries of speed at three selected bins:' \
+                    'a) %2.0f m depth, b) %2.0f m depth' \
+                      ' and c) %2.0f m depth.' \
+                      % (10,
+                         -dypir[bins[1] - 1],
+                         -dypir[bins[2] - 1])
+        else:
+            caption = 'Timeseries of speed at three selected bins:' \
+                    'a) %2.0f m depth, b) %2.0f m depth' \
+                      ' and c) %2.0f m depth.' \
+                      % (-dypir[bins[0] - 1],
+                         -dypir[bins[1] - 1],
+                         -dypir[bins[2] - 1])
     else:
-        caption = 'Streymferð á trimum valdum dýpum frá øllum mátitíðarskeiðnum.' \
-                'a) %2.0f m depth, b) %2.0f m depth' \
-                  ' and c) %2.0f m depth.' \
-                  % (-dypir[bins[0]],
-                     -dypir[bins[1]],
-                     -dypir[bins[2]])
+        if bins[0] == '10m':
+            caption = 'Streymferð á trimum valdum dýpum frá øllum mátitíðarskeiðnum.' \
+                    'a) %2.0f m depth, b) %2.0f m depth' \
+                      ' and c) %2.0f m depth.' \
+                      % (10,
+                         -dypir[bins[1] - 1],
+                         -dypir[bins[2] - 1])
+
+        else:
+            caption = 'Streymferð á trimum valdum dýpum frá øllum mátitíðarskeiðnum.' \
+                    'a) %2.0f m depth, b) %2.0f m depth' \
+                      ' and c) %2.0f m depth.' \
+                      % (-dypir[bins[0] - 1],
+                         -dypir[bins[1] - 1],
+                         -dypir[bins[2] - 1])
 
     plt.subplots_adjust(left=0.1, bottom=0.05, right=0.95, top=0.95, wspace=0.0, hspace=0.2)
     fig.savefig(dest + 'myndir/%s' % navn, dpi=dpi)
@@ -440,17 +473,31 @@ def tekna_dist_rose(bins, data, N, umax, dypir, mal='FO', dest='LaTeX/', dpi=200
              axcolor=axcolor, axline=axline, alpha=alpha)
         axs[i, 1].set_ylabel('')
     if mal == 'EN':
-        caption = 'Distribution of velocity vectors: ' \
-                  'a)~%2.0f~m~depth, b)~%2.0f~m~depth, and~c)~%2.0f~m~depth.' \
-                  % (-dypir[bins[0]],
-                     -dypir[bins[1]],
-                     -dypir[bins[2]])
+        if bins[0] == '10m':
+            caption = 'Distribution of velocity vectors: ' \
+                      'a)~%2.0f~m~depth, b)~%2.0f~m~depth, and~c)~%2.0f~m~depth.' \
+                      % (10,
+                         -dypir[bins[1] - 1],
+                         -dypir[bins[2] - 1])
+        else:
+            caption = 'Distribution of velocity vectors: ' \
+                      'a)~%2.0f~m~depth, b)~%2.0f~m~depth, and~c)~%2.0f~m~depth.' \
+                      % (-dypir[bins[0] - 1 ],
+                         -dypir[bins[1] - 1 ],
+                         -dypir[bins[2] - 1 ])
     else:
-        caption = 'Títtleiki av streymferð í rætning á: ' \
-                  'a)~%2.0f~m~dýpið, b)~%2.0f~m~dýpið, og~c)~%2.0f~m~dýpið.' \
-                  % (-dypir[bins[0]],
-                     -dypir[bins[1]],
-                     -dypir[bins[2]])
+        if bins[0] == '10m':
+            caption = 'Títtleiki av streymferð í rætning á: ' \
+                      'a)~%2.0f~m~dýpið, b)~%2.0f~m~dýpið, og~c)~%2.0f~m~dýpið.' \
+                      % (10,
+                         -dypir[bins[1] - 1],
+                         -dypir[bins[2] - 1])
+        else:
+            caption = 'Títtleiki av streymferð í rætning á: ' \
+                      'a)~%2.0f~m~dýpið, b)~%2.0f~m~dýpið, og~c)~%2.0f~m~dýpið.' \
+                      % (-dypir[bins[0] - 1],
+                         -dypir[bins[1] - 1],
+                         -dypir[bins[2] - 1])
 
     plt.gca().set_aspect('equal', adjustable='box')
     plt.subplots_adjust(left=0.05, bottom=0.05, right=0.95, top=0.95, wspace=0.0, hspace=0.5)
@@ -596,19 +643,35 @@ def progressive_vector(bins, dato, uvdf, dypir, mal='FO', dest='LaTeX/', dpi=200
     fig.savefig(dest + 'myndir/%s' % navn, dpi=dpi)
 
     if mal == 'EN':
-        caption = 'Progressive vector diagrams at three selected layers: Surface (%2.0f m depth),' \
-                  ' center (%2.0f m depth) and bottom layer (%2.0f m depth).' \
-                  % (-dypir[bins[0]],
-                     -dypir[bins[1]],
-                     -dypir[bins[2]])
+        if bins[0] == '10m':
+            caption = 'Progressive vector diagrams at three selected layers: Surface (%2.0f m depth),' \
+                      ' center (%2.0f m depth) and bottom layer (%2.0f m depth).' \
+                      % (10,
+                         -dypir[bins[1] - 1],
+                         -dypir[bins[2] - 1])
+        else:
+            caption = 'Progressive vector diagrams at three selected layers: Surface (%2.0f m depth),' \
+                      ' center (%2.0f m depth) and bottom layer (%2.0f m depth).' \
+                      % (-dypir[bins[0] - 1],
+                         -dypir[bins[1] - 1],
+                         -dypir[bins[2] - 1])
     else:
-        caption = 'PVD-plott av mátingunum, sum vísir hvussu ein lutur hevði rikið,' \
-                'um rákið var eins og á mátistaðnum í øllum økinum.' \
-                'Hvør litur umboðar ein mánað sum víst á litstiganum:'\
-                'Surface (%2.0f m depth), center (%2.0f m depth) and bottom layer (%2.0f m depth).' \
-                  % (-dypir[bins[0]],
-                     -dypir[bins[1]],
-                     -dypir[bins[2]])
+        if bins[0] == '10m':
+            caption = 'PVD-plott av mátingunum, sum vísir hvussu ein lutur hevði rikið,' \
+                    'um rákið var eins og á mátistaðnum í øllum økinum.' \
+                    'Hvør litur umboðar ein mánað sum víst á litstiganum:'\
+                    'Surface (%2.0f m depth), center (%2.0f m depth) and bottom layer (%2.0f m depth).' \
+                      % (10,
+                         -dypir[bins[1] - 1],
+                         -dypir[bins[2] - 1])
+        else:
+            caption = 'PVD-plott av mátingunum, sum vísir hvussu ein lutur hevði rikið,' \
+                    'um rákið var eins og á mátistaðnum í øllum økinum.' \
+                    'Hvør litur umboðar ein mánað sum víst á litstiganum:'\
+                    'Surface (%2.0f m depth), center (%2.0f m depth) and bottom layer (%2.0f m depth).' \
+                      % (-dypir[bins[0] - 1],
+                         -dypir[bins[1] - 1],
+                         -dypir[bins[2] - 1])
 
     return '\n\\FloatBarrier\n\\newpage\n\\section{%s}\n\\begin{figure}[h!]\\label{PVD}\n\\includegraphics[scale=1]{myndir/%s}' \
            '\n\\caption{%s}\n\\end{figure}\n\\newpage\n' % (section, navn, caption)
@@ -817,6 +880,7 @@ def duration_speed(bins, dato, magdf, dypir, mal='FO', dest='LaTeX/',
         for x in duration:
             texstr += '&\t' + str(x).rjust(4)
         texstr += '\\\\\\hline\n'
+
         for s in range(len(speed)):
             texstr += str(speed[s]).rjust(4)
             for d in range(len(duration)):
@@ -842,12 +906,17 @@ def duration_speed(bins, dato, magdf, dypir, mal='FO', dest='LaTeX/',
         texfil = open(dest + 'Talvur/' + filnovn[-1], 'w')
         texfil.write(texstr)
         texfil.close()
+        if item == '10m':
+            tempdypid = 10
+        else:
+            tempdypid = -dypir[item - 1]
+
         if mal == 'EN':
             caption.append('%s, at %2.0fm Depth'
-                           % (prelabel, -dypir[item - 1]))
+                           % (prelabel, tempdypid))
         else:
             caption.append('%s, á %2.0fm Dýpið'
-                           % (prelabel, -dypir[item - 1]))
+                           % (prelabel, tempdypid))
         label.append('\\label{Dur_%s}' % (item,))
 
     if mal == 'EN':
