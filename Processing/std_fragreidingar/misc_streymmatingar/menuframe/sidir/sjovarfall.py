@@ -10,12 +10,14 @@ import utide
 def tidal_analysis_for_depth(tin, uin, vin, lat=62,
               navn='tide.tex', caption='one layer', dest='LaTeX/', label=''):
     coef = utide.solve(tin, uin, vin, lat=lat)
-    col = ['Const', 'Freq', 'E-ampl', 'E-gpl', 'N-ampl', 'N-gpl', 'Major', 'minor', 'Theta', 'Graphl', 'R']
-    supcol = ['', 'c/hr', 'mm/sec', 'deg', 'mm/sec', 'deg', 'mm/sec', 'mm/sec', 'deg', 'deg', '']
+    col = ['Const', 'Freq', 'Perioda', 'Major', 'minor', 'Theta', 'Graphl', 'R']
+    #col = ['Const', 'Freq', 'E-ampl', 'E-gpl', 'N-ampl', 'N-gpl', 'Major', 'minor', 'Theta', 'Graphl', 'R']
+    supcol = ['', 'c/hr', '', 'mm/sec', 'mm/sec', 'deg', 'deg', '']
+    #supcol = ['', 'c/hr', 'mm/sec', 'deg', 'mm/sec', 'deg', 'mm/sec', 'mm/sec', 'deg', 'deg', '']
     a = list(coef.name)
     rekkjur = min(len(coef.name), 15)
-    coefE = utide.solve(tin, uin, lat=lat, constit=a)
-    coefN = utide.solve(tin, vin, lat=lat, constit=a)
+    #coefE = utide.solve(tin, uin, lat=lat, constit=a)
+    #coefN = utide.solve(tin, vin, lat=lat, constit=a)
     reftime = coef.aux.reftime
     reftime = mdate.num2date(reftime).strftime('%Y-%m-%dT%H:%M:%S')
 
@@ -30,16 +32,22 @@ def tidal_analysis_for_depth(tin, uin, vin, lat=62,
     tabel += '\\\\\\hline\n'
 
     for i in range(rekkjur):
-        ei = np.argwhere(coefE.name == coef.name[i])[0][0]
-        ni = np.argwhere(coefN.name == coef.name[i])[0][0]
-        tabel += (4-len(coef.name[i]))*' ' + coef.name[i]
+        perioda = 1/coef.aux.frq[i]
+        eind = ' t'
+        if perioda > 24:
+            perioda = perioda / 24
+            eind = ' d'
+        #ei = np.argwhere(coefE.name == coef.name[i])[0][0]
+        #ni = np.argwhere(coefN.name == coef.name[i])[0][0]
+        tabel += coef.name[i].rjust(4)
         tabel += '&\t%.8f' % (coef.aux.frq[i],)
-        tabel += '&\t%5.0f' % (coefE.A[ei],)
-        tabel += '&\t%5.0f' % (coefE.g[ei],)
-        tabel += '&\t%5.0f' % (coefN.A[ni],)
-        tabel += '&\t%5.0f' % (coefN.g[ni],)
-        tabel += '&\t%5.0f' % (coef.Lsmaj[i],)
-        tabel += '&\t%5.0f' % (abs(coef.Lsmin[i]),)
+        tabel += '&\t%4.2f' % (perioda,) + eind
+        #tabel += '&\t%5.0f' % (coefE.A[ei],)
+        #tabel += '&\t%5.0f' % (coefE.g[ei],)
+        #tabel += '&\t%5.0f' % (coefN.A[ni],)
+        #tabel += '&\t%5.0f' % (coefN.g[ni],)
+        tabel += '&\t%4.2f' % (coef.Lsmaj[i],)
+        tabel += '&\t%4.2f' % (abs(coef.Lsmin[i]),)
         tabel += '&\t%3.0f' % (coef.theta[i],)
         tabel += '&\t%3.0f' % (coef.g[i],)
         tabel += '&\t%s' % ('A' if coef.Lsmin[i]>0 else 'C',)
@@ -50,24 +58,19 @@ def tidal_analysis_for_depth(tin, uin, vin, lat=62,
     texfil.write(tabel)
     texfil.close()
 
-    tide = utide.reconstruct(tin, coef)
-    figwidth = 6
-    figheight = 9
-    fig, axs = plt.subplots(ncols=1, nrows=4, figsize=(figwidth, figheight))
-    axs[0].plot(tin, uin, linewidth=.5)
-    axs[0].plot(tin, tide.u, linewidth=.5)
-    axs[1].plot(tin, uin - tide.u, linewidth=.5)
-    axs[2].plot(tin, vin, linewidth=.5)
-    axs[2].plot(tin, tide.v, linewidth=.5)
-    axs[3].plot(tin, vin - tide.v, linewidth=.5)
-    #plt.show()
     caption += ' Reftime = %s' % reftime
+
+    #return '\n\\begin{table}[!ht]%s' \
+    #       '\n\\centering' \
+    #       '\n\\resizebox{\\textwidth}{!}{' \
+    #       '\n\\input{Talvur/%s}' \
+    #       '\n}' \
+    #       '\n\\caption{%s}' \
+    #       '\n\\end{table}' % (label, navn, caption)
 
     return '\n\\begin{table}[!ht]%s' \
            '\n\\centering' \
-           '\n\\resizebox{\\textwidth}{!}{' \
            '\n\\input{Talvur/%s}' \
-           '\n}' \
            '\n\\caption{%s}' \
            '\n\\end{table}' % (label, navn, caption)
 
@@ -82,14 +85,11 @@ def tidal_analysis_for_depth_bins(bins, dato, datadf, dypir, mal='FO', lat=62,
             section = 'Tidal analysis for selected depths'
 
     out = '\n\\FloatBarrier\n\\newpage\n\\section{%s}\n' % (section,)
-    for i, mytempbin in enumerate(bins):
+    for i, mytempbin in enumerate([bins[0], bins[-1]]):
         if i == 0:
             prelabel = 'Surface layer'
-        elif i == 1:
-            prelabel = 'Center layer'
         else:
             prelabel = 'Bottom layer'
-            out += '\\newpage\n'
         u = datadf['mag' + str(mytempbin)].values * np.sin(np.deg2rad(datadf['dir' + str(mytempbin)].values))
         v = datadf['mag' + str(mytempbin)].values * np.cos(np.deg2rad(datadf['dir' + str(mytempbin)].values))
 
