@@ -60,8 +60,8 @@ def bin_average_frame(frame, root2):
 def velFil(mappunavn):
     mappunavn['mappunavn'] = filedialog.askdirectory(title='Vel túramappu', initialdir='./Ingestion/CTD/Lokalt_Data/')
 
+
 def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
-    # Todo: kanna um metadatafílur er gjørdur, um hann er les virðini frá honum
     mappunavn = mappunavn_dict['mappunavn']
     log_b()
     midlingstid = 2 # sek
