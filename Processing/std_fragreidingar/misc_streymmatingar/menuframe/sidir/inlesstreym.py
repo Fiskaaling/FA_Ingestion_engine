@@ -1,14 +1,16 @@
+import datetime as dt
+
 import pandas as pd
 import numpy as np
 from matplotlib import dates as mdate
-import datetime as dt
-
 
 
 def inles(path_to_data, dictionary=False):
     '''
     Innlesur streym frá 'path_to_data', sorterar tað vánaliga dataði
     vekk og gevur aftur eitt set av variablum (date, dypir, max_bin, datadf, uvdatadf)
+
+    :param dictionary: skal hetta returna í einari dict
 
     returns:
     date:   tíðspunkti á mátingunum við formati frá matplotlib.dates
@@ -69,6 +71,40 @@ def inles(path_to_data, dictionary=False):
     for key in uvdatadf.keys():
         if key[1:].isdigit():
             uvdatadf[key] = np.round(uvdatadf[key].values*1000)
+
+    #  TODO hettar skal gerast betur
+    #  men eg fari at generera eina colonnu í bæði datadf og uvdatadf
+    #  har eg havi interpolera fyri at hava data 10 m undir vatnskorpini
+    #  uvdataði verður interpolera so rokni eg út hvat magdir eiður at vera
+    tiggju_m = uvdatadf['d']
+    tiggju_u = []
+    tiggju_v = []
+    tiggju_mag = []
+    tiggju_dir = []
+    for i, item in enumerate(tiggju_m):
+        #  ger hettar seint fyri first
+        #  finn ein vector har vit hava dypi allastani
+        tempdypir = [float(metadf['bin' + str(x)]) - item for x in range(1, max_bin+1)]
+
+        #  finn hvar 10m er ímillum
+        j = np.searchsorted(tempdypir, -10)
+
+        #  finn s og t
+        s = (-10 - tempdypir[j]) / (tempdypir[j-1] - tempdypir[j])
+
+        #  rokna og set inn í tiggju_u og tiggju_v
+        tempu = s * uvdatadf['u%s' % str(j)][i] + (1-s) * uvdatadf['u%s' % str(j+1)][i]
+        tempv = s * uvdatadf['v%s' % str(j)][i] + (1-s) * uvdatadf['v%s' % str(j+1)][i]
+        tiggju_u.append(tempu)
+        tiggju_v.append(tempv)
+        #  rokna og set inn í tiggju_mag og tiggju_dir
+        tiggju_mag.append(np.sqrt(tempu**2+tempv**2))
+        tiggju_dir.append(np.rad2deg(np.arctan2(tempu, tempv)))
+    #  set col inní DataFrame
+    uvdatadf.insert(loc=0, column='u10m', value=tiggju_u)
+    uvdatadf.insert(loc=0, column='v10m', value=tiggju_v)
+    datadf.insert(loc=0, column='mag10m', value=tiggju_mag)
+    datadf.insert(loc=0, column='dir10m', value=tiggju_dir)
 
     if dictionary:
         return {'data':date, 'dypid':dypid, 'max_bin':max_bin,

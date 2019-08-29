@@ -15,7 +15,6 @@ from pprint import pprint
 from .sidir.inlesstreym import inles
 from .sidir.streym import tegnahovmuller
 from .sidir.streym import speedbins
-from .sidir.streym import speedbins2
 from .sidir.streym import tekna_dist_rose
 from .sidir.streym import progressive_vector
 from .sidir.streym import frequencytabellir
@@ -66,14 +65,17 @@ def skriva_doc(setup_dict, siduval_dict):
     minmax = setup_dict['minmax']
     #--------------------------------------------------------------------------------
 
-    # inles alt dataði
+    #  inles alt dataði
+    #  TODO skriva hettar til at kunna taka fleiri input inn
     date, dypir, max_bin, datadf, uvdatadf = inles(path_to_data)
 
     # hvat fyri 3 bins skal eg brúka
     #  top, mid, bot layer
     if not top_mid_bot_layer:
+        #  finn hvar 10 m er 
         tempbin = bisect.bisect_right(dypir, -10) - 1
-        top_mid_bot_layer = [tempbin, int((tempbin - 1) / 2) + 1, 1]
+        #  brúka 10m ístaðinfyri tempbin
+        top_mid_bot_layer = ['10m', int((tempbin - 1) / 2) + 1, 1]
 
     # master fílurin
     file = open(dest + navn_a_fili, 'w')
@@ -129,6 +131,7 @@ def skriva_doc(setup_dict, siduval_dict):
 
         #  Setup Hovmuller
         elif case == 'Hovmuller':
+            #  TODO fá alt dýpið men kontrollera color bar
             # finn hvat fyri bins vit skullu brúka til Hovmuller diagrammi
             bins = bisect.bisect_right(dypir, Hov_hadd)
             bins = list(range(1, bins + 1))
