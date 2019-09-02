@@ -12,7 +12,7 @@ def streym(frame, root):
     #                    Start parametrar til alt
     #----------------------------------------------------------------------
     setup_dict = {'Language'            : 'FO', # Møgulig mál eru FO og EN
-                  'N'                   : 31,   # Hvussu nógvar kassar í rósini
+                  'N'                   : 25,   # Hvussu nógvar kassar í rósini
                   'axcolor'             : 'k',
                   'axline'              : 0.5,
                   'alpha'               : 0.5,

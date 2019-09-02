@@ -50,9 +50,9 @@ def tegnahovmuller(data, dypid, dato, mal='FO', ratning=0, nrplots=11, figwidth=
             section = 'Hovmüller diagram av streymferð í norður/suður ættina'
     else:
         if mal == 'EN':
-            section = 'Hovmüller diagrams of %2.1f velocities' % ratning
+            section = 'Hovmüller diagrams of %3.0f° velocities' % ratning
         else:
-            section = 'Hovmüller diagram av streymferð í %2.1f ættina' % ratning
+            section = 'Streymferð í høvuðsættina %3.0f°' % ratning
 
     fig, axs = plt.subplots(ncols=1, nrows=nrplots + 1, figsize=(figwidth, figheight), dpi=dpi)
     mpl.rcParams['font.size'] = font
@@ -85,7 +85,7 @@ def tegnahovmuller(data, dypid, dato, mal='FO', ratning=0, nrplots=11, figwidth=
         locint = np.ceil((dato[plotstop - 1] - dato[plotstart]) / 10)
         axs[i].xaxis.set_major_locator(mdate.DayLocator(interval=int(locint)))
         axs[i].xaxis.set_minor_locator(mdate.DayLocator(interval=1))
-        axs[i].set_ylabel('Dýpi (m)')
+        axs[i].set_ylabel('Dypi (m)')
         axs[i].tick_params(axis='x', which='major', pad=0)
     # finn hvat tiks skullu verða á color bar
     fig.colorbar(contours, cax=axs[nrplots], orientation='horizontal', ticks=np.linspace(-vmax, vmax, 9))
@@ -99,7 +99,7 @@ def tegnahovmuller(data, dypid, dato, mal='FO', ratning=0, nrplots=11, figwidth=
 
 
 def speedbins(bins, dato, df, max_bin, dypir, minmax=False, dest='', dpi=200,
-              mal='FO', navn=None, section=None,
+              hovusratningur=False, mal='FO', navn=None, section=None,
               font=7, figwidth=6, figheight=7.1):
     """
         teknar magdataði fyri 3 dypir
@@ -124,16 +124,24 @@ def speedbins(bins, dato, df, max_bin, dypir, minmax=False, dest='', dpi=200,
             section = 'Timeseries of speed at selected layers'
         else:
             section = 'Streymferð á útvaldum dýpum'
+    out = ''
     if minmax:
-        return speedbins2(bins, dato, df, max_bin, dypir, minmax=minmax, mal=mal, dest=dest, dpi=dpi,
+        out += speedbins_minmax(bins, dato, df, max_bin, dypir, minmax=minmax, mal=mal, dest=dest, dpi=dpi,
               navn=navn, section=section,
               font=font, figwidth=figwidth, figheight=figheight)
-    return speedbins1(bins, dato, df, dypir, mal=mal, dest=dest, dpi=dpi,
-          navn=navn, section=section,
-          font=font, figwidth=figwidth, figheight=figheight)
+    else:
+        out += speedbins_standard(bins, dato, df, dypir, mal=mal, dest=dest, dpi=dpi,
+              navn=navn, section=section,
+              font=font, figwidth=figwidth, figheight=figheight)
+
+    if hovusratningur:
+        out += speedbins_hovus(bins, dato, df, dypir, mal=mal, dest=dest, dpi=dpi,
+              hovusratningur=hovusratningur, navn=navn, section='Streymur í høvusratning',
+              font=font, figwidth=figwidth, figheight=figheight)
+    return out
 
 
-def speedbins1(bins, dato, df, dypir, mal='FO', dest='', dpi=200,
+def speedbins_standard(bins, dato, df, dypir, mal='FO', dest='', dpi=200,
               navn='streymstyrkiyvirtid.pdf', section='Timeseries of speed at selected layers',
               font=7, figwidth=6, figheight=7.1):
     """
@@ -208,7 +216,7 @@ def speedbins1(bins, dato, df, dypir, mal='FO', dest='', dpi=200,
            '\n\\caption{%s}\n\\end{figure}\n\\newpage\n' % (section, navn, caption)
 
 
-def speedbins2(bins, dato, df, max_bin, dypir, minmax=True, mal='FO', dest='', dpi=200,
+def speedbins_minmax(bins, dato, df, max_bin, dypir, minmax=True, mal='FO', dest='', dpi=200,
               navn='streymstyrkiyvirtid.pdf', section='Timeseries of speed at selected layers',
               font=7, figwidth=6, figheight=7.1):
     """
@@ -354,7 +362,90 @@ def speedbins2(bins, dato, df, max_bin, dypir, minmax=True, mal='FO', dest='', d
     return out
 
 
-def plotrose(ax, N, umax, lv, Es, Ns, eind='mm/s', axline=.5, axcolor='k', alpha=.5):
+def speedbins_hovus(bins, dato, df, dypir, mal='FO', dest='', dpi=200, hovusratningur=0,
+              navn='streymstyrkiyvirtid.pdf', section='Timeseries of speed at selected layers',
+              font=7, figwidth=6, figheight=7.1):
+    """
+        teknar magdataði fyri 3 dypir
+    :param bins: [list int] len(bins)==3 tríggjar bins, [surface layer,
+                                                          Center layer,
+                                                          Bottom layer]
+    :param dato:    mdate fyri samplini
+    :param df:      dataði sum skal plottast
+    :param dypir:   ein lista av dypinum á øllum bins
+    :param dest:    str sum siður hvar latex dokumenti skal skrivast
+    :param dpi:     upplysningurin á figurinum
+    :param navn:    navnið á figurinum
+    :param section: navni á sectiónini
+    :return:        ein string sum kann setast inní eitt latex document
+    """
+
+    if len(bins) != 3:
+        raise ValueError('bins skal hava 3 bins')
+    fig, axs = plt.subplots(ncols=1, nrows=3, figsize=(figwidth, figheight), dpi=dpi)
+    mpl.rcParams['font.size'] = font
+    date_fmt = mdate.DateFormatter('%d %b')
+    tempmin = 0
+    tempmax = 0
+    for (i, item) in enumerate(bins):
+        if i == 0:
+            prelabel = 'a) Surface layer'
+        elif i == 1:
+            prelabel = 'b) Center layer'
+        else:
+            prelabel = 'c) Bottom layer'
+        ys = df['mag' + str(item)].values * np.cos(np.deg2rad(df['dir' + str(item)].values - hovusratningur))
+        axs[i].plot(dato, ys, linewidth=.5, c='k')
+        axs[i].xaxis.set_major_formatter(date_fmt)
+        axs[i].set_ylabel('speed [mm/t]')
+        axs[i].tick_params(axis='x', which='major', pad=0)
+        axs[i].set_title(prelabel)
+        axs[i].set_xlim(dato[0], dato[-1])
+        ys = np.sort(ys)
+        tempmin = min(tempmin, 1.1 * ys[int(0.005*len(ys))])
+        tempmax = max(tempmax, 1.1 * ys[int(0.995*len(ys))])
+    for i, item in enumerate(bins):
+        axs[i].set_ylim(bottom=tempmin, top=tempmax)
+
+    if mal=='EN':
+        if bins[0] == '10m':
+            caption = 'Timeseries of velosety in the main direction of 3 selected bins:' \
+                    'a) %2.0f m depth, b) %2.0f m depth' \
+                      ' and c) %2.0f m depth.' \
+                      % (10,
+                         -dypir[bins[1] - 1],
+                         -dypir[bins[2] - 1])
+        else:
+            caption = 'Timeseries of velosety in the main direction of 3 selected bins:' \
+                    'a) %2.0f m depth, b) %2.0f m depth' \
+                      ' and c) %2.0f m depth.' \
+                      % (-dypir[bins[0] - 1],
+                         -dypir[bins[1] - 1],
+                         -dypir[bins[2] - 1])
+    else:
+        if bins[0] == '10m':
+            caption = 'Streymferð í Høvusratning, á trimum valdum dýpum frá øllum mátitíðarskeiðnum.' \
+                    'a) %2.0f m depth, b) %2.0f m depth' \
+                      ' and c) %2.0f m depth.' \
+                      % (10,
+                         -dypir[bins[1] - 1],
+                         -dypir[bins[2] - 1])
+        else:
+            caption = 'Streymferð í Høvusratning, á trimum valdum dýpum frá øllum mátitíðarskeiðnum.' \
+                    'a) %2.0f m depth, b) %2.0f m depth' \
+                      ' and c) %2.0f m depth.' \
+                      % (-dypir[bins[0] - 1],
+                         -dypir[bins[1] - 1],
+                         -dypir[bins[2] - 1])
+
+
+
+    plt.subplots_adjust(left=0.1, bottom=0.05, right=0.95, top=0.95, wspace=0.0, hspace=0.2)
+    fig.savefig(dest + 'myndir/%s' % navn, dpi=dpi)
+    return '\n\\FloatBarrier\n\\newpage\n\\section{%s}\n\\begin{figure}[h!]\\label{speedbin}\n\\includegraphics[scale=1]{myndir/%s}' \
+           '\n\\caption{%s}\n\\end{figure}\n\\newpage\n' % (section, navn, caption)
+
+#def plotrose(ax, N, umax, lv, Es, Ns, eind='mm/s', axline=.5, axcolor='k', alpha=.5):
     '''
     teknar eina rósu har eg fari at reina at gera tað møguligt at tekna tað í bins
     og í confidens interval
@@ -372,6 +463,20 @@ def plotrose(ax, N, umax, lv, Es, Ns, eind='mm/s', axline=.5, axcolor='k', alpha
     :return:        figurin út aftur við øllum breitingunum
                     (veit ikki um tað er neyðut at returna hann)
     '''
+
+
+
+
+def pre_plotrose(N, umax, Es, Ns):
+    '''
+    roknar hvat hvat frequesurin er í teir forskelligu rattningarnar
+
+    :param N:       hvussu nógvar bins dataði skal sorterast í av fyrstan tíð
+    :param umax:    hvar greinsunar á ásunum skullu verða
+    :param Es:      u data   Haldi eg  í hvussu er data Est
+    :param Ns:      v data   Haldi eg  í hvussu er data North
+    :return:        F eitt array sum sigur hvat frequensurin er í hvønn kassa
+    '''
     #  variablin har eg samli dataði í
     F = np.zeros(shape=(N, N))
 
@@ -386,14 +491,45 @@ def plotrose(ax, N, umax, lv, Es, Ns, eind='mm/s', axline=.5, axcolor='k', alpha
     antal_pertiklar = len(Ns)
     arial_av_kassa = (2 * umax / (N-1))**2
     F /= antal_pertiklar * arial_av_kassa
+    F = np.array(F)
+    return F
 
+
+def plotrose(ax, N, umax, lv, F, eind='mm/s', axline=.5, axcolor='k', alpha=.5):
+    '''
+    teknar eina rósu har eg fari at reina at gera tað møguligt at tekna tað í bins
+    og í confidens interval
+
+    :param ax:      axin sum rósan skal plottast á
+    :param N:       hvussu nógvar bins dataði skal sorterast í av fyrstan tíð
+    :param umax:    hvar greinsunar á ásunum skullu verða
+    :param lv:      hvar levels á contour plottinum skullu verða
+    :param F        hvat sum skal plottast
+    :param eind:    eindin á Es og Ns sum skal verða tað sama
+    :param axline:  tjúktin á linjunum
+    :param axcolor: farvan á linjunum
+    :param alpha:   alpha á linjunum
+    :return:        figurin út aftur við øllum breitingunum
+                    (veit ikki um tað er neyðut at returna hann)
+    '''
+    #----------------------------------------------------------------------
+    # ax N umax lv eind axline axcolor alpha
     #  hvat er index á binnunum
     x = np.linspace(-umax, umax, N)
     X, Y = np.meshgrid(x, x)
     #  ger eitt interpolering uppá eitt størri data sett eftir hvat er í F
     #til at gera eitt stórt contour til confidens
 
-    con = ax.contourf(X, Y, F, levels=lv, cmap=cm.jet)
+    #con = ax.contour(X, Y, F, levels=lv)
+    mymax = max(j for i in F for j in i)
+    mask = np.zeros_like(F, dtype=bool)
+    for i, rekkja in enumerate(F):
+        for j, eliement in enumerate(rekkja):
+            #print(eliement)
+            if eliement < mymax/10:
+                mask[i][j] = True
+    z = np.ma.array(F, mask=mask)
+    con = ax.contourf(X, Y, z, levels=lv, cmap=cm.jet, corner_mask=True)
     cb = plt.colorbar(con, ax=ax)
     cb.set_ticks([])
 
@@ -448,6 +584,38 @@ def tekna_dist_rose(bins, data, N, umax, dypir, mal='FO', dest='LaTeX/', dpi=200
         raise ValueError('bins skal hava 3 bins')
     fig, axs = plt.subplots(ncols=2, nrows=3, figsize=(figwidth, figheight), dpi=dpi)
     mpl.rcParams['font.size'] = font
+    myumax = []
+    F = []
+    F2 = []
+    Es = []
+    Ns = []
+    for (i, item) in enumerate(bins):
+        Es.append(data['u' + str(item)].dropna().values)
+        Ns.append(data['v' + str(item)].dropna().values)
+        umax2 = []
+        for x in Es[i]:
+            umax2.append(abs(x))
+        for x in Ns[i]:
+            umax2.append(abs(x))
+        umax2.sort()
+        umax2 = umax2[int(0.95 * len(umax2))]
+        myumax.append(umax2)
+
+        F2.append(pre_plotrose(N, umax2, Es=Es[i], Ns=Ns[i]))
+    umax = max(myumax)
+    for (i, item) in enumerate(bins):
+        F.append(pre_plotrose(N, umax, Es=Es[i], Ns=Ns[i]))
+
+    lv = 10
+    if isinstance(lv, list):
+        pass
+    elif isinstance(lv, int):
+        Fmax = max([k for i in F for j in i for k in j])
+        F2max = max([k for i in F2 for j in i for k in j])
+        lvF = np.linspace(0, Fmax, lv)
+        lvF2 = np.linspace(0, F2max, lv)
+    else:
+        raise ValueError('lv skal vera ein listi ella ein int')
     for (i, item) in enumerate(bins):
         if i == 0:
             prelabel = 'a) Surface layer'
@@ -455,22 +623,11 @@ def tekna_dist_rose(bins, data, N, umax, dypir, mal='FO', dest='LaTeX/', dpi=200
             prelabel = 'b) Center layer'
         else:
             prelabel = 'c) Bottom layer'
-        Es = data['u' + str(item)].dropna().values
-        Ns = data['v' + str(item)].dropna().values
-
-        umax2 = []
-        for x in Es:
-            umax2.append(abs(x))
-        for x in Ns:
-            umax2.append(abs(x))
-        umax2.sort()
-        umax2 = umax2[int(0.95 * len(umax2))]
-
-        plotrose(axs[i, 0], N, umax2, lv=10, Es=Es, Ns=Ns,
+        plotrose(axs[i, 0], N, myumax[i], lv=lvF2, F=F2[i],
+             axcolor=axcolor, axline=axline, alpha=alpha)
+        plotrose(axs[i, 1], N, umax, lv=lvF, F=F[i],
              axcolor=axcolor, axline=axline, alpha=alpha)
         axs[i, 0].set_ylabel(prelabel + '\n' + axs[i, 0].get_ylabel())
-        plotrose(axs[i, 1], N, umax, lv=10, Es=Es, Ns=Ns,
-             axcolor=axcolor, axline=axline, alpha=alpha)
         axs[i, 1].set_ylabel('')
     if mal == 'EN':
         if bins[0] == '10m':
@@ -691,9 +848,9 @@ def frequencytabellir(datadf, dypir, mal='FO', dest='LaTeX/',
     '''
     if sections == None:
         if mal == 'EN':
-            sections = ['Frequency of high speeds', 'Frequency of low speeds']
+            sections = 'Frequency of high speeds'
         else:
-            sections = ['Frekvenstalva', 'Frekvenstalva']
+            sections = 'Frekvenstalva'
     #  Freequency of high speeds
     inforows = ['no.', 'm']
     infospeed = [str(x) for x in [50, 100, 150, 200, 250, 350, 400, 450, 500, 600, 700, 800, 900, 1000, 1500]]
@@ -720,12 +877,7 @@ def frequencytabellir(datadf, dypir, mal='FO', dest='LaTeX/',
                     tally[k] += 1
                     break
         # tally er hvussu nógv data er minni enn tað samsvarandi virði í sortboxir
-        #print(len(data) - sum(tally))
         tally = [1000*x/sum(tally) for x in tally]
-        lowspeedtabel = tally
-        #  rokna tey ordiligu tølini sum skullu til lowspeed
-        for k in range(1, len(tally)):
-            lowspeedtabel[k] = lowspeedtabel[k-1] + tally[k]
 
 
         #  rokna tey ordiligu tølini sum skullu til highspeed
@@ -760,41 +912,15 @@ def frequencytabellir(datadf, dypir, mal='FO', dest='LaTeX/',
         highstr += key.rjust(4) + '&\t' + str(-int(Depth)).rjust(4)
         for x in highspeedtabelround[0:-1]:
             highstr += '&\t' + str(x).rjust(4)
-        #  finn tølini sum skullu í lowspeed tabellina
-        lowspeedtabelround = lowspeedtabel
-        for (k, x) in enumerate(lowspeedtabelround):
-            if 0.005 < x < 1:
-                lowspeedtabelround[k] = np.round(x, 2)
-            else:
-                lowspeedtabelround[k] = int(np.round(x, 0))
-        #  skriva tølini sum skullu í lowspeed tabellina
-        #  if fyri at seta eina linju yvir eina rekkju
-        if i == loopvar[0][0]:
-            lowstr += '\\\\\n\\hline\n'
-        else:
-            lowstr += '\\\\\n'
-        lowstr += key.rjust(4) + '&\t' + str(-int(Depth)).rjust(4)
-        for x in lowspeedtabelround[0:-1]:
-            lowstr += '&\t' + str(x).rjust(4)
     highstr += '\\\\\\hline\n\\end{tabular}'
-    lowstr += '\\\\\\hline\n\\end{tabular}'
     file = open(dest + 'Talvur/high_' + navn, 'w')
     file.write(highstr)
     file.close()
-    file = open(dest + 'Talvur/low_' + navn, 'w')
-    file.write(lowstr)
-    file.close()
 
-    if len(dypir) > 15:
-        newpage = '\\newpage\n'
-    else:
-        newpage = ''
     if mal == 'EN':
-        caption = ['Frequency (in parts per thousand) of speeds equal to or exeeding speified values.',
-                   'Frequency (in parts per thousand) of speeds less than speified values.']
+        caption = 'Frequency (in parts per thousand) of speeds equal to or exeeding speified values.'
     else:
-        caption = ['Frekvenstalva (í promillu), sum vísur part av mátingum hægri enn eina givna ferð.',
-                   'Frekvenstalva (í promillu), sum vísur part av mátingum spakari enn eina givna ferð.']
+        caption = 'Frekvenstalva (í promillu), sum vísur part av mátingum hægri enn eina givna ferð.'
 
     return '\n\\FloatBarrier\n\\newpage' \
            '\n\\section{%s}' \
@@ -804,15 +930,7 @@ def frequencytabellir(datadf, dypir, mal='FO', dest='LaTeX/',
            '\n}' \
            '\n\\caption{%s}' \
            '\n\\end{table}' \
-           '\n%s' \
-           '\n\\section{%s}' \
-           '\n\\begin{table}[h!]\\label{low_spd}' \
-           '\n\\resizebox{\\textwidth}{!}{' \
-           '\n\\input{Talvur/low_%s}' \
-           '\n}' \
-           '\n\\caption{%s}' \
-           '\n\\end{table}' \
-           '\n\\newpage\n' % (sections[0], navn, caption[0], newpage, sections[1], navn, caption[1])
+           '\n\\newpage\n' % (sections, navn, caption)
 
 
 def duration_speed(bins, dato, magdf, dypir, mal='FO', dest='LaTeX/',
@@ -838,7 +956,7 @@ def duration_speed(bins, dato, magdf, dypir, mal='FO', dest='LaTeX/',
             section = 'Tíð av samanhangandi høgari ferð'
     if len(bins) != 3:
         raise ValueError('bins skal hava 3 bins')
-    duration = list(range(60, 1020 + 60, 60))
+    duration = [30] + list(range(60, 720 + 60, 60))
     #  kanska set speed inn sum ein variabel
     speed = [50, 100, 150, 200, 300, 400, 500, 600, 800, 1000]
     filnovn = []
@@ -912,11 +1030,11 @@ def duration_speed(bins, dato, magdf, dypir, mal='FO', dest='LaTeX/',
             tempdypid = -dypir[item - 1]
 
         if mal == 'EN':
-            caption.append('%s, at %2.0fm Depth'
-                           % (prelabel, tempdypid))
+            caption.append('at %2.0fm depth'
+                           % (tempdypid,))
         else:
-            caption.append('%s, á %2.0fm Dýpið'
-                           % (prelabel, tempdypid))
+            caption.append('á %2.0fm dýpið'
+                           % (tempdypid,))
         label.append('\\label{Dur_%s}' % (item,))
 
     if mal == 'EN':
@@ -925,29 +1043,29 @@ def duration_speed(bins, dato, magdf, dypir, mal='FO', dest='LaTeX/',
            'Flagged ensembles are ignored.'
     else:
         forklarandi_tekstur = 'Partur av samanhangandi mátingum (í promillu),' \
-                'ið hava verði longri enn givna tíðarskeiði við hægri enn givnu streymferð.'
+                ' ið hava verði longri enn givna tíðarskeiði við hægri enn givnu streymferð.'
     return '\n\\FloatBarrier\n\\newpage' \
            '\n\\section{%s}' \
            '\n%s' \
            '\n\\begin{table}[h!]' \
            '\n\\centering' \
-           '\n\\resizebox{\\textwidth}{!}{' \
+           '\n\\resizebox{!}{3cm}{' \
            '\n\\input{Talvur/%s}' \
            '\n}' \
            '\n\\caption{%s}' \
            '\n\\end{table}' \
-           '\n' \
+           '\n\n\\vspace{-1cm}\n' \
            '\n\\begin{table}[h!]' \
            '\n\\centering' \
-           '\n\\resizebox{\\textwidth}{!}{' \
+           '\n\\resizebox{!}{3cm}{' \
            '\n\\input{Talvur/%s}' \
            '\n}' \
            '\n\\caption{%s}' \
            '\n\\end{table}' \
-           '\n' \
+           '\n\n\\vspace{-1cm}\n' \
            '\n\\begin{table}[h!]' \
            '\n\\centering' \
-           '\n\\resizebox{\\textwidth}{!}{' \
+           '\n\\resizebox{!}{3cm}{' \
            '\n\\input{Talvur/%s}' \
            '\n}' \
            '\n\\caption{%s}' \

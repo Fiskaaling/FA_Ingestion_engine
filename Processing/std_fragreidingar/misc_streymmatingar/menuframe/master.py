@@ -12,6 +12,7 @@ import datetime as dt
 from pprint import pprint
 
 
+from .misc import hovusratningur
 from .sidir.inlesstreym import inles
 from .sidir.streym import tegnahovmuller
 from .sidir.streym import speedbins
@@ -76,40 +77,42 @@ def skriva_doc(setup_dict, siduval_dict):
         tempbin = bisect.bisect_right(dypir, -10) - 1
         #  brúka 10m ístaðinfyri tempbin
         top_mid_bot_layer = ['10m', int((tempbin - 1) / 2) + 1, 1]
+    # finn høvus ratning
+    hovisrat = hovusratningur(uvdatadf, max_bin)
 
     # master fílurin
     file = open(dest + navn_a_fili, 'w')
     #  preamble og startur til doc
     file.write(r"""\include{setup/dokumentstilur}
-    \include{setup/kommandoir}
-    \include{setup/metadata}
-    \include{setup/titlepage}
-    \include{setup/opna}
-    \include{setup/hyphenation}
-    \usepackage{placeins}
-    \usepackage{rotating}
-    \usepackage{hyperref}
+\include{setup/kommandoir}
+\include{setup/metadata}
+\include{setup/titlepage}
+\include{setup/opna}
+\include{setup/hyphenation}
+\usepackage{placeins}
+\usepackage{rotating}
+\usepackage{hyperref}
 
-    %\usepackage{showframe} %fjerna meg
-    %\usepackage[icelandic]{babel}
-    %\usepackage{subcaption}
-    %\usepackage{float}
-    \usepackage{calc}
+%\usepackage{showframe} %fjerna meg
+%\usepackage[icelandic]{babel}
+%\usepackage{subcaption}
+%\usepackage{float}
+\usepackage{calc}
 
-    \begin{document}
-    \frontmatter
-    \pagestyle{empty}
-    \titlepage
-    \opn
-    \mainmatter
-    \pagestyle{mergedstyle}
-    %\markboth{Content}
-    \renewcommand{\contentsname}{Innihaldsyvurlit}
-    \renewcommand{\figurename}{Mynd}
-    \renewcommand{\tablename}{Talva}
-    \tableofcontents*
-    \openany
-    \newpage""")
+\begin{document}
+\frontmatter
+\pagestyle{empty}
+\titlepage
+\opn
+\mainmatter
+\pagestyle{mergedstyle}
+%\markboth{Content}
+\renewcommand{\contentsname}{Innihaldsyvurlit}
+\renewcommand{\figurename}{Mynd}
+\renewcommand{\tablename}{Talva}
+\tableofcontents*
+\openany
+\newpage""")
 
     print(siduval_dict['valdar_tree'].get_children(''))
     mangullisti=[]
@@ -162,15 +165,15 @@ def skriva_doc(setup_dict, siduval_dict):
                 if ratning == 0:
                     data = uvdatadf[['v' + x for x in colnames]].values.T
                     if mal == 'EN':
-                        caption = 'Hovmüller diagram of east/west velocities for the whole deployment period. The velocity scale is in mm/s'
-                    else:
-                        caption = 'Streymuferð í eystan (reyður litur) og Vestan (bláur litur). litásin er í mm/s'
-                elif ratning == 90:
-                    data = uvdatadf[['u' + x for x in colnames]].values.T
-                    if mal == 'EN':
                         caption = 'Hovmüller diagram of north/south velocities for the whole deployment period. The velocity scale is in mm/s'
                     else:
                         caption = 'Streymuferð í norður (reyður litur) og suður (bláur litur). litásin er í mm/s'
+                elif ratning == 90:
+                    data = uvdatadf[['u' + x for x in colnames]].values.T
+                    if mal == 'EN':
+                        caption = 'Hovmüller diagram of east/west velocities for the whole deployment period. The velocity scale is in mm/s'
+                    else:
+                        caption = 'Streymuferð í eystan (reyður litur) og Vestan (bláur litur). litásin er í mm/s'
                 else:
                     data = uvdatadf[['v' + x for x in colnames]].values.T * np.cos(np.deg2rad(ratning)) + \
                             uvdatadf[['u' + x for x in colnames]].values.T * np.sin(np.deg2rad(ratning))
@@ -183,7 +186,7 @@ def skriva_doc(setup_dict, siduval_dict):
 
         #  tekna speedbins
         elif case == 'speedbin':
-            a = speedbins(top_mid_bot_layer, date, datadf, max_bin, dypir, minmax=minmax, mal=mal,
+            a = speedbins(top_mid_bot_layer, date, datadf, max_bin, dypir, hovusratningur=hovisrat, minmax=minmax, mal=mal,
                           dest=dest, font=font, figwidth=figwidth, figheight=figheight)
             file.write(a)
 
