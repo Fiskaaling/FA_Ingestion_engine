@@ -11,13 +11,9 @@ def tidal_analysis_for_depth(tin, uin, vin, lat=62,
               navn='tide.tex', caption='one layer', dest='LaTeX/', label=''):
     coef = utide.solve(tin, uin, vin, lat=lat)
     col = ['Const', 'Freq', 'Perioda', 'Major', 'minor', 'Theta', 'Graphl', 'R']
-    #col = ['Const', 'Freq', 'E-ampl', 'E-gpl', 'N-ampl', 'N-gpl', 'Major', 'minor', 'Theta', 'Graphl', 'R']
     supcol = ['', 'c/hr', '', 'mm/sec', 'mm/sec', 'deg', 'deg', '']
-    #supcol = ['', 'c/hr', 'mm/sec', 'deg', 'mm/sec', 'deg', 'mm/sec', 'mm/sec', 'deg', 'deg', '']
     a = list(coef.name)
     rekkjur = min(len(coef.name), 15)
-    #coefE = utide.solve(tin, uin, lat=lat, constit=a)
-    #coefN = utide.solve(tin, vin, lat=lat, constit=a)
     reftime = coef.aux.reftime
     reftime = mdate.num2date(reftime).strftime('%Y-%m-%dT%H:%M:%S')
 
@@ -37,15 +33,9 @@ def tidal_analysis_for_depth(tin, uin, vin, lat=62,
         if perioda > 24:
             perioda = perioda / 24
             eind = ' d'
-        #ei = np.argwhere(coefE.name == coef.name[i])[0][0]
-        #ni = np.argwhere(coefN.name == coef.name[i])[0][0]
         tabel += coef.name[i].rjust(4)
         tabel += '&\t%.8f' % (coef.aux.frq[i],)
         tabel += '&\t%4.2f' % (perioda,) + eind
-        #tabel += '&\t%5.0f' % (coefE.A[ei],)
-        #tabel += '&\t%5.0f' % (coefE.g[ei],)
-        #tabel += '&\t%5.0f' % (coefN.A[ni],)
-        #tabel += '&\t%5.0f' % (coefN.g[ni],)
         tabel += '&\t%4.2f' % (coef.Lsmaj[i],)
         tabel += '&\t%4.2f' % (abs(coef.Lsmin[i]),)
         tabel += '&\t%3.0f' % (coef.theta[i],)
@@ -59,14 +49,6 @@ def tidal_analysis_for_depth(tin, uin, vin, lat=62,
     texfil.close()
 
     caption += ' Reftime = %s' % reftime
-
-    #return '\n\\begin{table}[!ht]%s' \
-    #       '\n\\centering' \
-    #       '\n\\resizebox{\\textwidth}{!}{' \
-    #       '\n\\input{Talvur/%s}' \
-    #       '\n}' \
-    #       '\n\\caption{%s}' \
-    #       '\n\\end{table}' % (label, navn, caption)
 
     return '\n\\begin{table}[!ht]%s' \
            '\n\\centering' \

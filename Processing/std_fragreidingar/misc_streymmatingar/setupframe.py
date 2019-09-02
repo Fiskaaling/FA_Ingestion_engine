@@ -114,3 +114,14 @@ def valdarsigur(frame, siduval_dict):
     valdar_tree.bind("<Double-1>", lambda event: valdar.fjerna(event, siduval_dict))
     valdar.setup(valdar_tree)
     siduval_dict['valdar_tree'] = valdar_tree
+
+def parametur(frame, setup_dict, parlist):
+    meta = dict()
+    for i, key in enumerate(setup_dict):
+        if key in parlist:
+            Label(frame, text=key).grid(row=i)
+            meta[key] = Entry(frame, width=75)
+            meta[key].grid(row=i, column=1)
+            meta[key].delete(0, END)
+            meta[key].insert(0, setup_dict[key])
+    setup_dict['gui_par']  = meta

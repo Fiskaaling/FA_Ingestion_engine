@@ -52,7 +52,7 @@ def streym(frame, root):
 
     # Framin har metadataði verður sett inn
     meta_frame = Frame(BodyFrame)
-    meta_frame.grid(row=0, column=0, columnspan=10)
+    meta_frame.grid(row=0, column=0, columnspan=3)
     setupframe.setupmetaframe(meta_frame, setup_dict)
 
     # Framin har síðinar vera valdar frá
@@ -65,10 +65,13 @@ def streym(frame, root):
     valdarsidir_frame.grid(row=1, column=1)
     setupframe.valdarsigur(valdarsidir_frame, siduval_dict)
 
+    # Framin til at til at seta nakrar parametrar
+    parlist = ['Language', 'N', 'dpi', 'top_mid_bot_layer',
+               'Hov_hadd', 'Hov_rat', 'tidal_oll_Frqs', 'minmax']
     parametur_frame = Frame(BodyFrame)
-    parametur_frame.grid(row=1, column=2)
+    parametur_frame.grid(row=1, column=2, columnspan=2)
+    setupframe.parametur(parametur_frame, setup_dict, parlist)
 
-    # TODO okkurt til at velja parametrarnar
 
     # inlesur setup.txt
     path = os.path.dirname(__file__)
@@ -89,5 +92,8 @@ def streym(frame, root):
         elif key in siduval_list:
             if temp[key].strip().lower() == 'true' and not siduval_dict['valdar_tree'].exists(key):
                 siduval_dict['valdar_tree'].insert('', 'end', key, text=key)
+        elif key in setup_dict['gui_par'].keys():
+            setup_dict['gui_par'][key].delete(0, END)
+            setup_dict['gui_par'][key].insert(0, temp[key].strip())
         else:
             print(key, temp[key].strip())
