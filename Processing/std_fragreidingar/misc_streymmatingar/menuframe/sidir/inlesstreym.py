@@ -5,6 +5,7 @@ import numpy as np
 from matplotlib import dates as mdate
 
 
+#  TODO skriva hettar til at kunna taka fleiri input inn
 def inles(path_to_data, dictionary=False):
     '''
     Innlesur streym frá 'path_to_data', sorterar tað vánaliga dataði
@@ -61,7 +62,6 @@ def inles(path_to_data, dictionary=False):
     uvdatadf.drop([ '%s%s' % (typa, int(tal)) for typa in ['u', 'v', 'w'] for tal in droppa_meg],
                   axis=1, inplace=True)
 
-    #  TODO kanna um eg geri tað sama fyri uvdatadf
     #  ger datði til [mm/s] ístaðinfyri [m/s]
     for key in datadf.keys():
         if 'mag' in key or key[1:].isdigit():
@@ -71,8 +71,9 @@ def inles(path_to_data, dictionary=False):
     for key in uvdatadf.keys():
         if key[1:].isdigit():
             uvdatadf[key] = np.round(uvdatadf[key].values*1000)
-
-    #  TODO hettar skal gerast betur
+    ##################################################
+    #                Gerirera 10m data               #
+    ##################################################
     #  men eg fari at generera eina colonnu í bæði datadf og uvdatadf
     #  har eg havi interpolera fyri at hava data 10 m undir vatnskorpini
     #  uvdataði verður interpolera so rokni eg út hvat magdir eiður at vera
@@ -105,6 +106,9 @@ def inles(path_to_data, dictionary=False):
     uvdatadf.insert(loc=0, column='v10m', value=tiggju_v)
     datadf.insert(loc=0, column='mag10m', value=tiggju_mag)
     datadf.insert(loc=0, column='dir10m', value=tiggju_dir)
+    ##################################################
+    #                  enda 10 m data                #
+    ##################################################
 
     if dictionary:
         return {'data':date, 'dypid':dypid, 'max_bin':max_bin,

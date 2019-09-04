@@ -12,7 +12,7 @@ import datetime as dt
 from pprint import pprint
 
 
-from .misc import hovusratningur
+from .hovus import hovusratningur
 from .sidir.inlesstreym import inles
 from .sidir.streym import tegnahovmuller
 from .sidir.streym import speedbins
@@ -48,7 +48,6 @@ def skriva_doc(setup_dict, siduval_dict):
 
     mpl.rcParams['font.size'] = font
 
-    #  TODO eg siti og skrivi Languegies
     #  skriva vit føroyskt
     mal = setup_dict['Language']
     # hvissi eg skal velja top_mid_bot_layer sjálvur 
@@ -61,13 +60,11 @@ def skriva_doc(setup_dict, siduval_dict):
     Hov_rat = setup_dict['Hov_rat']
     #  frequensir sum tidal_oll_dypir sakal brúka
     tidal_oll_Frqs = setup_dict['tidal_oll_Frqs']
-    #  TODO skriva hettar ordiligt
     #  speedbin skal eg hava subsections
     minmax = setup_dict['minmax']
     #--------------------------------------------------------------------------------
 
     #  inles alt dataði
-    #  TODO skriva hettar til at kunna taka fleiri input inn
     date, dypir, max_bin, datadf, uvdatadf = inles(path_to_data)
 
     # hvat fyri 3 bins skal eg brúka
@@ -134,7 +131,6 @@ def skriva_doc(setup_dict, siduval_dict):
 
         #  Setup Hovmuller
         elif case == 'Hovmuller':
-            #  TODO fá alt dýpið men kontrollera color bar
             # finn hvat fyri bins vit skullu brúka til Hovmuller diagrammi
             bins = bisect.bisect_right(dypir, Hov_hadd)
             bins = list(range(1, bins + 1))
@@ -191,7 +187,6 @@ def skriva_doc(setup_dict, siduval_dict):
             file.write(a)
 
 
-        #  TODO kanska okkurt er gali við forkláringini av hvat variablen N er fyri naka
         #  tekna rósu
         elif case == 'rosa':
             umax = 4*(N-1)

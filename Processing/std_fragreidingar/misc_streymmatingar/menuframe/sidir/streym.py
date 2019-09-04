@@ -16,6 +16,7 @@ from scipy.interpolate import griddata
 from .misc import minmaxvika
 
 
+#  TODO fá alt dýpið men kontrollera color bar
 def tegnahovmuller(data, dypid, dato, mal='FO', ratning=0, nrplots=11, figwidth=6, figheight=7.1,
                    font=7, vmax=None, dest='', navn='Hovmuller.pdf', caption='caption',
                    dpi=200):
@@ -35,8 +36,6 @@ def tegnahovmuller(data, dypid, dato, mal='FO', ratning=0, nrplots=11, figwidth=
     """
 
     print('byrja uppá ' + navn)
-    #  TODO finn útav hvat eg geri við lang har er eitt petti í master og eitt petti her
-
     #  finn titil av síðini
     if ratning == 90:
         if mal == 'EN':
@@ -236,7 +235,6 @@ def speedbins_minmax(bins, dato, df, max_bin, dypir, minmax=True, mal='FO', dest
     :param section: navni á sectiónini
     :return:        ein string sum kann setast inní eitt latex document
     """
-    #  TODO kanska hav miðal yvir dýpið inni í master.py
 
     #finn minmax
     #   finn miðalstreym
@@ -269,15 +267,13 @@ def speedbins_minmax(bins, dato, df, max_bin, dypir, minmax=True, mal='FO', dest
             prelabel = 'c) Bottom layer'
         midaltid1 = dato[max_v]
         midaltid2 = dato[min_v]
-        #  TODO eg skal sikkurt brúka np.searchsorted (left og right)
-        tid1 = [np.searchsorted(dato, midaltid1-halvtid), np.searchsorted(dato, midaltid1+halvtid)]
-        tid2 = [np.searchsorted(dato, midaltid2-halvtid), np.searchsorted(dato, midaltid2+halvtid)]
+        tid1 = [np.searchsorted(dato, midaltid1-halvtid, side='left'), np.searchsorted(dato, midaltid1+halvtid, side='right')]
+        tid2 = [np.searchsorted(dato, midaltid2-halvtid, side='left'), np.searchsorted(dato, midaltid2+halvtid, side='right')]
 
         axs[i].plot(dato, df['mag' + str(item)].values, linewidth=.5, c='k')
         axs2[i].plot(dato[tid1[0]:tid1[1]], df['mag' + str(item)].values[tid1[0]:tid1[1]], linewidth=.5, c='k')
         axs3[i].plot(dato[tid2[0]:tid2[1]], df['mag' + str(item)].values[tid2[0]:tid2[1]], linewidth=.5, c='k')
-        #  TODO eg skal ikki hava hattar scatter
-        #  TODO yskale
+
         y2 = axs[i].get_ylim()[1]
         axs[i].fill_between([dato[min_v]-halvtid, dato[min_v]+halvtid], 0, 100000, facecolor='green', alpha=0.5)
         axs[i].fill_between([dato[max_v]-halvtid, dato[max_v]+halvtid], 0, 100000, facecolor='red', alpha=0.5)
@@ -445,27 +441,6 @@ def speedbins_hovus(bins, dato, df, dypir, mal='FO', dest='', dpi=200, hovusratn
     return '\n\\FloatBarrier\n\\newpage\n\\section{%s}\n\\begin{figure}[h!]\\label{speedbin}\n\\includegraphics[scale=1]{myndir/%s}' \
            '\n\\caption{%s}\n\\end{figure}\n\\newpage\n' % (section, navn, caption)
 
-#def plotrose(ax, N, umax, lv, Es, Ns, eind='mm/s', axline=.5, axcolor='k', alpha=.5):
-    '''
-    teknar eina rósu har eg fari at reina at gera tað møguligt at tekna tað í bins
-    og í confidens interval
-
-    :param ax:      axin sum rósan skal plottast á
-    :param N:       hvussu nógvar bins dataði skal sorterast í av fyrstan tíð
-    :param umax:    hvar greinsunar á ásunum skullu verða
-    :param lv:      hvar levels á contour plottinum skullu verða
-    :param Es:      u data   Haldi eg  í hvussu er data Est
-    :param Ns:      v data   Haldi eg  í hvussu er data North
-    :param eind:    eindin á Es og Ns sum skal verða tað sama
-    :param axline:  tjúktin á linjunum
-    :param axcolor: farvan á linjunum
-    :param alpha:   alpha á linjunum
-    :return:        figurin út aftur við øllum breitingunum
-                    (veit ikki um tað er neyðut at returna hann)
-    '''
-
-
-
 
 def pre_plotrose(N, umax, Es, Ns):
     '''
@@ -546,6 +521,7 @@ def plotrose(ax, N, umax, lv, F, eind='mm/s', axline=.5, axcolor='k', alpha=.5):
     ax.set_ylabel('N (' + eind + ')')
 
 
+
 def tekna_dist_rose(bins, data, N, umax, dypir, mal='FO', dest='LaTeX/', dpi=200,
                     navn='Rosa.pdf', section=None,
                     axcolor='k', axline=0.5, alpha=0.5, font=8, figwidth=6,
@@ -557,7 +533,7 @@ def tekna_dist_rose(bins, data, N, umax, dypir, mal='FO', dest='LaTeX/', dpi=200
                                                                 Center layer,
                                                                 Bottom layer]
     :param data:        Dataði sum skal til at tekna rósurnar
-    :param N:           Hvussu nógvar bins dataði skal sorterast í av fyrstan tíð
+    :param N:           Hvussu nógvir kassar eru í hvønn ratning
     :param umax:        Hvar greinsunar á ásunum skullu verða
     :param dypir        Ein listi av øllum dýpinum har dýpi er dypir(bin+1)
     :param dest:        Hvat fyri mappu skullu plottini í (undirmappu)

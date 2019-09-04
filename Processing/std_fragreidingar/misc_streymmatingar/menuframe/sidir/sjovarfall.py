@@ -156,7 +156,8 @@ def tital_oll_dypir(dato, bins, Frqs, datadf, dypir, mal='FO', lat=62, verbose =
         tabel_fil = open(dest + 'Talvur/%s_%s.tex' % (tabel_navn, frq), 'w')
         tabel_fil.write(tabel)
         tabel_fil.close()
-        #  TODO tjekka hvussu nógvar tabellir skullu á hvørja síðu lat okkum siga 3 men tað skala avhana av nr av bins
+        #  kanska skal hettar umarbeiðast vit finna útav tíð tá vit higgja eftir
+        #  Úrslitinum
         if i % 2 == 0 and i != 0:
             out += '\n\\newpage'
         out += '\n\\begin{table}[!ht]\\label{Tidalvar_%s}' % (frq,)
@@ -261,7 +262,6 @@ def tidal_non_tidal_bins(bins, dato, datadf, dypir, mal='FO',
         out += '\n\\newpage\n'
     return out
 
-#  TODO hvar brúki eg hettar
 def tidaldominesrekkja(item, mag, direct, dato, dypid, lat=62, verbose=True):
     tin = np.array(dato)
     u = mag * np.sin(np.deg2rad(direct))
@@ -279,7 +279,6 @@ def tidaldominesrekkja(item, mag, direct, dato, dypid, lat=62, verbose=True):
     out +='\\\\\n'
     return out
 
-#  TODO Havi eg brúkt hettar nakrastani
 def tidaldomines(bins, dato, datadf, dypir, lat=62, verbose=True, section='Sjovarfall', dest='LaTeX/'):
     colonnir = ['bin', 'dypid', 'varratio', 'sum', 'sjóvarfalsdrivin']
     tabel = '\\begin{tabular}{|r|r|r|r|c|}\n'
