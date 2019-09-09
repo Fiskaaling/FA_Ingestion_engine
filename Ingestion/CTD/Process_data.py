@@ -97,7 +97,7 @@ def processera(mappunavn):
                              str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/6_Derive/' + filnavn + '.cnv'),
                              str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/7_Window_Filter'), '#m'])
             subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
-                             "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/8_Bin_Average.txt",
+                             "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/8_Bin_Average(1m).txt",
                              str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/7_Window_Filter/' + filnavn + '.cnv'),
                              str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/8_Bin_Average'), '#m'])
             subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',

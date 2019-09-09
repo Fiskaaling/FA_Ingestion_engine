@@ -224,13 +224,14 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
 
     event_dict['selected_event'] = 0
     zoomed_in_dict = {'zoomed_in':  False}
-    soak_line_dict['annotation'] = ax.annotate('Soak Start',
-                                               xy=(time_fulllength[soak_start], maxd + 1),
-                                               xytext=(time_fulllength[soak_start], maxd + 2),
-                                               xycoords='data',
-                                               textcoords='data',
-                                               ha='center',
-                                               arrowprops=dict(arrowstyle="->"))
+    if soak_start != -1:
+        soak_line_dict['annotation'] = ax.annotate('Soak Start',
+                                                   xy=(time_fulllength[soak_start], maxd + 1),
+                                                   xytext=(time_fulllength[soak_start], maxd + 2),
+                                                   xycoords='data',
+                                                   textcoords='data',
+                                                   ha='center',
+                                                   arrowprops=dict(arrowstyle="->"))
 
     qcontrol(quality_subframe, depth, event_dict, pump_on, filnavn[mappunavn_dict['filur']])
 
@@ -254,12 +255,20 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
             log_b()
             print('Calculating')
             print(data.columns.values)
-            downcast_Data = pd.DataFrame(
-                {'DepSM': data.DepSM.iloc[event_dict['downcast_start']:event_dict['downcast_stop']], 'T068C': data.T068C.iloc[event_dict['downcast_start']:event_dict['downcast_stop']], 'FlECO-AFL': data['FlECO-AFL'].iloc[event_dict['downcast_start']:event_dict['downcast_stop']], 'Sal00': data['Sal00'].iloc[event_dict['downcast_start']:event_dict['downcast_stop']],
-                 'Sigma-é00': data['Sigma-é00'].iloc[event_dict['downcast_start']:event_dict['downcast_stop']], 'Sbeox0Mg/L': data['Sbeox0Mg/L'].iloc[event_dict['downcast_start']:event_dict['downcast_stop']]}) ## TODO: ger hettar betri. Set hettar í egna funku
+
+            downcast_Data = pd.DataFrame({'DepSM': np.round(data.DepSM.iloc[event_dict['downcast_start']:event_dict['downcast_stop']], 7)})
+            upcast_Data = pd.DataFrame({'DepSM': np.round(data.DepSM.iloc[event_dict['downcast_stop']:event_dict['upcast_stop']], 7)})
+
+            for column in data.columns.values:
+                if column != "DepSM":
+                    downcast_Data = downcast_Data.join(pd.DataFrame({column: np.round(data[column].iloc[event_dict['downcast_start']:event_dict['downcast_stop']], 7)}))
+                    upcast_Data = upcast_Data.join(pd.DataFrame({column: np.round(data[column].iloc[event_dict['downcast_stop']:event_dict['upcast_stop']], 7)}))
             if not os.path.isdir(parent_folder + '/ASCII_Downcast'):
                 os.mkdir(parent_folder + '/ASCII_Downcast')
+            if not os.path.isdir(parent_folder + '/ASCII_Upcast'):
+                os.mkdir(parent_folder + '/ASCII_Upcast')
             downcast_Data.to_csv(parent_folder + '/ASCII_Downcast/' + filnavn[mappunavn_dict['filur']], index=False)
+            upcast_Data.to_csv(parent_folder + 'ASCII_Upcast/' + filnavn[mappunavn_dict['filur']], index=False)
             print('Assesing quality')
             summary = qcontrol(quality_subframe, depth, event_dict, pump_on, filnavn[mappunavn_dict['filur']])
 
