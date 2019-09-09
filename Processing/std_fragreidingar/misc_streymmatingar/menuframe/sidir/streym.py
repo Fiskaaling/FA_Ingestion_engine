@@ -16,7 +16,6 @@ from scipy.interpolate import griddata
 from .misc import minmaxvika
 
 
-#  TODO fá alt dýpið men kontrollera color bar
 def tegnahovmuller(data, dypid, dato, mal='FO', ratning=0, nrplots=11, figwidth=6, figheight=7.1,
                    font=7, vmax=None, dest='', navn='Hovmuller.pdf', caption='caption',
                    dpi=200):
@@ -135,11 +134,11 @@ def speedbins(bins, dato, df, max_bin, dypir, minmax=False, dest='', dpi=200,
 
     if hovusratningur:
         out += speedbins_hovus(bins, dato, df, dypir, mal=mal, dest=dest, dpi=dpi,
-              hovusratningur=hovusratningur, navn=navn, section='Streymur í høvusratning',
+              hovusratningur=hovusratningur, navn=navn, section='Streymur í høvusratning %3.0f°' % hovusratningur,
               font=font, figwidth=figwidth, figheight=figheight)
     return out
 
-
+#  TODO kanska vís hvar minmax er um man sær tað illa
 def speedbins_standard(bins, dato, df, dypir, mal='FO', dest='', dpi=200,
               navn='streymstyrkiyvirtid.pdf', section='Timeseries of speed at selected layers',
               font=7, figwidth=6, figheight=7.1):
@@ -162,7 +161,19 @@ def speedbins_standard(bins, dato, df, dypir, mal='FO', dest='', dpi=200,
         raise ValueError('bins skal hava 3 bins')
     fig, axs = plt.subplots(ncols=1, nrows=3, figsize=(figwidth, figheight), dpi=dpi)
     mpl.rcParams['font.size'] = font
-    date_fmt = mdate.DateFormatter('%d %b')
+    timespan = dato[-1] - dato[0]
+    if timespan > 3:
+        date_fmt = mdate.DateFormatter('%d %b')
+        date_loc = mdate.DayLocator(iterval=np.ceil(timespan/6))
+    elif timespan >= 0.95:
+        date_fmt = mdate.DateFormatter('%d %b %H:%M')
+        date_loc = mdate.HourLocator(byhour=[0, 6, 12, 18])
+    elif timespan > 2/24:
+        date_fmt = mdate.DateFormatter('%d %b %H:%M')
+        date_loc = mdate.HourLocator()
+    else:
+        date_fmt = mdate.DateFormatter('%d %b %H:%M')
+        date_loc = mdate.MinuteLocator(interval= np.ceil(60*24*timespan/6))
     for (i, item) in enumerate(bins):
         if i == 0:
             prelabel = 'a) Surface layer'
@@ -172,6 +183,7 @@ def speedbins_standard(bins, dato, df, dypir, mal='FO', dest='', dpi=200,
             prelabel = 'c) Bottom layer'
         axs[i].plot(dato, df['mag' + str(item)].values, linewidth=.5, c='k')
         axs[i].xaxis.set_major_formatter(date_fmt)
+        axs[i].xaxis.set_major_locator(date_loc)
         axs[i].set_ylabel('speed [mm/t]')
         axs[i].tick_params(axis='x', which='major', pad=0)
         axs[i].set_title(prelabel)
@@ -257,7 +269,19 @@ def speedbins_minmax(bins, dato, df, max_bin, dypir, minmax=True, mal='FO', dest
     fig2, axs2 = plt.subplots(ncols=1, nrows=3, figsize=(figwidth, figheight), dpi=dpi)
     fig3, axs3 = plt.subplots(ncols=1, nrows=3, figsize=(figwidth, figheight), dpi=dpi)
     mpl.rcParams['font.size'] = font
-    date_fmt = mdate.DateFormatter('%d %b')
+    timespan = dato[-1] - dato[0]
+    if timespan > 3:
+        date_fmt = mdate.DateFormatter('%d %b')
+        date_loc = mdate.DayLocator(interval=int(np.ceil(timespan/6)))
+    elif timespan >= 0.95:
+        date_fmt = mdate.DateFormatter('%d %b %H:%M')
+        date_loc = mdate.HourLocator(byhour=[0, 6, 12, 18])
+    elif timespan > 2/24:
+        date_fmt = mdate.DateFormatter('%d %b %H:%M')
+        date_loc = mdate.HourLocator()
+    else:
+        date_fmt = mdate.DateFormatter('%d %b %H:%M')
+        date_loc = mdate.MinuteLocator(interval=int(np.ceil(60*24*timespan/6)))
     for (i, item) in enumerate(bins):
         if i == 0:
             prelabel = 'a) Surface layer'
@@ -280,6 +304,7 @@ def speedbins_minmax(bins, dato, df, max_bin, dypir, minmax=True, mal='FO', dest
         axs[i].set_ylim(top=y2)
 
         axs[i].xaxis.set_major_formatter(date_fmt)
+        axs[i].xaxis.set_major_locator(date_loc)
         axs[i].set_ylabel('speed [mm/t]')
         axs[i].tick_params(axis='x', which='major', pad=0)
         axs[i].set_title(prelabel)
@@ -287,6 +312,7 @@ def speedbins_minmax(bins, dato, df, max_bin, dypir, minmax=True, mal='FO', dest
         axs[i].set_ylim(bottom=0)
 
         axs2[i].xaxis.set_major_formatter(date_fmt)
+        axs2[i].xaxis.set_major_locator(date_loc)
         axs2[i].set_ylabel('speed [mm/t]')
         axs2[i].tick_params(axis='x', which='major', pad=0)
         axs2[i].set_title(prelabel)
@@ -294,6 +320,7 @@ def speedbins_minmax(bins, dato, df, max_bin, dypir, minmax=True, mal='FO', dest
         axs2[i].set_ylim(bottom=0)
 
         axs3[i].xaxis.set_major_formatter(date_fmt)
+        axs3[i].xaxis.set_major_locator(date_loc)
         axs3[i].set_ylabel('speed [mm/t]')
         axs3[i].tick_params(axis='x', which='major', pad=0)
         axs3[i].set_title(prelabel)
@@ -341,6 +368,9 @@ def speedbins_minmax(bins, dato, df, max_bin, dypir, minmax=True, mal='FO', dest
                          -dypir[bins[2] - 1])
 
     plt.subplots_adjust(left=0.1, bottom=0.05, right=0.95, top=0.95, wspace=0.0, hspace=0.2)
+    print(navn)
+    print(dpi)
+    print(bins)
     fig.savefig(dest + 'myndir/%s' % navn, dpi=dpi)
     fig2.savefig(dest + 'myndir/%s' % 'high_' + navn, dpi=dpi)
     fig3.savefig(dest + 'myndir/%s' % 'low_' + navn, dpi=dpi)
@@ -380,7 +410,19 @@ def speedbins_hovus(bins, dato, df, dypir, mal='FO', dest='', dpi=200, hovusratn
         raise ValueError('bins skal hava 3 bins')
     fig, axs = plt.subplots(ncols=1, nrows=3, figsize=(figwidth, figheight), dpi=dpi)
     mpl.rcParams['font.size'] = font
-    date_fmt = mdate.DateFormatter('%d %b')
+    timespan = dato[-1] - dato[0]
+    if timespan > 3:
+        date_fmt = mdate.DateFormatter('%d %b')
+        date_loc = mdate.DayLocator(interval=int(np.ceil(timespan/6)))
+    elif timespan >= 0.95:
+        date_fmt = mdate.DateFormatter('%d %b %H:%M')
+        date_loc = mdate.HourLocator(byhour=[0, 6, 12, 18])
+    elif timespan > 2/24:
+        date_fmt = mdate.DateFormatter('%d %b %H:%M')
+        date_loc = mdate.HourLocator()
+    else:
+        date_fmt = mdate.DateFormatter('%d %b %H:%M')
+        date_loc = mdate.MinuteLocator(interval=np.ceil(60*24*timespan/6))
     tempmin = 0
     tempmax = 0
     for (i, item) in enumerate(bins):
@@ -393,6 +435,7 @@ def speedbins_hovus(bins, dato, df, dypir, mal='FO', dest='', dpi=200, hovusratn
         ys = df['mag' + str(item)].values * np.cos(np.deg2rad(df['dir' + str(item)].values - hovusratningur))
         axs[i].plot(dato, ys, linewidth=.5, c='k')
         axs[i].xaxis.set_major_formatter(date_fmt)
+        axs[i].xaxis.set_major_locator(date_loc)
         axs[i].set_ylabel('speed [mm/t]')
         axs[i].tick_params(axis='x', which='major', pad=0)
         axs[i].set_title(prelabel)
@@ -405,32 +448,36 @@ def speedbins_hovus(bins, dato, df, dypir, mal='FO', dest='', dpi=200, hovusratn
 
     if mal=='EN':
         if bins[0] == '10m':
-            caption = 'Timeseries of velosety in the main direction of 3 selected bins:' \
+            caption = 'Timeseries of velosety in the main direction (%3.0f°) of 3 selected bins:' \
                     'a) %2.0f m depth, b) %2.0f m depth' \
                       ' and c) %2.0f m depth.' \
-                      % (10,
+                      % (hovusratningur,
+                         10,
                          -dypir[bins[1] - 1],
                          -dypir[bins[2] - 1])
         else:
-            caption = 'Timeseries of velosety in the main direction of 3 selected bins:' \
+            caption = 'Timeseries of velosety in the main direction (%3.0f°) of 3 selected bins:' \
                     'a) %2.0f m depth, b) %2.0f m depth' \
                       ' and c) %2.0f m depth.' \
-                      % (-dypir[bins[0] - 1],
+                      % (hovusratningur,
+                         -dypir[bins[0] - 1],
                          -dypir[bins[1] - 1],
                          -dypir[bins[2] - 1])
     else:
         if bins[0] == '10m':
-            caption = 'Streymferð í Høvusratning, á trimum valdum dýpum frá øllum mátitíðarskeiðnum.' \
+            caption = 'Streymferð í Høvusratning (%3.0f°), á trimum valdum dýpum frá øllum mátitíðarskeiðnum.' \
                     'a) %2.0f m depth, b) %2.0f m depth' \
                       ' and c) %2.0f m depth.' \
-                      % (10,
+                      % (hovusratningur,
+                         10,
                          -dypir[bins[1] - 1],
                          -dypir[bins[2] - 1])
         else:
-            caption = 'Streymferð í Høvusratning, á trimum valdum dýpum frá øllum mátitíðarskeiðnum.' \
+            caption = 'Streymferð í Høvusratning (%3.0f°), á trimum valdum dýpum frá øllum mátitíðarskeiðnum.' \
                     'a) %2.0f m depth, b) %2.0f m depth' \
                       ' and c) %2.0f m depth.' \
-                      % (-dypir[bins[0] - 1],
+                      % (hovusratningur,
+                         -dypir[bins[0] - 1],
                          -dypir[bins[1] - 1],
                          -dypir[bins[2] - 1])
 
@@ -770,8 +817,8 @@ def progressive_vector(bins, dato, uvdf, dypir, mal='FO', dest='LaTeX/', dpi=200
     axs.set_xlim(xmin, xmax)
     axs.set_ylim(ymin, ymax)
     plt.subplots_adjust(left=0.1, bottom=0.075, right=0.95, top=0.95, wspace=0.0, hspace=0.2)
-    axs.set_xlabel('Distance [Km]')
-    axs.set_ylabel('Distance [Km]')
+    axs.set_xlabel('Avstandur [Km]')
+    axs.set_ylabel('Avstandur [Km]')
     plt.axis('equal')
     fig.savefig(dest + 'myndir/%s' % navn, dpi=dpi)
 

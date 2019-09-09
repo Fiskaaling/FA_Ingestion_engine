@@ -54,6 +54,8 @@ def skriva_doc(setup_dict, siduval_dict):
     top_mid_bot_layer = setup_dict['top_mid_bot_layer']
     # ovasta greinsan hjá Hovmuller
     Hov_hadd = setup_dict['Hov_hadd']
+    # ovasta dypi til at desina cmap
+    Hov_cmap = setup_dict['Hov_cmap']
     #  haldi ikki at tak kemur at síggja godt ú at seta hetta til False
     sama_aksa = setup_dict['sama_aksa']
     #  ratningar vit skullu higgja eftir í Hovmuller
@@ -140,12 +142,19 @@ def skriva_doc(setup_dict, siduval_dict):
             yaxis = dypir[:bins[-1]]
             colnames = indexes
 
-            #  skal colorbar verða tað sama í báðum
-            #  sama_aksa verður sett longri uppi
-            if sama_aksa:
+            bins_cmap = bisect.bisect_right(dypir, Hov_hadd)
+            print(bins_cmap)
+            bins_cmap = list(range(1, bins_cmap + 1))
+
+            indexes_cmap = [str(i) for i in bins]
+
+            yaxis_cmap = dypir[:bins[-1]]
+            colnames_cmap = indexes
+
+            if sama_aksa: #  skal colorbar verða tað sama í báðum
                 #  finn ein góðan collorbar
-                data = datadf[['mag' + x for x in colnames]].values.T
-                absdata = [abs(x) for y in data for x in y]
+                data = datadf[['mag' + x for x in colnames_cmap]].values.T
+                absdata = [abs(x) for y in data for x in y if not np.isnan(x)]
                 absdata = np.sort(absdata)
                 temp = int(.95 * len(absdata))
                 vmax = 1.1 * absdata[temp]

@@ -33,6 +33,8 @@ def insert_gui_par(setup_dict, par):
                     raise ValueError('%s er ikki godt nokk' % key)
         elif key == 'Hov_hadd':
             setup_dict[key] = int(par[key].get())
+        elif key == 'Hov_cmap':
+            setup_dict[key] = int(par[key].get())
         elif key == 'Hov_rat':
             temp = par[key].get().strip().lower()
             temp = [int(x) for x in temp.split()]

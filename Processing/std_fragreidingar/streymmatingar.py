@@ -21,7 +21,8 @@ def streym(frame, root):
                   'figheight'           : 7.1,  # Stødd á plottum fulla síðu (tummar)
                   'dpi'                 : 800,
                   'top_mid_bot_layer'   : False, # Set inn hvat fyrði bins skullu brúkast
-                  'Hov_hadd'            : -10,  # Ovara greinsa á Hovmuller
+                  'Hov_hadd'            : -0,  # Ovara greinsa á Hovmuller
+                  'Hov_cmap'            : -10,  # Hvarfrá skullu vit finna cmap
                   'sama_aksa'           : True,
                   'Hov_rat'             : [0, 90], # Ratning á Hov
                   'tidal_oll_Frqs'      : ['M2', 'S2', 'N2', 'O1', 'K1'], # Frq til tidal_oll_dypir
@@ -67,7 +68,8 @@ def streym(frame, root):
 
     # Framin til at til at seta nakrar parametrar
     parlist = ['Language', 'N', 'dpi', 'top_mid_bot_layer',
-               'Hov_hadd', 'Hov_rat', 'tidal_oll_Frqs', 'minmax']
+               'Hov_hadd', 'Hov_rat', 'tidal_oll_Frqs', 'minmax',
+               'Hov_cmap']
     parametur_frame = Frame(BodyFrame)
     parametur_frame.grid(row=1, column=2, columnspan=2)
     setupframe.parametur(parametur_frame, setup_dict, parlist)
