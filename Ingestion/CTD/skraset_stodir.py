@@ -55,7 +55,7 @@ def ss_gui_control(root, frame):
     # punktir.column("#0", width=100)
     for result in results:
         print(result)
-        Label(GPS_waypoints_frame, text=result[5] + ' ' + str(np.round(float(result[3]), 5)) + ' ' + str(np.round(float(result[4]), 5)), font=font).pack(side=TOP, anchor=W)
+        Label(GPS_waypoints_frame, text=result[5] + ' ' + str(np.round(float(result[3]), 5)) + ' ' + str(np.round(float(result[4]), 5)) + str(result[8]), font=font).pack(side=TOP, anchor=W)
     #    punktir.heading(kolonnir[i], text=kolonnir[i])
     #    # punktir.column("#" + str(i), width=100)
 
