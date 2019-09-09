@@ -13,6 +13,7 @@ from pprint import pprint
 
 
 from .hovus import hovusratningur
+from .sidir.inleiding import testgraph
 from .sidir.inlesstreym import inles
 from .sidir.streym import tegnahovmuller
 from .sidir.streym import speedbins
@@ -130,6 +131,8 @@ def skriva_doc(setup_dict, siduval_dict):
                 #       '\n\\caption{%s}\n\\end{figure}\n\\newpage\n' % (section, ratning, navn, caption)
             file.write(a)
 
+        elif case == 'test':
+            testgraph(datadf, max_bin, dypir)
 
         #  Setup Hovmuller
         elif case == 'Hovmuller':

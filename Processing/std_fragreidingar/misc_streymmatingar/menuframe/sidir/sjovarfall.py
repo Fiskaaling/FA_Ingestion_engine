@@ -91,6 +91,7 @@ def tidal_analysis_for_depth_bins(bins, dato, datadf, dypir, mal='FO', lat=62,
     return out
 
 
+#  TODO fjerna N og E
 def tital_oll_dypir(dato, bins, Frqs, datadf, dypir, mal='FO', lat=62, verbose = True,
                     Section=None, caption=None,
                     tabel_navn='tital_variation_with_depth',
