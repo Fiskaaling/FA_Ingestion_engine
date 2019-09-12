@@ -263,15 +263,17 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
                 if column != "DepSM":
                     downcast_Data = downcast_Data.join(pd.DataFrame({column: np.round(data[column].iloc[event_dict['downcast_start']:event_dict['downcast_stop']], 7)}))
                     upcast_Data = upcast_Data.join(pd.DataFrame({column: np.round(data[column].iloc[event_dict['downcast_stop']:event_dict['upcast_stop']], 7)}))
+            # Um mappurnar ikki eru til, ger tær
             if not os.path.isdir(parent_folder + '/ASCII_Downcast'):
                 os.mkdir(parent_folder + '/ASCII_Downcast')
             if not os.path.isdir(parent_folder + '/ASCII_Upcast'):
                 os.mkdir(parent_folder + '/ASCII_Upcast')
+            # Og goym dataði í mappunum
             downcast_Data.to_csv(parent_folder + '/ASCII_Downcast/' + filnavn[mappunavn_dict['filur']], index=False)
-            upcast_Data.to_csv(parent_folder + 'ASCII_Upcast/' + filnavn[mappunavn_dict['filur']], index=False)
+            upcast_Data.to_csv(parent_folder + '/ASCII_Upcast/' + filnavn[mappunavn_dict['filur']], index=False)
+            # Roknar kvalitet
             print('Assesing quality')
             summary = qcontrol(quality_subframe, depth, event_dict, pump_on, filnavn[mappunavn_dict['filur']])
-
             confirmation = False
             if summary['downcast_quality'] < 0:
                 if messagebox.askyesno('Vátta', 'Ávaring!\nKvaliteturin á kastinum er undir 0\n Vátta at allir parametrar eru rættir'):
