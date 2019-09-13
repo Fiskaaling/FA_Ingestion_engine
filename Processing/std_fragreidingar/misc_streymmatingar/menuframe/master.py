@@ -13,14 +13,20 @@ from pprint import pprint
 
 
 from .hovus import hovusratningur
-from .sidir.inleiding import testgraph
+
+from .sidir.inleiding import intro_bar
+from .sidir.inleiding import sjovarfallmax
+from .sidir.inleiding import gersamadratt
+
 from .sidir.inlesstreym import inles
+
 from .sidir.streym import tegnahovmuller
 from .sidir.streym import speedbins
 from .sidir.streym import tekna_dist_rose
 from .sidir.streym import progressive_vector
 from .sidir.streym import frequencytabellir
 from .sidir.streym import duration_speed
+
 from .sidir.sjovarfall import tidal_analysis_for_depth_bins
 from .sidir.sjovarfall import tital_oll_dypir
 from .sidir.sjovarfall import tidal_non_tidal_bins
@@ -132,7 +138,7 @@ def skriva_doc(setup_dict, siduval_dict):
             file.write(a)
 
         elif case == 'test':
-            testgraph(datadf, max_bin, dypir)
+            gersamadratt(datadf, uvdatadf, dypir, max_bin, dest=dest, date=date)
 
         #  Setup Hovmuller
         elif case == 'Hovmuller':

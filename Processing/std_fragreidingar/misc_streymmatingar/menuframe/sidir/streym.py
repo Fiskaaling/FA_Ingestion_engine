@@ -418,6 +418,7 @@ def speedbins_hovus(bins, dato, df, dypir, mal='FO', dest='', dpi=200, hovusratn
         date_fmt = mdate.DateFormatter('%d %b %H:%M')
         date_loc = mdate.HourLocator(byhour=[0, 6, 12, 18])
     elif timespan > 2/24:
+
         date_fmt = mdate.DateFormatter('%d %b %H:%M')
         date_loc = mdate.HourLocator()
     else:
@@ -706,7 +707,7 @@ def progressive_vector(bins, dato, uvdf, dypir, mal='FO', dest='LaTeX/', dpi=200
     :param figwidth:    Breiddin á fig
     :param figheight:   Hæddin á fig
 
-    :return:        ein string sum kann setast inní eitt latex document
+    :return:            ein string sum kann setast inní eitt latex document
     '''
     if mal == 'EN':
         section = 'Progressive vector diagrams at selected layers'

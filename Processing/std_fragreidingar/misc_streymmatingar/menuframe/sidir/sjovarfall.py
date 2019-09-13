@@ -263,24 +263,34 @@ def tidal_non_tidal_bins(bins, dato, datadf, dypir, mal='FO',
         out += '\n\\newpage\n'
     return out
 
-def tidaldominesrekkja(item, mag, direct, dato, dypid, lat=62, verbose=True):
+def tidaldominesrekkja(item, mag, direct, dato, dypid, lat=62, verbose=True,
+                       trend=True, dataut=False):
     tin = np.array(dato)
     u = mag * np.sin(np.deg2rad(direct))
     v = mag * np.cos(np.deg2rad(direct))
-    coef = utide.solve(tin, u, v, lat=lat, verbose=verbose, trend=True)
+    coef = utide.solve(tin, u, v, lat=lat, verbose=verbose, trend=trend)
     reconstruckt = utide.reconstruct(tin, coef=coef, verbose=verbose)
     orgmag = [x for x in mag if not np.isnan(x)]
-    recmag = [np.sqrt(x**2+y**2) for x, y in zip(u - reconstruckt.u, v - reconstruckt.v) if not np.isnan(x)]
-    out = ''
-    out += str(item)
-    out += '&\t%2.2f' % (dypid,)
-    out += '&\t%2.2f\\%%' % (100 * np.var(recmag)/np.var(orgmag),)
-    out += '&\t%6.0f' % (sum([coef.Lsmaj[i] for i in range(6)]),)
-    out += '&\t%s' % ('Ja' if 100 * np.var(recmag)/np.var(orgmag)<50 and sum([coef.Lsmaj[i] for i in range(6)])>150 else 'Nei',)
-    out +='\\\\\n'
-    return out
+    recmag = [np.sqrt(x**2+y**2) for x, y
+              in zip(u - reconstruckt.u, v - reconstruckt.v) if not np.isnan(x)]
+    if not dataut:
+        out = ''
+        out += str(item)
+        out += '&\t%2.2f' % (dypid,)
+        out += '&\t%2.2f\\%%' % (100 * np.var(recmag)/np.var(orgmag),)
+        out += '&\t%6.0f' % (sum([coef.Lsmaj[i] for i in range(6)]),)
+        out += '&\t%s' % ('Ja' if 100 * np.var(recmag)/np.var(orgmag) < 50
+                          and sum([coef.Lsmaj[i] for i in range(6)]) > 150 else 'Nei',)
+        out +='\\\\\n'
+        return out
+    else:
+        part_av_var = 100 * np.var(recmag)/np.var(orgmag)
+        sum_av_5 = sum([coef.Lsmaj[i] for i in range(6)])
+        sjovarfallsdrivi = part_av_var < 50 and sum_av_5 > 150
+        return part_av_var, sum_av_5, sjovarfallsdrivi
 
-def tidaldomines(bins, dato, datadf, dypir, lat=62, verbose=True, section='Sjovarfall', dest='LaTeX/'):
+def tidaldomines(bins, dato, datadf, dypir, lat=62, verbose=True,
+                 section='Sjovarfall', dest='LaTeX/'):
     colonnir = ['bin', 'dypid', 'varratio', 'sum', 'sjóvarfalsdrivin']
     tabel = '\\begin{tabular}{|r|r|r|r|c|}\n'
     tabel += '\\hline\n'
