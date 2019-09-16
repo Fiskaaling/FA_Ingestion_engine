@@ -91,7 +91,6 @@ def tidal_analysis_for_depth_bins(bins, dato, datadf, dypir, mal='FO', lat=62,
     return out
 
 
-#  TODO fjerna N og E
 def tital_oll_dypir(dato, bins, Frqs, datadf, dypir, mal='FO', lat=62, verbose = True,
                     Section=None, caption=None,
                     tabel_navn='tital_variation_with_depth',
@@ -107,21 +106,17 @@ def tital_oll_dypir(dato, bins, Frqs, datadf, dypir, mal='FO', lat=62, verbose =
         else:
             caption='Harmonic constants for constituent '
     coefs = [None for _ in range(len(bins))]
-    coefsE = coefs.copy()
-    coefsN = coefs.copy()
     tin = np.array(dato)
     for i in range(len(coefs)):
         print(i)
         u = datadf['mag' + str(i + 1)].values * np.sin(np.deg2rad(datadf['dir' + str(i + 1)].values))
         v = datadf['mag' + str(i + 1)].values * np.cos(np.deg2rad(datadf['dir' + str(i + 1)].values))
         coefs[i] = utide.solve(tin, u, v, lat=lat, constit=Frqs, verbose=verbose)
-        coefsE[i] = utide.solve(tin, u, lat=lat, constit=Frqs, verbose=verbose)
-        coefsN[i] = utide.solve(tin, v, lat=lat, constit=Frqs, verbose=verbose)
     depts = [-dypir[x - 1] for x in bins]
 
     out = '\n\\FloatBarrier\n\\newpage\n\\section{%s}' % (Section,)
-    col = ['Bin', 'Depth', 'E-ampl', 'E-gpl', 'N-ampl', 'N-gpl', 'Major', 'minor', 'Theta', 'Graphl', 'R']
-    supcol = ['', 'm', 'mm/sec', 'deg', 'mm/sec', 'deg', 'mm/sec', 'mm/sec', 'deg', 'deg', '']
+    col = ['Bin', 'Depth', 'Major', 'minor', 'Theta', 'Graphl', 'R']
+    supcol = ['', 'm', 'mm/sec', 'mm/sec', 'deg', 'deg', '']
 
     time = coefs[0].aux.reftime
     print(time)
@@ -138,15 +133,9 @@ def tital_oll_dypir(dato, bins, Frqs, datadf, dypir, mal='FO', lat=62, verbose =
             tabel += '&\t%s' % (x,)
         tabel += '\\\\\\hline\n'
         master_index = np.argwhere(coefs[i].name == frq)[0][0]
-        e_index = np.argwhere(coefsE[i].name == frq)[0][0]
-        n_index = np.argwhere(coefsN[i].name == frq)[0][0]
         for j in range(len(bins)):
             tabel += str(bins[j])
             tabel += '&\t%s' % (int(depts[j]),)
-            tabel += '&\t%5.0f' % (coefsE[j].A[e_index],)
-            tabel += '&\t%5.0f' % (coefsE[j].g[e_index],)
-            tabel += '&\t%5.0f' % (coefsN[j].A[n_index],)
-            tabel += '&\t%5.0f' % (coefsN[j].g[n_index],)
             tabel += '&\t%5.0f' % (coefs[j].Lsmaj[master_index],)
             tabel += '&\t%5.0f' % (abs(coefs[j].Lsmin[master_index]),)
             tabel += '&\t%5.0f' % (coefs[j].theta[master_index],)
@@ -163,9 +152,7 @@ def tital_oll_dypir(dato, bins, Frqs, datadf, dypir, mal='FO', lat=62, verbose =
             out += '\n\\newpage'
         out += '\n\\begin{table}[!ht]\\label{Tidalvar_%s}' % (frq,)
         out += '\n\\centering'
-        out += '\n\\resizebox{\\textwidth}{!}{'
         out += '\n\\input{Talvur/%s_%s.tex}' % (tabel_navn, frq)
-        out += '\n}'
         out += '\n\\caption{%s}' % (caption + frq + time,)
         out += '\n\\end{table}'
     out += '\n\\newpage\n'

@@ -14,11 +14,9 @@ from pprint import pprint
 
 from .hovus import hovusratningur
 
-from .sidir.inleiding import intro_bar
-from .sidir.inleiding import sjovarfallmax
-from .sidir.inleiding import gersamadratt
-
 from .sidir.inlesstreym import inles
+
+from .sidir.inleiding import gersamadratt
 
 from .sidir.streym import tegnahovmuller
 from .sidir.streym import speedbins
@@ -138,7 +136,8 @@ def skriva_doc(setup_dict, siduval_dict):
             file.write(a)
 
         elif case == 'test':
-            gersamadratt(datadf, uvdatadf, dypir, max_bin, dest=dest, date=date)
+            a = gersamadratt(datadf, uvdatadf, dypir, max_bin, dest=dest, date=date)
+            file.write(a)
 
         #  Setup Hovmuller
         elif case == 'Hovmuller':

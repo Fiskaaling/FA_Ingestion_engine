@@ -7,26 +7,35 @@ import utide
 from .sjovarfall import tidaldominesrekkja
 
 def gersamadratt(datadf, uvdatadf, dypir, max_bin, date, dest='LaTeX/', lat=62,
-                 dpi=200, font=7, figwidth=6, figheight=7.1):
-    get_meta(date, datadf, uvdatadf, max_bin, dypir)
-    intro_bar(datadf, max_bin, dypir, dest=dest)
-    sjovarfallmax(uvdatadf, date, dypir, max_bin)
+                 dpi=200, font=7, figwidth=6, figheight=3):
 
-def get_meta(date, datadf, uvdata, max_bin, dypir, lat=62):
+    out = ''
+    out += get_meta(date, datadf, uvdatadf, max_bin, dypir, dest=dest)
+    out += intro_bar(datadf, max_bin, dypir, dest=dest, figheight=figheight,
+                    max_sj=True, uvdata=uvdatadf, date=date)
+    return out
+
+
+
+def get_meta(date, datadf, uvdata, max_bin, dypir, lat=62,
+             navnatalvu='Samamdrattur.tex', caption='Lyklatøl', dest='LaTeX/'):
     '''
-    ger metatingini sum skal verða við í samandrátti ella Ingangi
-    :param data:    ein listi sum sigur hvat tiðin er á øllum mátingunum
-    :param datadf:  mag dir dataframe
-    :param uvdata:  u v dataframe
-    :param max_bin: eitt tal sum sigur hvat tað stórta bin sum eg brúki er
-    :param dypir:   listi dypir av bins
-    :param lat:     lat av mátingini
+    ger metatingini     sum skal verða við í samandrátti ella Ingangi
+    :param data:        ein listi sum sigur hvat tiðin er á øllum mátingunum
+    :param datadf:      mag dir dataframe
+    :param uvdata:      u v dataframe
+    :param max_bin:     eitt tal sum sigur hvat tað stórta bin sum eg brúki er
+    :param dypir:       listi dypir av bins
+    :param lat:         lat av mátingini
+    :param navnatalvu:  navni sum talvan fær
+    :param caption:     caption sum kemur undir talvuni
+    :param dest:        hvar er master.tex
     '''
+
     date = np.array(date)
     temp = date[-1] - date[0]
     temp = np.round(temp)
-    temp ='%3.0f Dagar' % temp
-    print(temp)
+    matitid ='%3.0f Dagar' % temp
     temp = []
     CC = 0
     for i in range(len(date)):
@@ -44,17 +53,36 @@ def get_meta(date, datadf, uvdata, max_bin, dypir, lat=62):
         else:
             temp.append(my_sum/tempcount)
     temp = max(temp)
-    print('sterkasti miðal profilur er', '%4.0f' % temp)
+    Sterkasti_midal = '%4.0f' % temp
     coef = utide.solve(date, uvdata['u10m'].values, uvdata['v10m'].values, lat=lat, verbose=False,
                        trend=False)
     temp = tidaldominesrekkja(None, datadf['mag10m'].values, datadf['dir10m'].values,
                              date, dypir, verbose=False, trend=False, dataut=True)
-    print(temp)
+    Sjovarfallsdrivid = 'Ja' if temp[2] else 'Nei'
 
+    tabel = '\\begin{tabular}{|l l|}\n'
+    tabel += '\\hline\n'
+    tabel += 'Mátitíð&\t%s\\\\\n' % matitid
+    tabel += 'Sterkasti miðal profilur&\t%s mm/s\\\\\n' % Sterkasti_midal
+    tabel += 'Er rákið sjovarfallsdrivið&\t%s\\\\\n' % Sjovarfallsdrivid
+    tabel += '\\hline\n'
+    tabel += '\\end{tabular}'
+
+    texfil = open(dest + 'Talvur/%s' % navnatalvu, 'w')
+    texfil.write(tabel)
+    texfil.close()
+
+    label = '\\label{Lyklatol}'
+    return '\n\\begin{table}[!ht]%s' \
+           '\n\\centering' \
+           '\n\\input{Talvur/%s}' \
+           '\n\\caption{%s}' \
+           '\n\\end{table}' % (label, navnatalvu, caption)
 
 
 def sjovarfallmax(uvdata, date, dypir, max_bin, lat=62, navn='intro_max.pdf',
-                  dpi=200, font=7, figwidth=6, figheight=7.1):
+                  dpi=200, font=7, figwidth=6, figheight=7.1,
+                 figut = True):
     '''
     finnur eitt yvirmát av hvat utide sigur at hagsti streymur fer at verða
     :param uvdata:      dataframe við uvdata
@@ -67,6 +95,7 @@ def sjovarfallmax(uvdata, date, dypir, max_bin, lat=62, navn='intro_max.pdf',
     :param font:        font á figurinum sum kemur út
     :param figwidth:    víddin á figurinum sum kemur út
     :param figheight:   hæddin á figurinum sum kemur út
+    :param figut:       skal er hava eina figur ella skal eg hava eina talvu
     '''
     fig, axs = plt.subplots(ncols=1, nrows=1, figsize=(figwidth, figheight), dpi=dpi)
     mpl.rcParams['font.size'] = font
@@ -83,23 +112,47 @@ def sjovarfallmax(uvdata, date, dypir, max_bin, lat=62, navn='intro_max.pdf',
         a += np.sqrt(coef['umean']**2 + coef['vmean']**2)
         mylist.append(a)
     print()
-    axs.plot(index, mylist)
-    axs.xaxis.set_ticks(index)
-    axs.set_xticklabels([int(-x) for x in dypir])
+
     temp = mylist
     temp = np.sort(temp)
     mymax = min(2 * temp[int(.5*len(temp))], 1.2 * temp[-1])
-    axs.set_ylim(0, mymax)
-    fig.show()
+
+    #  TODO skriva hesa linjuna ordiligt
+    if figut:
+        fig, axs = plt.subplots(ncols=1, nrows=1, figsize=(figwidth, figheight), dpi=dpi)
+        mpl.rcParams['font.size'] = font
+
+        axs.plot(index, mylist)
+        axs.xaxis.set_ticks(index)
+        axs.set_xticklabels([int(-x) for x in dypir])
+        axs.set_ylim(0, mymax)
+        print('her verður ikki goymdur nakar figurur')
+        fig.show()
+    else:
+        return mylist, mymax
 
 
 def intro_bar(datadf, max_bin, dypir, navn='intro_bar.pdf', dest='LaTeX/',
-              dpi=200, font=7, figwidth=6, figheight=7.1):
+              caption='fordeiling av streymi gjøgnum dypid', max_sj=False,
+              dpi=200, font=7, figwidth=6, figheight=7.1,
+              uvdata=None, date=None):
     '''
     Hettar vísur hvussu harður streymurin er í teimun forskelligu dýpinum
     :param datadf:      magdir data
     :param max_bin:     eitt tal sum sigur hvat tað sísta bin sum eg skal higgja eftir
     :param dypir:       ein listi sum sigur hvussu djúpt alt er
+    :param navn:        navn á figurinum
+    :param dest:        Path to master.tex
+    :param caption:     caption á figuri
+    :param max_sj:      skal eg hava eitt yvirmát av sjovarfallinum við
+    :param dpi:         dpi á figurinum
+    :param font:        font stødd á figurinum
+    :param figwidth:    víddin á figurinum
+    :param figheight:   hæddin á figurinum
+    :param uvdata:      uvdata hvissi eg skal tekna maxsjovarfall inní fig
+    :param date:        tíðspunktini á mátingunum hviss eg havi brúk fyri tíð
+
+    :return:            ein string at koyra í master.tex
     '''
     dypir = [dypir[x] for x in range(max_bin)]
     stod = [25, 50, 75, 95, 99.5]
@@ -136,7 +189,27 @@ def intro_bar(datadf, max_bin, dypir, navn='intro_bar.pdf', dest='LaTeX/',
     temp = bars[-1]
     temp = np.sort(temp)
     mymax = min(2 * temp[int(.5*len(temp))], 1.2*temp[-1])
-    axs.set_ylim(0, mymax)
+
+    #  eg havi bara sett lat til defult lat=62
+    if max_sj and uvdata is not None and date is not None:
+        templist, maxcand = sjovarfallmax(uvdata, date, dypir, max_bin, figut = False)
+        axs.plot(index, templist, color='k', label='yvirmát fyri sjovarfallið')
+        axs.set_ylim(0, max(mymax, maxcand))
+    else:
+        axs.set_ylim(0, mymax)
+
     axs.legend(ncol=int(np.ceil(len(stod)/2)))
-    plt.subplots_adjust(left=0.1, bottom=0.075, right=0.95, top=0.95, wspace=0.0, hspace=0.2)
+    fig.subplots_adjust(left=0.1, bottom=0.15, right=0.99, top=0.99, wspace=0.0, hspace=0.2)
     fig.savefig(dest + 'myndir/%s' % navn, dpi=dpi)
+
+    label = '\\label{barstreym}'
+
+    out = ''
+    out += '\n\\FloatBarrier\n'
+    out += '\\begin{figure}[h!]%s\n' % label
+    out += '\\includegraphics[scale=1]{myndir/%s}\n' % navn
+    out += '\\caption{%s}' % caption
+    out += '\n\\end{figure}\n'
+    out += '\\newpage\n'
+
+    return out

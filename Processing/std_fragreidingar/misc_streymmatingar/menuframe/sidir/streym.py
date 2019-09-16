@@ -721,34 +721,336 @@ def progressive_vector(bins, dato, uvdf, dypir, mal='FO', dest='LaTeX/', dpi=200
 
     # ein funktión til at finna tað fyrsta og sísta elementi
     # og formatera alt
-    def fmt(n):
+    def tempfun(x):
+        return mdate.num2date(x).strftime('%B')
+
+    def fmt(n, midfun=tempfun):
         def fun(x, pos):
             if pos in [0, n-1]:
                 return mdate.num2date(x).strftime('%d %b-%y\n   %H:%M')
-            return mdate.num2date(x).strftime('%B')
+            return midfun(x)
         return fun
 
     #  finn bounds--------------------
     interval = [mdate.num2date(dato[0]), mdate.num2date(dato[-1])]
-    interval = [[x.year, x.month, 1] for x in interval]
-    interval[0][1] += 1
-    iterativ = interval[0]
-    bounds = []
-    while 12*iterativ[0] + iterativ[1] <= 12 *  interval[1][0] + interval[1][1]:
-        bounds.append(mdate.date2num(dt.datetime(*iterativ)))
-        if iterativ[1] == 12:
-            iterativ[0] += 1
-            iterativ[1] = 1
+    #  interval er ein listi av 2 elementum start tíðspunkt og enda tíðspunkt
+    total_dagar = dato[-1] - dato[0] #  Dato stendur í matplotlib.dates so hettar gevur dagar
+    #  finn hvat fyri interval vit skullu brúka á cm
+    #  fyrsta og sísta bin skullu verða tað fyrsta og tað sísta
+    #  finn ein máta at finna hvussu vit rokna okkum víðari
+    if total_dagar > 6 * 366:
+        cmresolution = 'Ár'
+        def cm_tick_label(x):
+            return mdate.num2date(x).strftime('%Y')
+
+        if interval[0].month > 8:
+            mystart = [interval[0].year + 2, 1, 1]
         else:
-            iterativ[1] += 1
-    #  kanna um vit eru ov tatt við
-    if abs(bounds[0] - dato[0]) < 5:
-        bounds = bounds[1:]
-    if abs(bounds[-1] - dato[-1]) <5:
-        bounds = bounds[:-1]
+            mystart = [interval[0].year + 1, 1, 1]
+
+        if interval[1].month < 4:
+            myend = [interval[1].year - 2, 1, 1]
+        else:
+            myend = [interval[1].year - 1, 1, 1]
+
+        bounds = []
+        bounds.append(mystart)
+        iterativ = mystart
+        while iterativ[0] < myend[0]:
+            iterativ[0] += 1
+            bounds.append(iterativ.copy())
+        bounds = [mdate.date2num(dt.datetime(*x)) for x in bounds]
+
+    elif total_dagar > 3 * 366:
+        cmresolution = 'Hálv Ár'
+        def cm_tick_label(x):
+            return mdate.num2date(x).strftime('%b-%y')
+
+        temp = interval[0]
+        if temp.month < 5:
+            mystart = [temp.year, 7, 1]
+        elif temp.month < 10:
+            mystart = [temp.year + 1, 1, 1]
+        else:
+            mystart = [temp.year + 1, 7, 1]
+
+        temp = interval[1]
+        if temp.month > 9:
+            myend = [temp.year, 6, 1]
+        elif temp.month > 2:
+            myend = [temp.year, 1, 1]
+        else:
+            myend = [temp.year - 1, 6, 1]
+
+        bounds = []
+        iterativ = mystart
+        enddate = dt.datetime(*myend)
+        while (enddate - dt.datetime(*iterativ)).days >= 0:
+            bounds.append(iterativ.copy())
+            if iterativ[1] == 6:
+                iterativ[0] += 1
+                iterativ[1] = 1
+            else:
+                iterativ[1] = 6
+        bounds = [mdate.date2num(dt.datetime(*x)) for x in bounds]
+
+    elif total_dagar > 1.5 * 366:
+        cmresolution = 'Qvartal'
+        def cm_tick_label(x):
+            return mdate.num2date(x).strftime('%b-%y')
+
+        temp = interval[0]
+        if temp.month < 3:
+            mystart = [temp.year, 4, 1]
+        elif temp.month < 6:
+            mystart = [temp.year, 7, 1]
+        elif temp.month < 9:
+            mystart = [temp.year, 10, 1]
+        elif temp.month < 12:
+            mystart = [temp.year + 1, 1, 1]
+        else:
+            mystart = [temp.year + 1, 4, 1]
+
+        temp = interval[1]
+        if temp.month > 10:
+            myend = [temp.year, 10, 1]
+        elif temp.month > 7:
+            myend = [temp.year, 7, 1]
+        elif temp.month > 4:
+            myend = [temp.year, 4, 1]
+        elif temp.month > 1:
+            myend = [temp.year, 1, 1]
+        else:
+            myend = [temp.year - 1, 10, 1]
+
+        bounds = []
+        iterativ = mystart
+        enddate = dt.datetime(*myend)
+        while (enddate - dt.datetime(*iterativ)).days >= 0:
+            bounds.append(iterativ.copy())
+            if iterativ[1] == 10:
+                iterativ[0] += 1
+                iterativ[1] = 1
+            elif iterativ[1] == 7:
+                iterativ[1] = 10
+            elif iterativ[1] == 4:
+                iterativ[1] = 7
+            else:
+                iterativ[1] = 4
+        bounds = [mdate.date2num(dt.datetime(*x)) for x in bounds]
+
+    elif total_dagar > 6 * 31:
+        cmresolution = 'Mánar'
+        def cm_tick_label(x):
+            return mdate.num2date(x).strftime('%B')
+
+        temp = interval[0]
+        if temp.day > 25:
+            startm = temp.month + 2
+        else:
+            startm = temp.month + 1
+        if startm > 12:
+            mystart = [temp.year + 1, startm - 12, 1]
+        else:
+            mystart = [temp.year, startm, 1]
+        del(startm)
+
+        temp = interval[1]
+        if temp.day < 5:
+            endm = temp.month - 2
+        else:
+            endm = temp.month - 1
+        if endm < 1:
+            myend = [temp.year - 1, endm + 12, 1]
+        else:
+            myend = [temp.year, endm, 1]
+        del(endm)
+
+        bounds = []
+        iterativ = mystart
+        enddate = dt.datetime(*myend)
+        while (enddate - dt.datetime(*iterativ)).days >= 0:
+            bounds.append(iterativ.copy())
+            if iterativ[1] == 12:
+                iterativ[0] += 1
+                iterativ[1] = 1
+            else:
+                iterativ[1] += 1
+        bounds = [mdate.date2num(dt.datetime(*x)) for x in bounds]
+
+    elif total_dagar > 3 * 31:
+        cmresolution = 'Hálv Mánar'
+        def cm_tick_label(x):
+            return mdate.num2date(x).strftime('%d %b')
+
+        temp = interval[0]
+        if temp.day > 25:
+            startm = temp.month + 1
+            startd = 15
+        elif temp.day > 10:
+            startm = temp.month + 1
+            startd = 1
+        else:
+            startm = temp.month
+            startd = 15
+        if startm > 12:
+            mystart = [temp.year + 1, startm - 12, startd]
+        else:
+            mystart = [temp.year, startm, startd]
+        del(startm, startd)
+
+        temp = interval[1]
+        if temp.day < 5:
+            endm = temp.month - 1
+            endd = 15
+        elif temp.day < 20:
+            endm = temp.month
+            endd = 1
+        else:
+            endm = temp.month
+            endd = 15
+        if endm < 1:
+            myend = [temp.year, endm + 12, endd]
+        else:
+            myend = [temp.year, endm, endd]
+        del(endm, endd)
+
+        bounds = []
+        iterativ = mystart
+        enddate = dt.datetime(*myend)
+        while (enddate - dt.datetime(*iterativ)).days >= 0:
+            bounds.append(iterativ.copy())
+            if iterativ[2] == 15:
+                if iterativ[1] == 12:
+                    iterativ[0] += 1
+                    iterativ[1] = 1
+                else:
+                    iterativ[1] += 1
+                iterativ[2] = 1
+            else:
+                iterativ[2] = 15
+        bounds = [mdate.date2num(dt.datetime(*x)) for x in bounds]
+
+    elif total_dagar > 6 * 7:
+        cmresolution = 'Vikur'
+        def cm_tick_label(x):
+            return mdate.num2date(x).strftime('%d %b')
+
+        temp = interval[0]
+        if temp.weekday() > 5:
+            mystart = temp + dt.timedelta(14 - temp.weekday())
+            mystart = [mystart.year, mystart.month, mystart.day]
+        else:
+            mystart = temp + dt.timedelta(7 - temp.weekday())
+            mystart = [mystart.year, mystart.month, mystart.day]
+
+        temp = interval[1]
+        if temp.weekday() < 3:
+            myend = temp - dt.timedelta(7 + temp.weekday())
+            myend = [myend.year, myend.month, start.day]
+        else:
+            myend = temp - dt.timedelta(temp.weekday())
+            myend = [myend.year, myend.month, start.day]
+
+        bounds = []
+        iterativ = mystart
+        enddate = dt.datetime(*myend)
+        iterativ = dt.datetime(*iterativ)
+        while (enddate - iterativ).days >= 0:
+            bounds.append(iterativ)
+            iterativ += dt.timedelta(7)
+        bounds = [mdate.date2num(x) for x in bounds]
+
+    elif total_dagar > 3 * 7:
+        cmresolution = '4 Dagar'
+        def cm_tick_label(x):
+            return mdate.num2date(x).strftime('%d %b')
+
+        temp = interval[0]
+        mystart = temp.replace(hour=0, minute=0) + dt.timedelta(4)
+        mystart = [mystart.year, mystart.month, mystart.day]
+
+        temp = interval[1]
+        myend = temp.replace(hour=0, minute=0) - dt.timedelta(5)
+        myend = [myend.year, myend.month, myend.day]
+
+        bounds = []
+        iterativ = mystart
+        enddate = dt.datetime(*myend)
+        iterativ = dt.datetime(*iterativ)
+        while (enddate - iterativ).days >= 0:
+            bounds.append(iterativ)
+            iterativ += dt.timedelta(4)
+        bounds = [mdate.date2num(x) for x in bounds]
+
+    elif total_dagar > 12:
+        cmresolution = '2 Dagar'
+        def cm_tick_label(x):
+            return mdate.num2date(x).strftime('%d %b')
+
+        temp = interval[0]
+        mystart = temp.replace(hour=0, minute=0) + dt.timedelta(2)
+        mystart = [mystart.year, mystart.month, mystart.day]
+
+        temp = interval[1]
+        myend = temp.replace(hour=0, minute=0) - dt.timedelta(3)
+        myend = [myend.year, myend.month, myend.day]
+
+        bounds = []
+        iterativ = mystart
+        enddate = dt.datetime(*myend)
+        iterativ = dt.datetime(*iterativ)
+        while (enddate - iterativ).days >= 0:
+            bounds.append(iterativ)
+            iterativ += dt.timedelta(2)
+        bounds = [mdate.date2num(x) for x in bounds]
+
+    else:
+        cmresolution = 'Dagar'
+        def cm_tick_label(x):
+            return mdate.num2date(x).strftime('%d %b')
+
+        temp = interval[0]
+        mystart = temp.replace(hour=0, minute=0) + dt.timedelta(1)
+        mystart = [mystart.year, mystart.month, mystart.day]
+
+        temp = interval[1]
+        myend = temp.replace(hour=0, minute=0) - dt.timedelta(2)
+        myend = [myend.year, myend.month, myend.day]
+
+        bounds = []
+        iterativ = mystart
+        enddate = dt.datetime(*myend)
+        iterativ = dt.datetime(*iterativ)
+        while (enddate - iterativ).days >= 0:
+            bounds.append(iterativ)
+            iterativ += dt.timedelta(1)
+        bounds = [mdate.date2num(x) for x in bounds]
 
     bounds = [dato[0]] + bounds + [dato[-1]]
-    # end finn bounds--------------------
+    # endin av finn bounds--------------------
+
+    #   #  finn bounds--------------------
+    #   interval = [mdate.num2date(dato[0]), mdate.num2date(dato[-1])]
+    #   interval = [[x.year, x.month, 1] for x in interval]
+    #   interval[0][1] += 1
+    #   iterativ = interval[0]
+    #   bounds = []
+    #   while 12*iterativ[0] + iterativ[1] <= 12 *  interval[1][0] + interval[1][1]:
+    #       bounds.append(mdate.date2num(dt.datetime(*iterativ)))
+    #       if iterativ[1] == 12:
+    #           iterativ[0] += 1
+    #           iterativ[1] = 1
+    #       else:
+    #           iterativ[1] += 1
+    #   #  kanna um vit eru ov tatt við
+    #   if abs(bounds[0] - dato[0]) < 5:
+    #       bounds = bounds[1:]
+    #   if abs(bounds[-1] - dato[-1]) <5:
+    #       bounds = bounds[:-1]
+    #
+    #   bounds = [dato[0]] + bounds + [dato[-1]]
+    #   # endin av finn bounds--------------------
 
     glxmax = -np.inf
     glymax = -np.inf
@@ -813,7 +1115,8 @@ def progressive_vector(bins, dato, uvdf, dypir, mal='FO', dest='LaTeX/', dpi=200
         glxmin = max(xmin, glxmin)
         glymin = max(ymin, glymin)
 
-    cb = fig.colorbar(line, ax=axs, format=mpl.ticker.FuncFormatter(fmt(len(bounds))))
+    cb = fig.colorbar(line, ax=axs,
+                      format=mpl.ticker.FuncFormatter(fmt(len(bounds), cm_tick_label)))
     axs.legend()
     axs.set_xlim(xmin, xmax)
     axs.set_ylim(ymin, ymax)
