@@ -199,7 +199,8 @@ def skriva_doc(setup_dict, siduval_dict):
 
         #  tekna speedbins
         elif case == 'speedbin':
-            a = speedbins(top_mid_bot_layer, date, datadf, max_bin, dypir, hovusratningur=hovisrat, minmax=minmax, mal=mal,
+            a = speedbins(top_mid_bot_layer, date, datadf, max_bin, dypir, hovusratningur=hovisrat,
+                          minmax=minmax, mal=mal,
                           dest=dest, font=font, figwidth=figwidth, figheight=figheight)
             file.write(a)
 

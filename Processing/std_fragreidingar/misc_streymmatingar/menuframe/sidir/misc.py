@@ -1,6 +1,6 @@
 import numpy as np
 
-def minmaxvika(df, max_bin, longd = 6*12*7, print_na_count=False):
+def minmaxvika(df, max_bin, longd = 6*12*7):
     '''
     ein simpul algurytma til at finna miðuna á einum strekkji uppá 2 * longd,
     har tað rekur mest og minst
@@ -11,6 +11,7 @@ def minmaxvika(df, max_bin, longd = 6*12*7, print_na_count=False):
     :param longd:   Hvussu nógv datapunktir vit higgja í báar ratningarnir
     :return:        (max_v, min_v) har max_v er miðan av hvar tað rekur mest
     '''
+    #  TODO skriva hettar betur
     mylist = []
     for mating in range(len(df)):
         mysum = 0
@@ -25,7 +26,6 @@ def minmaxvika(df, max_bin, longd = 6*12*7, print_na_count=False):
         else:
             mylist.append(np.NaN)
 
-    longd = 6*12*7
     max_v = np.argmax([np.average(mylist[x:x+longd]) for x in
                       range(100, len(mylist) - longd + 1 - 100)]) + longd
     min_v = np.argmin([np.average(mylist[x:x+longd]) for x in

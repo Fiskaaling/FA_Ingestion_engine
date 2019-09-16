@@ -124,9 +124,10 @@ def speedbins(bins, dato, df, max_bin, dypir, minmax=False, dest='', dpi=200,
             section = 'Streymferð á útvaldum dýpum'
     out = ''
     if minmax:
-        out += speedbins_minmax(bins, dato, df, max_bin, dypir, minmax=minmax, mal=mal, dest=dest, dpi=dpi,
-              navn=navn, section=section,
-              font=font, figwidth=figwidth, figheight=figheight)
+        out += speedbins_minmax(bins, dato, df, max_bin, dypir, minmax=minmax,
+                                mal=mal, dest=dest, dpi=dpi,
+                                navn=navn, section=section,
+                                font=font, figwidth=figwidth, figheight=figheight)
     else:
         out += speedbins_standard(bins, dato, df, dypir, mal=mal, dest=dest, dpi=dpi,
               navn=navn, section=section,
@@ -134,7 +135,7 @@ def speedbins(bins, dato, df, max_bin, dypir, minmax=False, dest='', dpi=200,
 
     if hovusratningur:
         out += speedbins_hovus(bins, dato, df, dypir, mal=mal, dest=dest, dpi=dpi,
-              hovusratningur=hovusratningur, navn=navn, section='Streymur í høvusratning %3.0f°' % hovusratningur,
+              hovusratningur=hovusratningur, navn='hovus' + navn, section='Streymur í høvusratning %3.0f°' % hovusratningur,
               font=font, figwidth=figwidth, figheight=figheight)
     return out
 
@@ -252,7 +253,9 @@ def speedbins_minmax(bins, dato, df, max_bin, dypir, minmax=True, mal='FO', dest
     #   finn miðalstreym
     max_v, min_v = minmaxvika(df, max_bin)
 
-    if isinstance(minmax, (int, float)):
+    if isinstance(minmax, bool):
+        tidarskeid = 7
+    elif isinstance(minmax, (int, float)):
         if minmax == 0:
             tidarskeid = 7
         else:
@@ -282,6 +285,33 @@ def speedbins_minmax(bins, dato, df, max_bin, dypir, minmax=True, mal='FO', dest
     else:
         date_fmt = mdate.DateFormatter('%d %b %H:%M')
         date_loc = mdate.MinuteLocator(interval=int(np.ceil(60*24*timespan/6)))
+
+    if tidarskeid > 3:
+        date_fmt_2 = mdate.DateFormatter('%d %b')
+        date_loc_2 = mdate.DayLocator(interval=int(np.ceil(tidarskeid/6)))
+    elif tidarskeid >= 0.95:
+        date_fmt_2 = mdate.DateFormatter('%d %b %H:%M')
+        date_loc_2 = mdate.HourLocator(byhour=[0, 6, 12, 18])
+    elif tidarskeid > 2/24:
+        date_fmt_2 = mdate.DateFormatter('%d %b %H:%M')
+        date_loc_2 = mdate.HourLocator()
+    else:
+        date_fmt_2 = mdate.DateFormatter('%d %b %H:%M')
+        date_loc_2 = mdate.MinuteLocator(interval=int(np.ceil(60*24*tidarskeid/6)))
+
+    if tidarskeid > 3:
+        date_fmt_3 = mdate.DateFormatter('%d %b')
+        date_loc_3 = mdate.DayLocator(interval=int(np.ceil(tidarskeid/6)))
+    elif tidarskeid >= 0.95:
+        date_fmt_3 = mdate.DateFormatter('%d %b %H:%M')
+        date_loc_3 = mdate.HourLocator(byhour=[0, 6, 12, 18])
+    elif tidarskeid > 2/24:
+        date_fmt_3 = mdate.DateFormatter('%d %b %H:%M')
+        date_loc_3 = mdate.HourLocator()
+    else:
+        date_fmt_3 = mdate.DateFormatter('%d %b %H:%M')
+        date_loc_3 = mdate.MinuteLocator(interval=int(np.ceil(60*24*tidarskeid/6)))
+
     for (i, item) in enumerate(bins):
         if i == 0:
             prelabel = 'a) Surface layer'
@@ -291,36 +321,36 @@ def speedbins_minmax(bins, dato, df, max_bin, dypir, minmax=True, mal='FO', dest
             prelabel = 'c) Bottom layer'
         midaltid1 = dato[max_v]
         midaltid2 = dato[min_v]
-        tid1 = [np.searchsorted(dato, midaltid1-halvtid, side='left'), np.searchsorted(dato, midaltid1+halvtid, side='right')]
-        tid2 = [np.searchsorted(dato, midaltid2-halvtid, side='left'), np.searchsorted(dato, midaltid2+halvtid, side='right')]
+        tid1 = [np.searchsorted(dato, midaltid1-halvtid, side='left'),
+                np.searchsorted(dato, midaltid1+halvtid, side='right')]
+        tid2 = [np.searchsorted(dato, midaltid2-halvtid, side='left'),
+                np.searchsorted(dato, midaltid2+halvtid, side='right')]
 
         axs[i].plot(dato, df['mag' + str(item)].values, linewidth=.5, c='k')
-        axs2[i].plot(dato[tid1[0]:tid1[1]], df['mag' + str(item)].values[tid1[0]:tid1[1]], linewidth=.5, c='k')
-        axs3[i].plot(dato[tid2[0]:tid2[1]], df['mag' + str(item)].values[tid2[0]:tid2[1]], linewidth=.5, c='k')
+        axs2[i].plot(dato[tid1[0]:tid1[1]], df['mag' + str(item)].values[tid1[0]:tid1[1]],
+                     linewidth=.5, c='k')
+        axs3[i].plot(dato[tid2[0]:tid2[1]], df['mag' + str(item)].values[tid2[0]:tid2[1]],
+                     linewidth=.5, c='k')
 
         y2 = axs[i].get_ylim()[1]
-        axs[i].fill_between([dato[min_v]-halvtid, dato[min_v]+halvtid], 0, 100000, facecolor='green', alpha=0.5)
-        axs[i].fill_between([dato[max_v]-halvtid, dato[max_v]+halvtid], 0, 100000, facecolor='red', alpha=0.5)
+        axs[i].fill_between([dato[min_v]-halvtid, dato[min_v]+halvtid], 0, 100000,
+                            facecolor='green', alpha=0.5)
+        axs[i].fill_between([dato[max_v]-halvtid, dato[max_v]+halvtid], 0, 100000,
+                            facecolor='red', alpha=0.5)
         axs[i].set_ylim(top=y2)
 
-        axs[i].xaxis.set_major_formatter(date_fmt)
-        axs[i].xaxis.set_major_locator(date_loc)
         axs[i].set_ylabel('speed [mm/t]')
         axs[i].tick_params(axis='x', which='major', pad=0)
         axs[i].set_title(prelabel)
         axs[i].set_xlim(dato[0], dato[-1])
         axs[i].set_ylim(bottom=0)
 
-        axs2[i].xaxis.set_major_formatter(date_fmt)
-        axs2[i].xaxis.set_major_locator(date_loc)
         axs2[i].set_ylabel('speed [mm/t]')
         axs2[i].tick_params(axis='x', which='major', pad=0)
         axs2[i].set_title(prelabel)
         axs2[i].set_xlim(dato[tid1[0]], dato[tid1[1]])
         axs2[i].set_ylim(bottom=0)
 
-        axs3[i].xaxis.set_major_formatter(date_fmt)
-        axs3[i].xaxis.set_major_locator(date_loc)
         axs3[i].set_ylabel('speed [mm/t]')
         axs3[i].tick_params(axis='x', which='major', pad=0)
         axs3[i].set_title(prelabel)
@@ -367,10 +397,23 @@ def speedbins_minmax(bins, dato, df, max_bin, dypir, minmax=True, mal='FO', dest
                          -dypir[bins[1] - 1],
                          -dypir[bins[2] - 1])
 
-    plt.subplots_adjust(left=0.1, bottom=0.05, right=0.95, top=0.95, wspace=0.0, hspace=0.2)
-    print(navn)
-    print(dpi)
-    print(bins)
+    for i,item in enumerate(bins):
+        axs[i].xaxis.set_major_formatter(date_fmt)
+        axs[i].xaxis.set_major_locator(date_loc)
+        if i==3:
+            plt.subplots_adjust(left=0.1, bottom=0.05, right=0.95, top=0.95, wspace=0.0, hspace=0.2)
+
+        axs2[i].xaxis.set_major_formatter(date_fmt_2)
+        axs2[i].xaxis.set_major_locator(date_loc_2)
+        if i==3:
+            plt.subplots_adjust(left=0.1, bottom=0.05, right=0.95, top=0.95, wspace=0.0, hspace=0.2)
+
+        axs3[i].xaxis.set_major_formatter(date_fmt_3)
+        axs3[i].xaxis.set_major_locator(date_loc_3)
+        if i==3:
+            plt.subplots_adjust(left=0.1, bottom=0.05, right=0.95, top=0.95, wspace=0.0, hspace=0.2)
+
+    plt.setp([a.get_xticklabels() for a in fig2.axes], visible=True)
     fig.savefig(dest + 'myndir/%s' % navn, dpi=dpi)
     fig2.savefig(dest + 'myndir/%s' % 'high_' + navn, dpi=dpi)
     fig3.savefig(dest + 'myndir/%s' % 'low_' + navn, dpi=dpi)
@@ -567,7 +610,6 @@ def plotrose(ax, N, umax, lv, F, eind='mm/s', axline=.5, axcolor='k', alpha=.5):
     ax.set_aspect(1)
     ax.set_xlabel('E (' + eind + ')')
     ax.set_ylabel('N (' + eind + ')')
-
 
 
 def tekna_dist_rose(bins, data, N, umax, dypir, mal='FO', dest='LaTeX/', dpi=200,
@@ -950,7 +992,7 @@ def progressive_vector(bins, dato, uvdf, dypir, mal='FO', dest='LaTeX/', dpi=200
             myend = [myend.year, myend.month, start.day]
         else:
             myend = temp - dt.timedelta(temp.weekday())
-            myend = [myend.year, myend.month, start.day]
+            myend = [myend.year, myend.month, myend.day]
 
         bounds = []
         iterativ = mystart
@@ -1028,29 +1070,6 @@ def progressive_vector(bins, dato, uvdf, dypir, mal='FO', dest='LaTeX/', dpi=200
         bounds = [mdate.date2num(x) for x in bounds]
 
     bounds = [dato[0]] + bounds + [dato[-1]]
-    # endin av finn bounds--------------------
-
-    #   #  finn bounds--------------------
-    #   interval = [mdate.num2date(dato[0]), mdate.num2date(dato[-1])]
-    #   interval = [[x.year, x.month, 1] for x in interval]
-    #   interval[0][1] += 1
-    #   iterativ = interval[0]
-    #   bounds = []
-    #   while 12*iterativ[0] + iterativ[1] <= 12 *  interval[1][0] + interval[1][1]:
-    #       bounds.append(mdate.date2num(dt.datetime(*iterativ)))
-    #       if iterativ[1] == 12:
-    #           iterativ[0] += 1
-    #           iterativ[1] = 1
-    #       else:
-    #           iterativ[1] += 1
-    #   #  kanna um vit eru ov tatt við
-    #   if abs(bounds[0] - dato[0]) < 5:
-    #       bounds = bounds[1:]
-    #   if abs(bounds[-1] - dato[-1]) <5:
-    #       bounds = bounds[:-1]
-    #
-    #   bounds = [dato[0]] + bounds + [dato[-1]]
-    #   # endin av finn bounds--------------------
 
     glxmax = -np.inf
     glymax = -np.inf
