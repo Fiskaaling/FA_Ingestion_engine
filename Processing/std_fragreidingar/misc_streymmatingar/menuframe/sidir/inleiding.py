@@ -135,7 +135,7 @@ def sjovarfallmax(uvdata, date, dypir, max_bin, lat=62, navn='intro_max.pdf',
 def intro_bar(datadf, max_bin, dypir, navn='intro_bar.pdf', dest='LaTeX/',
               caption='fordeiling av streymi gjøgnum dypid', max_sj=False,
               dpi=200, font=7, figwidth=6, figheight=7.1,
-              uvdata=None, date=None):
+              uvdata=None, date=None, linja=False):
     '''
     Hettar vísur hvussu harður streymurin er í teimun forskelligu dýpinum
     :param datadf:      magdir data
@@ -151,12 +151,14 @@ def intro_bar(datadf, max_bin, dypir, navn='intro_bar.pdf', dest='LaTeX/',
     :param figheight:   hæddin á figurinum
     :param uvdata:      uvdata hvissi eg skal tekna maxsjovarfall inní fig
     :param date:        tíðspunktini á mátingunum hviss eg havi brúk fyri tíð
+    :param linja:       skal eg hava eina svarta linju sum vísur eitt yvirmát av sjovarfall
 
     :return:            ein string at koyra í master.tex
     '''
     dypir = [dypir[x] for x in range(max_bin)]
     stod = [25, 50, 75, 95, 99.5]
     bars = [[] for _ in stod]
+    bars_sj = [[] for _ in stod]
     for i in range(1, max_bin + 1):
         temp = [x for x in datadf['mag' + str(i)].values if not np.isnan(x)]
         temp = np.sort(temp)
@@ -171,6 +173,26 @@ def intro_bar(datadf, max_bin, dypir, navn='intro_bar.pdf', dest='LaTeX/',
             else:
                 bars[j].append(temp[int(brok*longd/100)])
 
+    if max_sj and uvdata is not None and date is not None:
+        tin = np.array(date)
+        for i in range(1, max_bin + 1):
+            u = np.array(datadf['mag' + str(i)] * np.cos(np.deg2rad(datadf['dir' + str(i)] - 90)))
+            v = np.array(datadf['mag' + str(i)] * np.cos(np.deg2rad(datadf['dir' + str(i)])))
+            coef = utide.solve(tin, u, v, lat=62)
+            tide = utide.reconstruct(tin, coef)
+            temp = [np.sqrt(x**2+y**2) for x, y in zip(tide['u'], tide['v'])]
+            temp = [x for x in temp if not np.isnan(x)]
+            temp = np.sort(temp)
+            longd = len(temp)
+            for j, brok in enumerate(stod):
+                if brok > 100:
+                    raise ValueError('brok er ov stort')
+                elif brok == 100:
+                    bars_sj[j].append(temp[-1])
+                elif brok <= 0:
+                    raise ValueError('brok er ov litið')
+                else:
+                    bars_sj[j].append(temp[int(brok*longd/100)])
 
     fig, axs = plt.subplots(ncols=1, nrows=1, figsize=(figwidth, figheight), dpi=dpi)
     mpl.rcParams['font.size'] = font
@@ -178,10 +200,17 @@ def intro_bar(datadf, max_bin, dypir, navn='intro_bar.pdf', dest='LaTeX/',
 
     index = np.arange(max_bin)
     plots = []
-    plots.append(axs.bar(index, bars[0], 0.5, label=str(stod[0])+'%'))
+    vidd = .33
+    plots.append(axs.bar([x-vidd/2 for x in index], bars[0], vidd, label=str(stod[0])+'%', edgecolor='k'))
     for i in range(1, len(stod)):
-        plots.append(axs.bar(index, [x - y for x, y in zip(bars[i], bars[i-1])],
-                                     .5, bottom=bars[i-1], label=str(stod[i])+'%'))
+        plots.append(axs.bar([x-vidd/2 for x in index], [x - y for x, y in zip(bars[i], bars[i-1])],
+                                     vidd, bottom=bars[i-1], label=str(stod[i])+'%', edgecolor='k'))
+
+    plt.gca().set_prop_cycle(None)
+    plots.append(axs.bar([x + vidd/2 for x in index], bars_sj[0], vidd, edgecolor='k', hatch='//'))
+    for i in range(1, len(stod)):
+        plots.append(axs.bar([x + vidd/2 for x in index], [x - y for x, y in zip(bars_sj[i], bars_sj[i-1])],
+                                     vidd, bottom=bars_sj[i-1], edgecolor='k', hatch='//'))
     axs.xaxis.set_ticks(index)
     axs.set_xticklabels([int(-x) for x in dypir])
     axs.set_ylabel('Streymferð [mm/s]')
@@ -191,7 +220,7 @@ def intro_bar(datadf, max_bin, dypir, navn='intro_bar.pdf', dest='LaTeX/',
     mymax = min(2 * temp[int(.5*len(temp))], 1.2*temp[-1])
 
     #  eg havi bara sett lat til defult lat=62
-    if max_sj and uvdata is not None and date is not None:
+    if max_sj and uvdata is not None and date is not None and linja:
         templist, maxcand = sjovarfallmax(uvdata, date, dypir, max_bin, figut = False)
         axs.plot(index, templist, color='k', label='yvirmát fyri sjovarfallið')
         axs.set_ylim(0, max(mymax, maxcand))

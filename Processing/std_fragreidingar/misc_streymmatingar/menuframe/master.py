@@ -125,13 +125,19 @@ def skriva_doc(setup_dict, siduval_dict):
         if case == 'Introduction':
             a = 'Ókent mál'
             if mal == 'FO':
-                a = "\\\FloatBarrier\n\\newpage\n\\section{Innleiðing}\\\\" + 'Eftir umbøn frá '+setup_dict['umb_av']+' eru kanningar gjørdar fyri at lýsa rákið í '  + setup_dict['stadarnavn'] + '. ' +\
-                    'Hendan frágreiðingin lýsir hvussu úrslitini av hesum kanningum' + '\\newpage\n'
+                a = "\\\FloatBarrier\n\\newpage\n\\section{Innleiðing}\\\\"
+                + 'Eftir umbøn frá '+setup_dict['umb_av']
+                + ' eru kanningar gjørdar fyri at lýsa rákið í '
+                + setup_dict['stadarnavn'] + '. '
+                + 'Hendan frágreiðingin lýsir hvussu úrslitini av hesum kanningum'
+                + '\\newpage\n'
                 a += '\\section{Økið}\n' \
                      'Økið har máta verður blabblabla'
             elif mal == 'EN':
                 pass
-                #a =  '\n\\FloatBarrier\n\\newpage\n\\section{%s}\n\\begin{figure}[h!]\\label{Hov%2.1f}\n\\includegraphics[scale=1]{myndir/%s}' \
+                #a =  '\n\\FloatBarrier\n\\newpage\n\\section{%s}\n' \
+                #       '\\begin{figure}[h!]\\label{Hov%2.1f}\n' \
+                #       '\\includegraphics[scale=1]{myndir/%s}' \
                 #       '\n\\caption{%s}\n\\end{figure}\n\\newpage\n' % (section, ratning, navn, caption)
             file.write(a)
 
@@ -150,14 +156,13 @@ def skriva_doc(setup_dict, siduval_dict):
             yaxis = dypir[:bins[-1]]
             colnames = indexes
 
-            bins_cmap = bisect.bisect_right(dypir, Hov_hadd)
-            print(bins_cmap)
+            bins_cmap = bisect.bisect_right(dypir, Hov_cmap)
             bins_cmap = list(range(1, bins_cmap + 1))
 
-            indexes_cmap = [str(i) for i in bins]
+            indexes_cmap = [str(i) for i in bins_cmap]
 
-            yaxis_cmap = dypir[:bins[-1]]
-            colnames_cmap = indexes
+            yaxis_cmap = dypir[:bins_cmap[-1]]
+            colnames_cmap = indexes_cmap
 
             if sama_aksa: #  skal colorbar verða tað sama í báðum
                 #  finn ein góðan collorbar
@@ -173,28 +178,39 @@ def skriva_doc(setup_dict, siduval_dict):
 
             for ratning in Hov_rat:
                 navn = 'Hovmuller%1.0f.png' % ratning
-                #data = magdf[colnames].values.T * np.cos(np.deg2rad(dirdf[colnames].values.T - ratning))
+                #data = magdf[colnames].values.T * np.cos(np.deg2rad(
+                                                #dirdf[colnames].values.T - ratning))
                 ratning = ratning%360
                 if ratning == 0:
                     data = uvdatadf[['v' + x for x in colnames]].values.T
                     if mal == 'EN':
-                        caption = 'Hovmüller diagram of north/south velocities for the whole deployment period. The velocity scale is in mm/s'
+                        caption = 'Hovmüller diagram of north/south velocities for the' \
+                                'whole deployment period. The velocity scale is in mm/s'
                     else:
-                        caption = 'Streymuferð í norður (reyður litur) og suður (bláur litur). litásin er í mm/s'
+                        caption = 'Streymuferð í norður (reyður litur) og suður (bláur litur).' \
+                                'litásin er í mm/s'
                 elif ratning == 90:
                     data = uvdatadf[['u' + x for x in colnames]].values.T
                     if mal == 'EN':
-                        caption = 'Hovmüller diagram of east/west velocities for the whole deployment period. The velocity scale is in mm/s'
+                        caption = 'Hovmüller diagram of east/west velocities for the whole' \
+                                'deployment period. The velocity scale is in mm/s'
                     else:
-                        caption = 'Streymuferð í eystan (reyður litur) og Vestan (bláur litur). litásin er í mm/s'
+                        caption = 'Streymuferð í eystan (reyður litur) og Vestan (bláur litur).' \
+                                'litásin er í mm/s'
                 else:
-                    data = uvdatadf[['v' + x for x in colnames]].values.T * np.cos(np.deg2rad(ratning)) + \
-                            uvdatadf[['u' + x for x in colnames]].values.T * np.sin(np.deg2rad(ratning))
+                    data = uvdatadf[['v' + x for x in colnames]].values.T * \
+                            np.cos(np.deg2rad(ratning)) + \
+                            uvdatadf[['u' + x for x in colnames]].values.T * \
+                            np.sin(np.deg2rad(ratning))
                     if mal == 'EN':
-                        caption = 'Hovmüller diagram of [%s] velocities for the whole deployment period. The velocity scale is in mm/s' % int(ratning)
+                        caption = 'Hovmüller diagram of [%s] velocities for the whole' \
+                                'deployment period. The velocity scale is in mm/s' % int(ratning)
                     else:
-                        caption = 'Streymuferð í %2.1f (reyður litur) og %2.1f (bláur litur). litásin er í mm/s' % (ratning, (ratning + 180)%360)
-                a = tegnahovmuller(data, yaxis, date, mal=mal, ratning=ratning, navn=navn, caption=caption, vmax=vmax, dest=dest, font=font, figwidth=figwidth, figheight=figheight)
+                        caption = 'Streymuferð í %2.1f (reyður litur) og %2.1f (bláur litur).' \
+                                'litásin er í mm/s' % (ratning, (ratning + 180)%360)
+                a = tegnahovmuller(data, yaxis, date, mal=mal, ratning=ratning,
+                                   navn=navn, caption=caption, vmax=vmax, dest=dest,
+                                   font=font, figwidth=figwidth, figheight=figheight)
                 file.write(a)
 
         #  tekna speedbins
@@ -209,7 +225,8 @@ def skriva_doc(setup_dict, siduval_dict):
         elif case == 'rosa':
             umax = 4*(N-1)
 
-            a = tekna_dist_rose(top_mid_bot_layer, uvdatadf, N, umax, dypir, mal=mal, dest=dest, dpi=200,
+            a = tekna_dist_rose(top_mid_bot_layer, uvdatadf, N, umax, dypir, mal=mal,
+                                dest=dest, dpi=200,
                                axcolor=axcolor, axline=axline, alpha=alpha,
                                font=font, figwidth=figwidth, figheight=figheight)
             file.write(a)
