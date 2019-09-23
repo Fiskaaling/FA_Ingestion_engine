@@ -96,6 +96,7 @@ def skriva_doc(setup_dict, siduval_dict):
 \usepackage{placeins}
 \usepackage{rotating}
 \usepackage{hyperref}
+\usepackage{amssymb}
 
 %\usepackage{showframe} %fjerna meg
 %\usepackage[icelandic]{babel}

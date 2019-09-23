@@ -40,7 +40,7 @@ def tidal_analysis_for_depth(tin, uin, vin, lat=62,
         tabel += '&\t%4.2f' % (abs(coef.Lsmin[i]),)
         tabel += '&\t%3.0f' % (coef.theta[i],)
         tabel += '&\t%3.0f' % (coef.g[i],)
-        tabel += '&\t%s' % ('A' if coef.Lsmin[i]>0 else 'C',)
+        tabel += '&\t%s' % ('$\\circlearrowleft$' if coef.Lsmin[i]>0 else '$\\circlearrowright$',)
         tabel += '\\\\\n'
     tabel += '\\hline\n'
     tabel += '\\end{tabular}'
@@ -136,11 +136,11 @@ def tital_oll_dypir(dato, bins, Frqs, datadf, dypir, mal='FO', lat=62, verbose =
         for j in range(len(bins)):
             tabel += str(bins[j])
             tabel += '&\t%s' % (int(depts[j]),)
-            tabel += '&\t%5.0f' % (coefs[j].Lsmaj[master_index],)
-            tabel += '&\t%5.0f' % (abs(coefs[j].Lsmin[master_index]),)
+            tabel += '&\t%4.2f' % (coefs[j].Lsmaj[master_index],)
+            tabel += '&\t%4.2f' % (abs(coefs[j].Lsmin[master_index]),)
             tabel += '&\t%5.0f' % (coefs[j].theta[master_index],)
             tabel += '&\t%5.0f' % (coefs[j].g[master_index],)
-            tabel += '&\t%s' % ('A' if coefs[j].Lsmin[master_index]>0 else 'C',)
+            tabel += '&\t%s' % ('$\\circlearrowleft$' if coefs[j].Lsmin[master_index]>0 else '$\\circlearrowright$',)
             tabel += '\\\\\n'
         tabel += '\\hline\n\\end{tabular}'
         tabel_fil = open(dest + 'Talvur/%s_%s.tex' % (tabel_navn, frq), 'w')
