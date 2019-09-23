@@ -10,14 +10,14 @@ import utide
 def tidal_analysis_for_depth(tin, uin, vin, lat=62,
               navn='tide.tex', caption='one layer', dest='LaTeX/', label=''):
     coef = utide.solve(tin, uin, vin, lat=lat)
-    col = ['Const', 'Freq', 'Perioda', 'Major', 'minor', 'Theta', 'Graphl', 'R']
+    col = ['Const', 'Frequency', 'Perioda', 'Major', 'Minor', 'Theta', 'Graphl', 'R']
     supcol = ['', 'c/hr', '', 'mm/sec', 'mm/sec', 'deg', 'deg', '']
     a = list(coef.name)
     rekkjur = min(len(coef.name), 15)
     reftime = coef.aux.reftime
     reftime = mdate.num2date(reftime).strftime('%Y-%m-%dT%H:%M:%S')
 
-    tabel = '\\begin{tabular}{|' + (len(col)) * 'r|' + '}\n\\hline\n'
+    tabel = '\\begin{tabular}{|' + 'l|' +  (len(col) -1) * 'r|' + '}\n\\hline\n'
     tabel += col[0]
     for x in col[1:]:
         tabel += '&\t%s' % (x,)
@@ -35,7 +35,7 @@ def tidal_analysis_for_depth(tin, uin, vin, lat=62,
             eind = ' d'
         tabel += coef.name[i].rjust(4)
         tabel += '&\t%.8f' % (coef.aux.frq[i],)
-        tabel += '&\t%4.2f' % (perioda,) + eind
+        tabel += '&\t%4.1f' % (perioda,) + eind
         tabel += '&\t%4.2f' % (coef.Lsmaj[i],)
         tabel += '&\t%4.2f' % (abs(coef.Lsmin[i]),)
         tabel += '&\t%3.0f' % (coef.theta[i],)
@@ -115,7 +115,7 @@ def tital_oll_dypir(dato, bins, Frqs, datadf, dypir, mal='FO', lat=62, verbose =
     depts = [-dypir[x - 1] for x in bins]
 
     out = '\n\\FloatBarrier\n\\newpage\n\\section{%s}' % (Section,)
-    col = ['Bin', 'Depth', 'Major', 'minor', 'Theta', 'Graphl', 'R']
+    col = ['Bin', 'Depth', 'Major', 'Minor', 'Theta', 'Graphl', 'R']
     supcol = ['', 'm', 'mm/sec', 'mm/sec', 'deg', 'deg', '']
 
     time = coefs[0].aux.reftime
