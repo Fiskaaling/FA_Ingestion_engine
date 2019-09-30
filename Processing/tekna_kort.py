@@ -25,7 +25,7 @@ import pyperclip # Kanska fjerna hettar seinni!
 import matplotlib.ticker as mticker
 from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
 from screeninfo import get_monitors
-
+import matplotlib.image as mpimg
 
 class Window(Frame):
     def __init__(self, master=None):
@@ -368,6 +368,7 @@ def les_og_tekna(text, fig, canvas, silent=False):
     teksty = 0
     siglignsferd = 0 # Um ikki null verður tíðin tað tekur at sigla eftir lin_fil rokna
     tekna_land = True
+    textsize = 5
     global ccrs_projection
     ccrs_projection = ccrs.PlateCarree(-7)
     for index, command in enumerate(strtext):
@@ -432,7 +433,7 @@ def les_og_tekna(text, fig, canvas, silent=False):
                     print(len(plon))
                     qwery = {'d': pda, 'lon':plon, 'lat':plat}
                     fart = pd.DataFrame(qwery)
-                    fart.to_csv('lvdypid.csv')
+                    fart.to_csv('lvdypid.f')
                     levels = range(0, 80, 5)
                     c = ax.contour(D_lon, D_lat, D_dep, levels=levels)
                     #MD_lon, MD_lat = m(D_lon, D_lat)
@@ -479,6 +480,24 @@ def les_og_tekna(text, fig, canvas, silent=False):
                 #print(grid_z0)
                 #plt.contour(meshgridx, meshgridy, grid_z0)
                 #ax.clabel(c, inline=1, fontsize=15, fmt='%2.0f')
+            elif variable == 'btn_finn_int':
+                tekst = command[toindex::]
+                tekst = tekst.split(',')
+                meir_enn = float(tekst[0])
+                minni_enn = float(tekst[1])
+                print('Finnur punktir størri enn ' + str(meir_enn) + ' og minni enn ' + str(minni_enn))
+                d_out = []
+                lat_out = []
+                lon_out = []
+                print(len(dypid))
+                print(len(btn_lon))
+                for i, d in enumerate(dypid):
+                    if meir_enn < d < minni_enn:
+                        #d_out.append(d)
+                        lat_out.append(btn_lat.iloc[i])
+                        lon_out.append(btn_lon.iloc[i])
+                out_data = pd.DataFrame({'lon': lon_out, 'lat': lat_out})
+                out_data.to_csv('btn_finn_int.csv')
             elif variable == 'btn_interpolation':
                 btn_interpolation = command[toindex::]
             elif variable == 'btn_track':
@@ -526,7 +545,7 @@ def les_og_tekna(text, fig, canvas, silent=False):
                             avstandur += distance.distance((latLine[i], lonLine[i]), (latLine[i+1], lonLine[i+1])).m
                         print(str(avstandur) + ' m')
                         print(str(avstandur/siglignsferd/60) + ' min')
-                    ax.plot(lineData['lon'].values, lineData['lat'].values, lin_farv, linewidth=1, label=lin_legend)
+                    ax.plot(lineData['lon'].values, lineData['lat'].values, lin_farv, linewidth=0.1, label=lin_legend)
             elif variable == 'scatter_std':
                 scatter_std = float(command[toindex::])
             elif variable == 'scatter_fil':
@@ -560,11 +579,11 @@ def les_og_tekna(text, fig, canvas, silent=False):
                     if scatter_tekst:
                         lables = scatterData['legend'].values
                         for i in range(len(line_x)):
-                            ax.scatter(line_x[i], line_y[i], zorder=100, c='k', s=scatter_std)
+                            ax.scatter(line_x[i], line_y[i], zorder=100, c=scatter_farv, s=scatter_std)
                             ax.text(line_x[i], line_y[i], lables[i], horizontalalignment='left', zorder=1000000)
                     else:
                         if Samla:
-                            ax.scatter(line_x, line_y, zorder=100, color=scatter_farv, label=scatter_legend, s=scatter_std, marker=scatter_MarkerStyle)
+                            ax.scatter(line_x, line_y, zorder=100, color=scatter_farv, label=scatter_legend, s=scatter_std, marker=scatter_MarkerStyle, size = textsize)
                         else:
                             lables = scatterData['legend'].values
                             for i in range(len(line_x)):
@@ -734,6 +753,12 @@ def les_og_tekna(text, fig, canvas, silent=False):
             elif variable == 'nyttkortdir':
                 global path_to_nytt_kort
                 path_to_nytt_kort = command[toindex::]
+            elif variable == 'lesmynd':
+                img = mpimg.imread(command[toindex::])
+                imgplot = ax.imshow(img, aspect='equal', extent=(-7.66666666, -6.3333333, 62.4166666, 61.4166666), transform=ccrs_projection)
+                ax.set_aspect(1 / np.cos(np.deg2rad(((latmax + latmin) / 2))))
+            elif variable == 'textsize':
+                textsize = float(command[toindex::])
             else:
                 if '#' not in variable and command != '':
                     log_w('Ókend stýriboð ' + variable)
