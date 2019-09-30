@@ -10,14 +10,14 @@ import utide
 def tidal_analysis_for_depth(tin, uin, vin, lat=62,
               navn='tide.tex', caption='one layer', dest='LaTeX/', label=''):
     coef = utide.solve(tin, uin, vin, lat=lat)
-    col = ['Const', 'Freq', 'Perioda', 'Major', 'minor', 'Theta', 'Graphl', 'R']
+    col = ['Const', 'Frequency', 'Perioda', 'Major', 'Minor', 'Theta', 'Graphl', 'R']
     supcol = ['', 'c/hr', '', 'mm/sec', 'mm/sec', 'deg', 'deg', '']
     a = list(coef.name)
     rekkjur = min(len(coef.name), 15)
     reftime = coef.aux.reftime
     reftime = mdate.num2date(reftime).strftime('%Y-%m-%dT%H:%M:%S')
 
-    tabel = '\\begin{tabular}{|' + (len(col)) * 'r|' + '}\n\\hline\n'
+    tabel = '\\begin{tabular}{|' + 'l|' +  (len(col) -1) * 'r|' + '}\n\\hline\n'
     tabel += col[0]
     for x in col[1:]:
         tabel += '&\t%s' % (x,)
@@ -35,12 +35,12 @@ def tidal_analysis_for_depth(tin, uin, vin, lat=62,
             eind = ' d'
         tabel += coef.name[i].rjust(4)
         tabel += '&\t%.8f' % (coef.aux.frq[i],)
-        tabel += '&\t%4.2f' % (perioda,) + eind
+        tabel += '&\t%4.1f' % (perioda,) + eind
         tabel += '&\t%4.2f' % (coef.Lsmaj[i],)
         tabel += '&\t%4.2f' % (abs(coef.Lsmin[i]),)
         tabel += '&\t%3.0f' % (coef.theta[i],)
         tabel += '&\t%3.0f' % (coef.g[i],)
-        tabel += '&\t%s' % ('A' if coef.Lsmin[i]>0 else 'C',)
+        tabel += '&\t%s' % ('$\\circlearrowleft$' if coef.Lsmin[i]>0 else '$\\circlearrowright$',)
         tabel += '\\\\\n'
     tabel += '\\hline\n'
     tabel += '\\end{tabular}'
@@ -91,7 +91,6 @@ def tidal_analysis_for_depth_bins(bins, dato, datadf, dypir, mal='FO', lat=62,
     return out
 
 
-#  TODO fjerna N og E
 def tital_oll_dypir(dato, bins, Frqs, datadf, dypir, mal='FO', lat=62, verbose = True,
                     Section=None, caption=None,
                     tabel_navn='tital_variation_with_depth',
@@ -107,21 +106,17 @@ def tital_oll_dypir(dato, bins, Frqs, datadf, dypir, mal='FO', lat=62, verbose =
         else:
             caption='Harmonic constants for constituent '
     coefs = [None for _ in range(len(bins))]
-    coefsE = coefs.copy()
-    coefsN = coefs.copy()
     tin = np.array(dato)
     for i in range(len(coefs)):
         print(i)
         u = datadf['mag' + str(i + 1)].values * np.sin(np.deg2rad(datadf['dir' + str(i + 1)].values))
         v = datadf['mag' + str(i + 1)].values * np.cos(np.deg2rad(datadf['dir' + str(i + 1)].values))
         coefs[i] = utide.solve(tin, u, v, lat=lat, constit=Frqs, verbose=verbose)
-        coefsE[i] = utide.solve(tin, u, lat=lat, constit=Frqs, verbose=verbose)
-        coefsN[i] = utide.solve(tin, v, lat=lat, constit=Frqs, verbose=verbose)
     depts = [-dypir[x - 1] for x in bins]
 
     out = '\n\\FloatBarrier\n\\newpage\n\\section{%s}' % (Section,)
-    col = ['Bin', 'Depth', 'E-ampl', 'E-gpl', 'N-ampl', 'N-gpl', 'Major', 'minor', 'Theta', 'Graphl', 'R']
-    supcol = ['', 'm', 'mm/sec', 'deg', 'mm/sec', 'deg', 'mm/sec', 'mm/sec', 'deg', 'deg', '']
+    col = ['Bin', 'Depth', 'Major', 'Minor', 'Theta', 'Graphl', 'R']
+    supcol = ['', 'm', 'mm/sec', 'mm/sec', 'deg', 'deg', '']
 
     time = coefs[0].aux.reftime
     print(time)
@@ -138,20 +133,14 @@ def tital_oll_dypir(dato, bins, Frqs, datadf, dypir, mal='FO', lat=62, verbose =
             tabel += '&\t%s' % (x,)
         tabel += '\\\\\\hline\n'
         master_index = np.argwhere(coefs[i].name == frq)[0][0]
-        e_index = np.argwhere(coefsE[i].name == frq)[0][0]
-        n_index = np.argwhere(coefsN[i].name == frq)[0][0]
         for j in range(len(bins)):
             tabel += str(bins[j])
             tabel += '&\t%s' % (int(depts[j]),)
-            tabel += '&\t%5.0f' % (coefsE[j].A[e_index],)
-            tabel += '&\t%5.0f' % (coefsE[j].g[e_index],)
-            tabel += '&\t%5.0f' % (coefsN[j].A[n_index],)
-            tabel += '&\t%5.0f' % (coefsN[j].g[n_index],)
-            tabel += '&\t%5.0f' % (coefs[j].Lsmaj[master_index],)
-            tabel += '&\t%5.0f' % (abs(coefs[j].Lsmin[master_index]),)
+            tabel += '&\t%4.2f' % (coefs[j].Lsmaj[master_index],)
+            tabel += '&\t%4.2f' % (abs(coefs[j].Lsmin[master_index]),)
             tabel += '&\t%5.0f' % (coefs[j].theta[master_index],)
             tabel += '&\t%5.0f' % (coefs[j].g[master_index],)
-            tabel += '&\t%s' % ('A' if coefs[j].Lsmin[master_index]>0 else 'C',)
+            tabel += '&\t%s' % ('$\\circlearrowleft$' if coefs[j].Lsmin[master_index]>0 else '$\\circlearrowright$',)
             tabel += '\\\\\n'
         tabel += '\\hline\n\\end{tabular}'
         tabel_fil = open(dest + 'Talvur/%s_%s.tex' % (tabel_navn, frq), 'w')
@@ -163,9 +152,7 @@ def tital_oll_dypir(dato, bins, Frqs, datadf, dypir, mal='FO', lat=62, verbose =
             out += '\n\\newpage'
         out += '\n\\begin{table}[!ht]\\label{Tidalvar_%s}' % (frq,)
         out += '\n\\centering'
-        out += '\n\\resizebox{\\textwidth}{!}{'
         out += '\n\\input{Talvur/%s_%s.tex}' % (tabel_navn, frq)
-        out += '\n}'
         out += '\n\\caption{%s}' % (caption + frq + time,)
         out += '\n\\end{table}'
     out += '\n\\newpage\n'
@@ -263,24 +250,34 @@ def tidal_non_tidal_bins(bins, dato, datadf, dypir, mal='FO',
         out += '\n\\newpage\n'
     return out
 
-def tidaldominesrekkja(item, mag, direct, dato, dypid, lat=62, verbose=True):
+def tidaldominesrekkja(item, mag, direct, dato, dypid, lat=62, verbose=True,
+                       trend=True, dataut=False):
     tin = np.array(dato)
     u = mag * np.sin(np.deg2rad(direct))
     v = mag * np.cos(np.deg2rad(direct))
-    coef = utide.solve(tin, u, v, lat=lat, verbose=verbose, trend=True)
+    coef = utide.solve(tin, u, v, lat=lat, verbose=verbose, trend=trend)
     reconstruckt = utide.reconstruct(tin, coef=coef, verbose=verbose)
     orgmag = [x for x in mag if not np.isnan(x)]
-    recmag = [np.sqrt(x**2+y**2) for x, y in zip(u - reconstruckt.u, v - reconstruckt.v) if not np.isnan(x)]
-    out = ''
-    out += str(item)
-    out += '&\t%2.2f' % (dypid,)
-    out += '&\t%2.2f\\%%' % (100 * np.var(recmag)/np.var(orgmag),)
-    out += '&\t%6.0f' % (sum([coef.Lsmaj[i] for i in range(6)]),)
-    out += '&\t%s' % ('Ja' if 100 * np.var(recmag)/np.var(orgmag)<50 and sum([coef.Lsmaj[i] for i in range(6)])>150 else 'Nei',)
-    out +='\\\\\n'
-    return out
+    recmag = [np.sqrt(x**2+y**2) for x, y
+              in zip(u - reconstruckt.u, v - reconstruckt.v) if not np.isnan(x)]
+    if not dataut:
+        out = ''
+        out += str(item)
+        out += '&\t%2.2f' % (dypid,)
+        out += '&\t%2.2f\\%%' % (100 * np.var(recmag)/np.var(orgmag),)
+        out += '&\t%6.0f' % (sum([coef.Lsmaj[i] for i in range(6)]),)
+        out += '&\t%s' % ('Ja' if 100 * np.var(recmag)/np.var(orgmag) < 50
+                          and sum([coef.Lsmaj[i] for i in range(6)]) > 150 else 'Nei',)
+        out +='\\\\\n'
+        return out
+    else:
+        part_av_var = 100 * np.var(recmag)/np.var(orgmag)
+        sum_av_5 = sum([coef.Lsmaj[i] for i in range(6)])
+        sjovarfallsdrivi = part_av_var < 50 and sum_av_5 > 150
+        return part_av_var, sum_av_5, sjovarfallsdrivi
 
-def tidaldomines(bins, dato, datadf, dypir, lat=62, verbose=True, section='Sjovarfall', dest='LaTeX/'):
+def tidaldomines(bins, dato, datadf, dypir, lat=62, verbose=True,
+                 section='Sjovarfall', dest='LaTeX/'):
     colonnir = ['bin', 'dypid', 'varratio', 'sum', 'sjóvarfalsdrivin']
     tabel = '\\begin{tabular}{|r|r|r|r|c|}\n'
     tabel += '\\hline\n'
