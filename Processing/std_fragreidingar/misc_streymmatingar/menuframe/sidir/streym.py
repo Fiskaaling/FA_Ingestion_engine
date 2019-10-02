@@ -15,6 +15,23 @@ from scipy.interpolate import griddata
 
 from .misc import minmaxvika
 
+def myprelabel(i, mal='FO'):
+    if i == 0:
+        if mal=='EN':
+            prelabel = 'a) Surface layer'
+        else:
+            prelabel = 'a) ovara lag'
+    elif i == 1:
+        if mal=='EN':
+            prelabel = 'b) Center layer'
+        else:
+            prelabel = 'b) miðlag'
+    else:
+        if mal=='EN':
+            prelabel = 'c) Bottom layer'
+        else:
+            prelabel = 'c) niðasta lag'
+    return prelabel
 
 def tegnahovmuller(data, dypid, dato, mal='FO', ratning=0, nrplots=11, figwidth=6, figheight=7.1,
                    font=7, vmax=None, dest='', navn='Hovmuller.pdf', caption='caption',
@@ -86,7 +103,8 @@ def tegnahovmuller(data, dypid, dato, mal='FO', ratning=0, nrplots=11, figwidth=
         axs[i].set_ylabel('Dypi (m)')
         axs[i].tick_params(axis='x', which='major', pad=0)
     # finn hvat tiks skullu verða á color bar
-    fig.colorbar(contours, cax=axs[nrplots], orientation='horizontal', ticks=np.linspace(-vmax, vmax, 9))
+    cb = fig.colorbar(contours, cax=axs[nrplots], orientation='horizontal', ticks=np.linspace(-vmax, vmax, 9))
+    cb.set_label('mm/s')
     mpl.rcParams['font.size'] = 7
     plt.subplots_adjust(left=0.1, bottom=0.05, right=0.95, top=0.95, wspace=0.5, hspace=0.5)
     mpl.rcParams['xtick.major.pad'] = 0
@@ -97,7 +115,7 @@ def tegnahovmuller(data, dypid, dato, mal='FO', ratning=0, nrplots=11, figwidth=
 
 
 def speedbins(bins, dato, df, max_bin, dypir, minmax=False, dest='', dpi=200,
-              hovusratningur=False, mal='FO', navn=None, section=None,
+              mal='FO', navn=None, section=None,
               font=7, figwidth=6, figheight=7.1):
     """
         teknar magdataði fyri 3 dypir
@@ -131,11 +149,6 @@ def speedbins(bins, dato, df, max_bin, dypir, minmax=False, dest='', dpi=200,
     else:
         out += speedbins_standard(bins, dato, df, dypir, mal=mal, dest=dest, dpi=dpi,
               navn=navn, section=section,
-              font=font, figwidth=figwidth, figheight=figheight)
-
-    if hovusratningur:
-        out += speedbins_hovus(bins, dato, df, dypir, mal=mal, dest=dest, dpi=dpi,
-              hovusratningur=hovusratningur, navn='hovus' + navn, section='Streymur í høvusratning %3.0f°' % hovusratningur,
               font=font, figwidth=figwidth, figheight=figheight)
     return out
 
@@ -176,12 +189,8 @@ def speedbins_standard(bins, dato, df, dypir, mal='FO', dest='', dpi=200,
         date_fmt = mdate.DateFormatter('%d %b %H:%M')
         date_loc = mdate.MinuteLocator(interval= np.ceil(60*24*timespan/6))
     for (i, item) in enumerate(bins):
-        if i == 0:
-            prelabel = 'a) Surface layer'
-        elif i == 1:
-            prelabel = 'b) Center layer'
-        else:
-            prelabel = 'c) Bottom layer'
+        prelabel = myprelabel(i, mal=mal)
+
         axs[i].plot(dato, df['mag' + str(item)].values, linewidth=.5, c='k')
         axs[i].xaxis.set_major_formatter(date_fmt)
         axs[i].xaxis.set_major_locator(date_loc)
@@ -313,12 +322,8 @@ def speedbins_minmax(bins, dato, df, max_bin, dypir, minmax=True, mal='FO', dest
         date_loc_3 = mdate.MinuteLocator(interval=int(np.ceil(60*24*tidarskeid/6)))
 
     for (i, item) in enumerate(bins):
-        if i == 0:
-            prelabel = 'a) Surface layer'
-        elif i == 1:
-            prelabel = 'b) Center layer'
-        else:
-            prelabel = 'c) Bottom layer'
+        prelabel = myprelabel(i, mal=mal)
+
         midaltid1 = dato[max_v]
         midaltid2 = dato[min_v]
         tid1 = [np.searchsorted(dato, midaltid1-halvtid, side='left'),
@@ -432,7 +437,7 @@ def speedbins_minmax(bins, dato, df, max_bin, dypir, minmax=True, mal='FO', dest
 
 
 def speedbins_hovus(bins, dato, df, dypir, mal='FO', dest='', dpi=200, hovusratningur=0,
-              navn='streymstyrkiyvirtid.pdf', section='Timeseries of speed at selected layers',
+              navn='Hovus_speedbin.pdf', section='Streymur í høvusratning',
               font=7, figwidth=6, figheight=7.1):
     """
         teknar magdataði fyri 3 dypir
@@ -470,12 +475,8 @@ def speedbins_hovus(bins, dato, df, dypir, mal='FO', dest='', dpi=200, hovusratn
     tempmin = 0
     tempmax = 0
     for (i, item) in enumerate(bins):
-        if i == 0:
-            prelabel = 'a) Surface layer'
-        elif i == 1:
-            prelabel = 'b) Center layer'
-        else:
-            prelabel = 'c) Bottom layer'
+        prelabel = myprelabel(i, mal=mal)
+
         ys = df['mag' + str(item)].values * np.cos(np.deg2rad(df['dir' + str(item)].values - hovusratningur))
         axs[i].plot(dato, ys, linewidth=.5, c='k')
         axs[i].xaxis.set_major_formatter(date_fmt)
@@ -487,8 +488,9 @@ def speedbins_hovus(bins, dato, df, dypir, mal='FO', dest='', dpi=200, hovusratn
         ys = np.sort(ys)
         tempmin = min(tempmin, 1.1 * ys[int(0.005*len(ys))])
         tempmax = max(tempmax, 1.1 * ys[int(0.995*len(ys))])
+        temp = max(abs(tempmin), tempmax)
     for i, item in enumerate(bins):
-        axs[i].set_ylim(bottom=tempmin, top=tempmax)
+        axs[i].set_ylim(bottom=-temp, top=temp)
 
     if mal=='EN':
         if bins[0] == '10m':
@@ -683,12 +685,8 @@ def tekna_dist_rose(bins, data, N, umax, dypir, mal='FO', dest='LaTeX/', dpi=200
     else:
         raise ValueError('lv skal vera ein listi ella ein int')
     for (i, item) in enumerate(bins):
-        if i == 0:
-            prelabel = 'a) Surface layer'
-        elif i == 1:
-            prelabel = 'b) Center layer'
-        else:
-            prelabel = 'c) Bottom layer'
+        prelabel = myprelabel(i, mal=mal)
+
         plotrose(axs[i, 0], N, myumax[i], lv=lvF2, F=F2[i],
              axcolor=axcolor, axline=axline, alpha=alpha)
         plotrose(axs[i, 1], N, umax, lv=lvF, F=F[i],
@@ -1104,12 +1102,8 @@ def progressive_vector(bins, dato, uvdf, dypir, mal='FO', dest='LaTeX/', dpi=200
         plots.append(punktir)
 
     for i in range(len(plots)):
-        if i == 0:
-            prelabel = 'Surface layer'
-        elif i == 1:
-            prelabel = 'Center layer'
-        else:
-            prelabel = 'Bottom layer'
+        prelabel = myprelabel(i, mal=mal)
+
         punktir = plots[i]
         xmin = np.min(punktir[0])
         xmax = np.max(punktir[0])
@@ -1135,13 +1129,13 @@ def progressive_vector(bins, dato, uvdf, dypir, mal='FO', dest='LaTeX/', dpi=200
         glymin = max(ymin, glymin)
 
     cb = fig.colorbar(line, ax=axs,
-                      format=mpl.ticker.FuncFormatter(fmt(len(bounds), cm_tick_label)))
+                      format=mpl.ticker.FuncFormatter(fmt(len(bounds) - 1, cm_tick_label)))
     axs.legend()
     axs.set_xlim(xmin, xmax)
     axs.set_ylim(ymin, ymax)
     plt.subplots_adjust(left=0.1, bottom=0.075, right=0.95, top=0.95, wspace=0.0, hspace=0.2)
-    axs.set_xlabel('Avstandur [Km]')
-    axs.set_ylabel('Avstandur [Km]')
+    axs.set_xlabel('Avstandur [km]')
+    axs.set_ylabel('Avstandur [km]')
     plt.axis('equal')
     fig.savefig(dest + 'myndir/%s' % navn, dpi=dpi)
 
@@ -1360,12 +1354,8 @@ def duration_speed(bins, dato, magdf, dypir, mal='FO', dest='LaTeX/',
         texstr += '\\hline'
         texstr += '\n\\end{tabular}'
 
-        if rekkja_i_bin == 0:
-            prelabel = 'Surface layer'
-        elif rekkja_i_bin == 1:
-            prelabel = 'Center layer'
-        else:
-            prelabel = 'Bottom layer'
+        prelabel = myprelabel(rekkja_i_bin, mal=mal)
+
         filnovn.append(prelabel.replace(' ', '_') + '_' + navn)
         texfil = open(dest + 'Talvur/' + filnovn[-1], 'w')
         texfil.write(texstr)

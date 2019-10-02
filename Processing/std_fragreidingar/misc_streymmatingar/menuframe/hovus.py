@@ -54,11 +54,14 @@ def hovusratningur(uvdatadf, max_bin):
         temp.append(met(u, v, phi))
 
     minsti = np.argmin(temp)
-    vinklar = [theta[(minsti - 1) % 3], theta[(minsti + 1) % 3]]
+    vinklar = [theta[(minsti + 1) % 3], theta[(minsti - 1) % 3]]
     values = [met(u, v, phi) for phi in vinklar]
     #  bara ein greedy algurytma til at finna min
     for i in range(10):
         minsti = np.argmin(values)
-        vinklar[minsti] = (vinklar[0] + (vinklar[1] - vinklar[0])/2) % 180
+        vinklar[minsti] = (vinklar[0] + ((vinklar[1] - vinklar[0]) % 180)/2) % 180
         values[minsti] = met(u, v, vinklar[minsti])
-    return vinklar[0]
+    out = vinklar[0]
+    if out > 90:
+        out +=180
+    return out

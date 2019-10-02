@@ -6,6 +6,36 @@ import matplotlib.dates as mdate
 import matplotlib as mpl
 import utide
 
+#  TODO skriva framskriving ordiligt
+#def tegnahovmuller(data, dypid, dato, mal='FO', ratning=0, nrplots=11, figwidth=6, figheight=7.1,
+                   #font=7, vmax=None, dest='', navn='Hovmuller.pdf', caption='caption',
+                   #dpi=200):
+
+def frammskriva(tin, uin, vin, lat=62, nrplots=12, figwidth=6, figheight=7.1,
+                navn='framskriving.pdf', dpi=200):
+    ''''
+    fyri tað fyrsta fari eg at skriva hettar til at framskriva eitt ár har framm frá sístu máting
+    eg setið tað orginala dataði við har tey eru saman
+
+    :param tin:     tíðin sum sum svarar til tíðina av mátinginum
+    :param uin:     u dataði fyri mátingina
+    :param vin:     v dataði fyri mátingina
+    :param lat:     latetude
+    :param navn:    navnið á figurinum
+    '''
+    tin = np.array(tin)
+    uin = np.array(uin)
+    vin = np.array(vin)
+
+    coef = utide.solve(tin, uin, vin, lat=lat)
+
+    #  finn hvar vit byrja og hvar vit enda
+    start, stop = np.floor(tin[0]), np.ceil(tin[-1])
+    start = mdate.num2date(start)
+    stop = mdate.num2date(stop)
+
+    fig, axs = plt.subplots(ncols=1, nrows=nrplots, figsize=(figwidth, figheight), dpi=dpi)
+
 
 def tidal_analysis_for_depth(tin, uin, vin, lat=62,
               navn='tide.tex', caption='one layer', dest='LaTeX/', label=''):
@@ -211,6 +241,7 @@ def tidal_non_tidal_plot(dato, direct, mag, figwidth=6, figheight=7.1, dpi=200,
     plt.subplots_adjust(left=0.1, bottom=0.05, right=0.95, top=0.95, wspace=0.1, hspace=0.1)
     fig.savefig(dest + 'myndir/' + figname)
 
+
 def tidal_non_tidal_bins(bins, dato, datadf, dypir, mal='FO',
                          lat=62, verbose=True, section=None,
                          dest='LaTeX/'):
@@ -250,6 +281,7 @@ def tidal_non_tidal_bins(bins, dato, datadf, dypir, mal='FO',
         out += '\n\\newpage\n'
     return out
 
+
 def tidaldominesrekkja(item, mag, direct, dato, dypid, lat=62, verbose=True,
                        trend=True, dataut=False):
     tin = np.array(dato)
@@ -275,6 +307,7 @@ def tidaldominesrekkja(item, mag, direct, dato, dypid, lat=62, verbose=True,
         sum_av_5 = sum([coef.Lsmaj[i] for i in range(6)])
         sjovarfallsdrivi = part_av_var < 50 and sum_av_5 > 150
         return part_av_var, sum_av_5, sjovarfallsdrivi
+
 
 def tidaldomines(bins, dato, datadf, dypir, lat=62, verbose=True,
                  section='Sjovarfall', dest='LaTeX/'):

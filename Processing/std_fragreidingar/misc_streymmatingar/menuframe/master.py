@@ -21,6 +21,7 @@ from .sidir.inleiding import gersamadratt
 from .sidir.streym import tegnahovmuller
 from .sidir.streym import speedbins
 from .sidir.streym import tekna_dist_rose
+from .sidir.streym import speedbins_hovus
 from .sidir.streym import progressive_vector
 from .sidir.streym import frequencytabellir
 from .sidir.streym import duration_speed
@@ -72,10 +73,12 @@ def skriva_doc(setup_dict, siduval_dict):
     #--------------------------------------------------------------------------------
 
     #  inles alt dataði
+    #  TODO inset magnetiskan misvísning
     date, dypir, max_bin, datadf, uvdatadf = inles(path_to_data)
 
     # hvat fyri 3 bins skal eg brúka
     #  top, mid, bot layer
+    #  TODO hettar er ikki har er gerði 10m binina haldi at tað er í inles
     if not top_mid_bot_layer:
         #  finn hvar 10 m er 
         tempbin = bisect.bisect_right(dypir, -10) - 1
@@ -216,7 +219,7 @@ def skriva_doc(setup_dict, siduval_dict):
 
         #  tekna speedbins
         elif case == 'speedbin':
-            a = speedbins(top_mid_bot_layer, date, datadf, max_bin, dypir, hovusratningur=hovisrat,
+            a = speedbins(top_mid_bot_layer, date, datadf, max_bin, dypir,
                           minmax=minmax, mal=mal,
                           dest=dest, font=font, figwidth=figwidth, figheight=figheight)
             file.write(a)
@@ -231,6 +234,14 @@ def skriva_doc(setup_dict, siduval_dict):
                                axcolor=axcolor, axline=axline, alpha=alpha,
                                font=font, figwidth=figwidth, figheight=figheight)
             file.write(a)
+
+        elif case == 'speedbins_hovus':
+            a = speedbins_hovus(top_mid_bot_layer, date, datadf, dypir, mal=mal,
+                                dest=dest, dpi=dpi, hovusratningur=hovisrat,
+                                section='Streymur í høvusratning %3.0f°' % hovisrat,
+                                font=font, figwidth=figwidth, figheight=figheight)
+            file.write(a)
+
 
         #  tekna Progressive vector diagrams at selected layers
         elif case == 'progressive':

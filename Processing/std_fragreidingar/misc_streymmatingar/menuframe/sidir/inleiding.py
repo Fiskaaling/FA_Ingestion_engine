@@ -4,80 +4,14 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 import utide
 
-from .sjovarfall import tidaldominesrekkja
 
 def gersamadratt(datadf, uvdatadf, dypir, max_bin, date, dest='LaTeX/', lat=62,
                  dpi=200, font=7, figwidth=6, figheight=3):
 
     out = ''
-    out += get_meta(date, datadf, uvdatadf, max_bin, dypir, dest=dest)
     out += intro_bar(datadf, max_bin, dypir, dest=dest, figheight=figheight,
                     max_sj=True, uvdata=uvdatadf, date=date)
     return out
-
-
-
-def get_meta(date, datadf, uvdata, max_bin, dypir, lat=62,
-             navnatalvu='Samamdrattur.tex', caption='Lyklatøl', dest='LaTeX/'):
-    '''
-    ger metatingini     sum skal verða við í samandrátti ella Ingangi
-    :param data:        ein listi sum sigur hvat tiðin er á øllum mátingunum
-    :param datadf:      mag dir dataframe
-    :param uvdata:      u v dataframe
-    :param max_bin:     eitt tal sum sigur hvat tað stórta bin sum eg brúki er
-    :param dypir:       listi dypir av bins
-    :param lat:         lat av mátingini
-    :param navnatalvu:  navni sum talvan fær
-    :param caption:     caption sum kemur undir talvuni
-    :param dest:        hvar er master.tex
-    '''
-
-    date = np.array(date)
-    temp = date[-1] - date[0]
-    temp = np.round(temp)
-    matitid ='%3.0f Dagar' % temp
-    temp = []
-    CC = 0
-    for i in range(len(date)):
-        my_sum = 0
-        tempcount = 0
-        for j in range(1, max_bin + 1):
-            candval = datadf['mag' + str(j)].values[i]
-            if not np.isnan(candval):
-                my_sum += candval
-                tempcount += 1
-        if tempcount < max_bin/2:
-            print('Hettar burda aldri verði 0 har er okkurt sum ikki er sum tað skal vera', i)
-            temp.append(np.nan)
-            CC += 1
-        else:
-            temp.append(my_sum/tempcount)
-    temp = max(temp)
-    Sterkasti_midal = '%4.0f' % temp
-    coef = utide.solve(date, uvdata['u10m'].values, uvdata['v10m'].values, lat=lat, verbose=False,
-                       trend=False)
-    temp = tidaldominesrekkja(None, datadf['mag10m'].values, datadf['dir10m'].values,
-                             date, dypir, verbose=False, trend=False, dataut=True)
-    Sjovarfallsdrivid = 'Ja' if temp[2] else 'Nei'
-
-    tabel = '\\begin{tabular}{|l l|}\n'
-    tabel += '\\hline\n'
-    tabel += 'Mátitíð&\t%s\\\\\n' % matitid
-    tabel += 'Sterkasti miðal profilur&\t%s mm/s\\\\\n' % Sterkasti_midal
-    tabel += 'Er rákið sjovarfallsdrivið&\t%s\\\\\n' % Sjovarfallsdrivid
-    tabel += '\\hline\n'
-    tabel += '\\end{tabular}'
-
-    texfil = open(dest + 'Talvur/%s' % navnatalvu, 'w')
-    texfil.write(tabel)
-    texfil.close()
-
-    label = '\\label{Lyklatol}'
-    return '\n\\begin{table}[!ht]%s' \
-           '\n\\centering' \
-           '\n\\input{Talvur/%s}' \
-           '\n\\caption{%s}' \
-           '\n\\end{table}' % (label, navnatalvu, caption)
 
 
 def sjovarfallmax(uvdata, date, dypir, max_bin, lat=62, navn='intro_max.pdf',
@@ -214,7 +148,7 @@ def intro_bar(datadf, max_bin, dypir, navn='intro_bar.pdf', dest='LaTeX/',
     axs.xaxis.set_ticks(index)
     axs.set_xticklabels([int(-x) for x in dypir])
     axs.set_ylabel('Streymferð [mm/s]')
-    axs.set_xlabel('Dýpið [m]')
+    axs.set_xlabel('Dýpi [m]')
     temp = bars[-1]
     temp = np.sort(temp)
     mymax = min(2 * temp[int(.5*len(temp))], 1.2*temp[-1])

@@ -48,19 +48,19 @@ def inles(path_to_data, dictionary=False):
     #  skriva ein variabil til brúka sum ref til hvat dýpi allar mátingarnar eru gjørdar á
     dypir = [float(metadf['bin' + str(x)]) - dypid for x in range(1, max_bin+1)]
 
-    #  finn hvat fyri bins skullu droppast
-    droppa_meg = [ i+1 for i in range(len(dypir)) if dypir[i] >= 0]
-    if len(droppa_meg) != 0:
-        max_bin = droppa_meg[0] - 1
+    ##  finn hvat fyri bins skullu droppast
+    #droppa_meg = [ i+1 for i in range(len(dypir)) if dypir[i] >= -dypid/10]
+    #if len(droppa_meg) != 0:
+    #    max_bin = droppa_meg[0] - 1
 
-    dypir = [dypir[i] for i in range(len(dypir)-len(droppa_meg))]
+    #dypir = [dypir[i] for i in range(len(dypir)-len(droppa_meg))]
 
-    #  tak ting úr datadf
-    datadf.drop([ '%s%s' % (typa, int(tal)) for typa in ['mag', 'dir', 'w'] for tal in droppa_meg],
-                axis=1, inplace=True)
-    #  tak ting úr uvdatadf
-    uvdatadf.drop([ '%s%s' % (typa, int(tal)) for typa in ['u', 'v', 'w'] for tal in droppa_meg],
-                  axis=1, inplace=True)
+    ##  tak ting úr datadf
+    #datadf.drop([ '%s%s' % (typa, int(tal)) for typa in ['mag', 'dir', 'w'] for tal in droppa_meg],
+    #            axis=1, inplace=True)
+    ##  tak ting úr uvdatadf
+    #uvdatadf.drop([ '%s%s' % (typa, int(tal)) for typa in ['u', 'v', 'w'] for tal in droppa_meg],
+    #              axis=1, inplace=True)
 
     #  ger datði til [mm/s] ístaðinfyri [m/s]
     for key in datadf.keys():
@@ -109,6 +109,20 @@ def inles(path_to_data, dictionary=False):
     ##################################################
     #                  enda 10 m data                #
     ##################################################
+
+    #  finn hvat fyri bins skullu droppast
+    droppa_meg = [ i+1 for i in range(len(dypir)) if dypir[i] >= -dypid/10]
+    if len(droppa_meg) != 0:
+        max_bin = droppa_meg[0] - 1
+
+    dypir = [dypir[i] for i in range(len(dypir)-len(droppa_meg))]
+
+    #  tak ting úr datadf
+    datadf.drop([ '%s%s' % (typa, int(tal)) for typa in ['mag', 'dir', 'w'] for tal in droppa_meg],
+                axis=1, inplace=True)
+    #  tak ting úr uvdatadf
+    uvdatadf.drop([ '%s%s' % (typa, int(tal)) for typa in ['u', 'v', 'w'] for tal in droppa_meg],
+                  axis=1, inplace=True)
 
     if dictionary:
         return {'data':date, 'dypid':dypid, 'max_bin':max_bin,

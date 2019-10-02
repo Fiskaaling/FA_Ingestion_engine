@@ -34,7 +34,8 @@ def streym(frame, root):
     #----------------------------------------------------------------------
     siduval_dict = {}
     siduval_list = ['test',
-                    'Introduction', 'Hovmuller', 'speedbin', 'rosa', 'progressive',
+                    'Introduction', 'Hovmuller', 'speedbin', 'rosa', 'speedbins_hovus',
+                    'progressive',
                     'freqtabellir', 'durationtabellir', 'tidal_3_dypir',
                     'tidal_oll_dypir', 'tidal_non_tidal_bins', 'sjovarfalsdrivi']
     #----------------------------------------------------------------------
