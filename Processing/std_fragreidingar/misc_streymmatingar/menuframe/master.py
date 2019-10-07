@@ -88,9 +88,9 @@ def skriva_doc(setup_dict, siduval_dict):
     hovisrat = hovusratningur(uvdatadf, max_bin)
 
     # master fílurin
-    file = open(dest + navn_a_fili, 'w')
+    masterfile = open(dest + navn_a_fili, 'w')
     #  preamble og startur til doc
-    file.write(r"""\include{setup/dokumentstilur}
+    masterfile.write(r"""\include{setup/dokumentstilur}
 \include{setup/kommandoir}
 \include{setup/metadata}
 \include{setup/titlepage}
@@ -100,12 +100,13 @@ def skriva_doc(setup_dict, siduval_dict):
 \usepackage{rotating}
 \usepackage{hyperref}
 \usepackage{amssymb}
+\usepackage{subcaption}
+\usepackage{calc}
 
+%\usepackage[inline]{showlabels}
 %\usepackage{showframe} %fjerna meg
 %\usepackage[icelandic]{babel}
-%\usepackage{subcaption}
 %\usepackage{float}
-\usepackage{calc}
 
 \begin{document}
 \frontmatter
@@ -120,10 +121,42 @@ def skriva_doc(setup_dict, siduval_dict):
 \renewcommand{\tablename}{Talva}
 \tableofcontents*
 \openany
-\newpage""")
+\newpage
+%her birjar documenti
+""")
 
     print(siduval_dict['valdar_tree'].get_children(''))
     mangullisti=[]
+
+    #  TODO skal eg altíð hava ein innleiðing
+    if mal == 'EN':
+        temp = '\\chapter{Introduction}'
+    else:
+        temp = '\\chapter{Innleiðing}'
+    masterfile.write('\n' + temp + '\\input{texfilir/innleiding}\n\\newpage\n')
+    with open('texfilir/innleiding.tex', 'w') as f:
+        f.write('innleiðingin')
+
+    #  Mátingar
+    #  TODO skriva okkurt sum teknar hasa tabellina
+    if mal == 'EN':
+        temp = '\\chapter{Mátingar}'
+    else:
+        temp = '\\chapter{Mátingar}'
+    masterfile.write('\n' + temp + '\\input{texfilir/matingar}\n\\newpage\n')
+    with open('texfilir/matingar.tex', 'w') as f:
+        f.write('Mátingar')
+
+    #  Úrslit
+    if mal == 'EN':
+        temp = '\\chapter{Úrslit}'
+    else:
+        temp = '\\chapter{Úrslit}'
+    masterfile.write('\n' + temp + '\\input{texfilir/urslit}\n\\newpage\n')
+    with open('texfilir/urslit.tex', 'w') as f:
+        f.write('Úrslit')
+
+
     for case in siduval_dict['valdar_tree'].get_children(''):
         # Introduction
         if case == 'Introduction':
@@ -143,11 +176,11 @@ def skriva_doc(setup_dict, siduval_dict):
                 #       '\\begin{figure}[h!]\\label{Hov%2.1f}\n' \
                 #       '\\includegraphics[scale=1]{myndir/%s}' \
                 #       '\n\\caption{%s}\n\\end{figure}\n\\newpage\n' % (section, ratning, navn, caption)
-            file.write(a)
+            masterfile.write(a)
 
         elif case == 'test':
             a = gersamadratt(datadf, uvdatadf, dypir, max_bin, dest=dest, date=date)
-            file.write(a)
+            masterfile.write(a)
 
         #  Setup Hovmuller
         elif case == 'Hovmuller':
@@ -191,16 +224,18 @@ def skriva_doc(setup_dict, siduval_dict):
                         caption = 'Hovmüller diagram of north/south velocities for the' \
                                 'whole deployment period. The velocity scale is in mm/s'
                     else:
-                        caption = 'Streymuferð í norður (reyður litur) og suður (bláur litur).' \
-                                'litásin er í mm/s'
+                        caption = 'Streymferð í norðan (reyður litur) og sunnan (bláur litur)'\
+                                ' á øllum máldu dýpum (y- ásin) gjøgnum alt mátitíðarskeiðið.'\
+                                ' Litstigin er í mm/s'
                 elif ratning == 90:
                     data = uvdatadf[['u' + x for x in colnames]].values.T
                     if mal == 'EN':
                         caption = 'Hovmüller diagram of east/west velocities for the whole' \
                                 'deployment period. The velocity scale is in mm/s'
                     else:
-                        caption = 'Streymuferð í eystan (reyður litur) og Vestan (bláur litur).' \
-                                'litásin er í mm/s'
+                        caption = 'Streymferð í eystan (reyður litur) og vestan (bláur litur)'\
+                                ' á øllum máldu dýpum (y- ásin) gjøgnum alt mátitíðarskeiðið.'\
+                                ' Litstigin er í mm/s'
                 else:
                     data = uvdatadf[['v' + x for x in colnames]].values.T * \
                             np.cos(np.deg2rad(ratning)) + \
@@ -215,14 +250,14 @@ def skriva_doc(setup_dict, siduval_dict):
                 a = tegnahovmuller(data, yaxis, date, mal=mal, ratning=ratning,
                                    navn=navn, caption=caption, vmax=vmax, dest=dest,
                                    font=font, figwidth=figwidth, figheight=figheight)
-                file.write(a)
+                masterfile.write(a)
 
         #  tekna speedbins
         elif case == 'speedbin':
             a = speedbins(top_mid_bot_layer, date, datadf, max_bin, dypir,
                           minmax=minmax, mal=mal,
                           dest=dest, font=font, figwidth=figwidth, figheight=figheight)
-            file.write(a)
+            masterfile.write(a)
 
 
         #  tekna rósu
@@ -233,36 +268,36 @@ def skriva_doc(setup_dict, siduval_dict):
                                 dest=dest, dpi=200,
                                axcolor=axcolor, axline=axline, alpha=alpha,
                                font=font, figwidth=figwidth, figheight=figheight)
-            file.write(a)
+            masterfile.write(a)
 
         elif case == 'speedbins_hovus':
             a = speedbins_hovus(top_mid_bot_layer, date, datadf, dypir, mal=mal,
                                 dest=dest, dpi=dpi, hovusratningur=hovisrat,
                                 section='Streymur í høvusratning %3.0f°' % hovisrat,
                                 font=font, figwidth=figwidth, figheight=figheight)
-            file.write(a)
+            masterfile.write(a)
 
 
         #  tekna Progressive vector diagrams at selected layers
         elif case == 'progressive':
             a = progressive_vector(top_mid_bot_layer, date, uvdatadf, dypir, mal=mal, dest=dest,
                                   font=font, figwidth=figwidth, figheight=figheight)
-            file.write(a)
+            masterfile.write(a)
 
         #  tekna Frequens tabellir
         elif case == 'freqtabellir':
             a = frequencytabellir(datadf, dypir, mal=mal, dest=dest)
-            file.write(a)
+            masterfile.write(a)
 
         #  tekna duration_speed
         elif case == 'durationtabellir':
             a = duration_speed(top_mid_bot_layer, date, datadf, dypir, mal=mal, dest=dest)
-            file.write(a)
+            masterfile.write(a)
 
         #  rokna utide fyri 3 dýpir
         elif case == 'tidal_3_dypir':
             a = tidal_analysis_for_depth_bins(top_mid_bot_layer, date, datadf, dypir, mal=mal, lat=62, dest=dest)
-            file.write(a)
+            masterfile.write(a)
 
         #  sama frequens fyri øll dýpir
         elif case == 'tidal_oll_dypir':
@@ -271,16 +306,16 @@ def skriva_doc(setup_dict, siduval_dict):
             tempbins = tempbins[::-1]
             print(max_bin)
             a = tital_oll_dypir(date, tempbins, tidal_oll_Frqs, datadf, dypir, mal=mal, lat=62, dest=dest)
-            file.write(a)
+            masterfile.write(a)
 
         #  tekna u og v árðin vit hava tiki frequensarnir vekk og aftaná
         elif case == 'tidal_non_tidal_bins':
             a = tidal_non_tidal_bins(top_mid_bot_layer, date, datadf, dypir, mal=mal, lat=62, dest=dest)
-            file.write(a)
+            masterfile.write(a)
 
         elif case == 'sjovarfalsdrivi':
             a = tidaldomines(top_mid_bot_layer, date, datadf, dypir, lat=62, dest=dest)
-            file.write(a)
+            masterfile.write(a)
         else:
             print(case)
             mangullisti.append(case)
@@ -288,6 +323,6 @@ def skriva_doc(setup_dict, siduval_dict):
     print(mangullisti)
     #  enda texdocument
     if True:
-        file.write('\n\\end{document}')
-        file.close()
+        masterfile.write('\n\\end{document}')
+        masterfile.close()
         print('Done')

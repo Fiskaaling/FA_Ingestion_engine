@@ -82,10 +82,6 @@ def setupmetaframe(frame, setup_dict):
     meta['godkent'] = Entry(frame, width=100)
     meta['godkent'].grid(row=12, column=1)
 
-    Label(frame, text='Samandráttur').grid(row=13)
-    meta['samandr'] = Entry(frame, width=100)
-    meta['samandr'].grid(row=13, column=1)
-
     Label(frame, text='Leitiorð').grid(row=14)
     meta['leitiord'] = Entry(frame, width=100)
     meta['leitiord'].grid(row=14, column=1)

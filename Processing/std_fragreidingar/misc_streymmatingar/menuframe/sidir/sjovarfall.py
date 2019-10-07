@@ -6,6 +6,8 @@ import matplotlib.dates as mdate
 import matplotlib as mpl
 import utide
 
+from .misc import myprelabel
+
 #  TODO skriva framskriving ordiligt
 #def tegnahovmuller(data, dypid, dato, mal='FO', ratning=0, nrplots=11, figwidth=6, figheight=7.1,
                    #font=7, vmax=None, dest='', navn='Hovmuller.pdf', caption='caption',
@@ -84,7 +86,8 @@ def tidal_analysis_for_depth(tin, uin, vin, lat=62,
            '\n\\centering' \
            '\n\\input{Talvur/%s}' \
            '\n\\caption{%s}' \
-           '\n\\end{table}' % (label, navn, caption)
+           '\n%s' \
+           '\n\\end{table}' % (navn, caption, label)
 
 
 def tidal_analysis_for_depth_bins(bins, dato, datadf, dypir, mal='FO', lat=62,
@@ -94,14 +97,14 @@ def tidal_analysis_for_depth_bins(bins, dato, datadf, dypir, mal='FO', lat=62,
         if mal == 'EN':
             section = 'Tidal analysis for selected depths'
         else:
-            section = 'Tidal analysis for selected depths'
+            section = 'Sjóarfallsanalýsa fyri vald dýpi'
 
     out = '\n\\FloatBarrier\n\\newpage\n\\section{%s}\n' % (section,)
     for i, mytempbin in enumerate([bins[0], bins[-1]]):
         if i == 0:
-            prelabel = 'Surface layer'
+            prelabel = myprelabel(0)
         else:
-            prelabel = 'Bottom layer'
+            prelabel = myprelabel(3)
         u = datadf['mag' + str(mytempbin)].values * np.sin(np.deg2rad(datadf['dir' + str(mytempbin)].values))
         v = datadf['mag' + str(mytempbin)].values * np.cos(np.deg2rad(datadf['dir' + str(mytempbin)].values))
 
@@ -129,7 +132,7 @@ def tital_oll_dypir(dato, bins, Frqs, datadf, dypir, mal='FO', lat=62, verbose =
         if mal == 'EN':
             Section = 'Tidal variation with depth'
         else:
-            Section = 'Tidal variation with depth'
+            Section = 'Sjovarfalls broyting ígjøgnum dýpi'
     if caption == None:
         if mal == 'EN':
             caption='Harmonic constants for constituent '
@@ -180,10 +183,11 @@ def tital_oll_dypir(dato, bins, Frqs, datadf, dypir, mal='FO', lat=62, verbose =
         #  Úrslitinum
         if i % 2 == 0 and i != 0:
             out += '\n\\newpage'
-        out += '\n\\begin{table}[!ht]\\label{Tidalvar_%s}' % (frq,)
+        out += '\n\\begin{table}[!ht]'
         out += '\n\\centering'
         out += '\n\\input{Talvur/%s_%s.tex}' % (tabel_navn, frq)
         out += '\n\\caption{%s}' % (caption + frq + time,)
+        out += '\n\\label{Tidalvar_%s}' % (frq,)
         out += '\n\\end{table}'
     out += '\n\\newpage\n'
     return out
@@ -273,10 +277,11 @@ def tidal_non_tidal_bins(bins, dato, datadf, dypir, mal='FO',
 
         tidal_non_tidal_plot(dato, datadf['dir' + str(item)].values, datadf['mag' + str(item)].values, lat=lat, verbose=verbose,
                              figname=figname, dest=dest)
-        out += '\n\\begin{figure}[!ht]\\label{tidal_non%s}' % (item,)
+        out += '\n\\begin{figure}[!ht]'
         out += '\n\\centering'
         out += '\n\\includegraphics[scale=1]{myndir/%s}' % (figname,)
         out += '\n\\caption{%s}' % (caption,)
+        out += '\n\\label{tidal_non%s}' % (item,)
         out += '\n\\end{figure}'
         out += '\n\\newpage\n'
     return out
@@ -331,12 +336,13 @@ def tidaldomines(bins, dato, datadf, dypir, lat=62, verbose=True,
     caption = 'sjovarfalsdrivin'
     out = '\n\\FloatBarrier\n\\newpage'
     out += '\n\\section{sjovarfalsdrivin}'
-    out += '\n\\begin{table}[!ht]\\label{sjovarfalsdirvin}'
+    out += '\n\\begin{table}[!ht]'
     out += '\n\\centering'
     out += '\n\\resizebox{\\textwidth}{!}{'
     out += '\n\\input{Talvur/sjovarfalsdrivin.tex}'
     out += '\n}'
     out += '\n\\caption{%s}' % (caption,)
+    out += '\n\\label{sjovarfalsdirvin}'
     out += '\n\\end{table}'
     out += '\n\\newpage\n'
     return out

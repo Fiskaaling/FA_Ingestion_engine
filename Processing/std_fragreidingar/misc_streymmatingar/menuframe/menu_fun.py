@@ -71,4 +71,5 @@ def germetafilin(setup_dict, mynd):
         else:
             ini = meta[i].get()
         out += '\\def\\%s{%s}\n\n' % (i, ini)
+    out += '\\def\\samandr{\\input{texfilir/Samandrattur.tex}}'
     return out

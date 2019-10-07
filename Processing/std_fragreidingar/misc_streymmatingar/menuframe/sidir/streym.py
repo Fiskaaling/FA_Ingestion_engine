@@ -14,24 +14,7 @@ from matplotlib.colors import ListedColormap, BoundaryNorm
 from scipy.interpolate import griddata
 
 from .misc import minmaxvika
-
-def myprelabel(i, mal='FO'):
-    if i == 0:
-        if mal=='EN':
-            prelabel = 'a) Surface layer'
-        else:
-            prelabel = 'a) ovara lag'
-    elif i == 1:
-        if mal=='EN':
-            prelabel = 'b) Center layer'
-        else:
-            prelabel = 'b) miðlag'
-    else:
-        if mal=='EN':
-            prelabel = 'c) Bottom layer'
-        else:
-            prelabel = 'c) niðasta lag'
-    return prelabel
+from .misc import myprelabel
 
 def tegnahovmuller(data, dypid, dato, mal='FO', ratning=0, nrplots=11, figwidth=6, figheight=7.1,
                    font=7, vmax=None, dest='', navn='Hovmuller.pdf', caption='caption',
@@ -110,8 +93,9 @@ def tegnahovmuller(data, dypid, dato, mal='FO', ratning=0, nrplots=11, figwidth=
     mpl.rcParams['xtick.major.pad'] = 0
     fig.savefig(dest + 'myndir/' + navn, dpi=dpi)
     print('enda ' + navn)
-    return '\n\\FloatBarrier\n\\newpage\n\\section{%s}\n\\begin{figure}[h!]\\label{Hov%2.1f}\n\\includegraphics[scale=1]{myndir/%s}' \
-           '\n\\caption{%s}\n\\end{figure}\n\\newpage\n' % (section, ratning, navn, caption)
+    return '\n\\FloatBarrier\n\\newpage\n\\section{%s}\n\\begin{figure}[h!]' \
+           '\n\\includegraphics[scale=1]{myndir/%s}\n\\caption{%s}\n' \
+            '\\label{Hov%2.1f}\n\\end{figure}\n\\newpage\n' % (section, navn, caption, ratning)
 
 
 def speedbins(bins, dato, df, max_bin, dypir, minmax=False, dest='', dpi=200,
@@ -233,8 +217,9 @@ def speedbins_standard(bins, dato, df, dypir, mal='FO', dest='', dpi=200,
 
     plt.subplots_adjust(left=0.1, bottom=0.05, right=0.95, top=0.95, wspace=0.0, hspace=0.2)
     fig.savefig(dest + 'myndir/%s' % navn, dpi=dpi)
-    return '\n\\FloatBarrier\n\\newpage\n\\section{%s}\n\\begin{figure}[h!]\\label{speedbin}\n\\includegraphics[scale=1]{myndir/%s}' \
-           '\n\\caption{%s}\n\\end{figure}\n\\newpage\n' % (section, navn, caption)
+    return '\n\\FloatBarrier\n\\newpage\n\\section{%s}\n\\begin{figure}[h!]\n' \
+            '\\includegraphics[scale=1]{myndir/%s}\n\\caption{%s}\n' \
+            '\\label{speedbin}\n\\end{figure}\n\\newpage\n' % (section, navn, caption)
 
 
 def speedbins_minmax(bins, dato, df, max_bin, dypir, minmax=True, mal='FO', dest='', dpi=200,
@@ -322,7 +307,19 @@ def speedbins_minmax(bins, dato, df, max_bin, dypir, minmax=True, mal='FO', dest
         date_loc_3 = mdate.MinuteLocator(interval=int(np.ceil(60*24*tidarskeid/6)))
 
     for (i, item) in enumerate(bins):
-        prelabel = myprelabel(i, mal=mal)
+        if mal == 'EN':
+            prelabel = myprelabel(i, mal=mal)
+        else:
+            if i == 0:
+                prelabel = 'a) '
+            elif i == 1:
+                prelabel = 'b) '
+            else:
+                prelabel = 'c) '
+            temp = bins[i]
+            if temp == '10m':
+                temp = 10
+            prelabel += '%2.0f' % temp
 
         midaltid1 = dato[max_v]
         midaltid2 = dato[min_v]
@@ -378,6 +375,7 @@ def speedbins_minmax(bins, dato, df, max_bin, dypir, minmax=True, mal='FO', dest
                       % (10,
                          -dypir[bins[1] - 1],
                          -dypir[bins[2] - 1])
+            caption = 3 * [caption]
         else:
             caption = 'Timeseries of speed at three selected bins:' \
                     'a) %2.0f m depth, b) %2.0f m depth' \
@@ -385,22 +383,32 @@ def speedbins_minmax(bins, dato, df, max_bin, dypir, minmax=True, mal='FO', dest
                       % (-dypir[bins[0] - 1],
                          -dypir[bins[1] - 1],
                          -dypir[bins[2] - 1])
+            caption = 3 * [caption]
     else:
-        if bins[0] == '10m':
-            caption = 'Streymferð á trimum valdum dýpum frá øllum mátitíðarskeiðnum.' \
-                    'a) %2.0f m depth, b) %2.0f m depth' \
-                      ' and c) %2.0f m depth.' \
-                      % (10,
-                         -dypir[bins[1] - 1],
-                         -dypir[bins[2] - 1])
-
-        else:
-            caption = 'Streymferð á trimum valdum dýpum frá øllum mátitíðarskeiðnum.' \
-                    'a) %2.0f m depth, b) %2.0f m depth' \
-                      ' and c) %2.0f m depth.' \
-                      % (-dypir[bins[0] - 1],
-                         -dypir[bins[1] - 1],
-                         -dypir[bins[2] - 1])
+        # TODO hettar skal vekk so skjótt eg finni útav at leisinin er góð nokk
+        #if bins[0] == '10m':
+        #    caption = 'Streymferð á trimum valdum dýpum frá øllum mátitíðarskeiðnum.' \
+        #            'a) %2.0f m depth, b) %2.0f m depth' \
+        #              ' and c) %2.0f m depth.' \
+        #              % (10,
+        #                 -dypir[bins[1] - 1],
+        #                 -dypir[bins[2] - 1])
+        # 
+        #else:
+        #    caption = 'Streymferð á trimum valdum dýpum frá øllum mátitíðarskeiðnum.' \
+        #            'a) %2.0f m depth, b) %2.0f m depth' \
+        #              ' and c) %2.0f m depth.' \
+        #              % (-dypir[bins[0] - 1],
+        #                 -dypir[bins[1] - 1],
+        #                 -dypir[bins[2] - 1])
+        #  TODO skriva mynd 4 sum ein ref
+        caption = ['Streymferð á trimum valdum dýpum frá øllum mátitíðarskeiðnum.'\
+                   ' Reyði kassin vísir vikuna við harðasta streymi og'\
+                   ' grøni kassin vísir vikuna við veikasta streymi.',
+                   'Streymferð á trimum valdum dýpum ta vikuna'\
+                   'streymurin var harðastur (reyði kassin á mynd 4)',
+                   'Streymferð á trimum valdum dýpum ta vikuna'\
+                   ' streymurin var veikastur (grøni kassin á mynd 4)']
 
     for i,item in enumerate(bins):
         axs[i].xaxis.set_major_formatter(date_fmt)
@@ -425,14 +433,20 @@ def speedbins_minmax(bins, dato, df, max_bin, dypir, minmax=True, mal='FO', dest
     if mal =='EN':
         subsections = ['high current', 'low current']
     else:
-        subsections = ['Høgur streymur', 'Lágur streymur']
+        subsections = ['Harður streymur', 'Veikur streymur']
     out = ''
-    out += '\n\\FloatBarrier\n\\newpage\n\\section{%s}\n\\begin{figure}[h!]\\label{speedbin}\n\\includegraphics[scale=1]{myndir/%s}' \
-            '\n\\caption{%s}\n\\end{figure}\n\\newpage\n' % (section, navn, caption)
-    out += '\n\\FloatBarrier\n\\newpage\n\\subsection{%s}\n\\begin{figure}[h!]\\label{speedbin}\n\\includegraphics[scale=1]{myndir/%s}' \
-            '\n\\caption{%s}\n\\end{figure}\n\\newpage\n' % (subsections[0], 'high_' + navn, caption)
-    out += '\n\\FloatBarrier\n\\newpage\n\\subsection{%s}\n\\begin{figure}[h!]\\label{speedbin}\n\\includegraphics[scale=1]{myndir/%s}' \
-            '\n\\caption{%s}\n\\end{figure}\n\\newpage\n' % (subsections[1], 'low_' + navn, caption)
+    out += '\n\\FloatBarrier\n\\newpage\n\\section{%s}\n'\
+            '\\begin{figure}[h!]\n\\includegraphics[scale=1]{myndir/%s}' \
+            '\n\\caption{%s}\n\\label{speedbin}\n\\end{figure}\n\\newpage'\
+            '\n' % (section, navn, caption[0])
+    out += '\n\\FloatBarrier\n\\newpage\n\\subsection{%s}\n'\
+            '\\begin{figure}[h!]\n\\includegraphics[scale=1]{myndir/%s}' \
+            '\n\\caption{%s}\n\\label{speedbin_high}\n\\end{figure}\n'\
+            '\\newpage\n' % (subsections[0], 'high_' + navn, caption[1])
+    out += '\n\\FloatBarrier\n\\newpage\n\\subsection{%s}\n'\
+            '\\begin{figure}[h!]\n\\includegraphics[scale=1]{myndir/%s}' \
+            '\n\\caption{%s}\n\\label{speedbin_low}\n\\end{figure}\n\\newpage'\
+            '\n' % (subsections[1], 'low_' + navn, caption[2])
     return out
 
 
@@ -529,10 +543,12 @@ def speedbins_hovus(bins, dato, df, dypir, mal='FO', dest='', dpi=200, hovusratn
 
 
 
-    plt.subplots_adjust(left=0.1, bottom=0.05, right=0.95, top=0.95, wspace=0.0, hspace=0.2)
+    plt.subplots_adjust(left=0.02, bottom=0.05, right=0.95, top=0.95, wspace=0.0, hspace=0.2)
     fig.savefig(dest + 'myndir/%s' % navn, dpi=dpi)
-    return '\n\\FloatBarrier\n\\newpage\n\\section{%s}\n\\begin{figure}[h!]\\label{speedbin}\n\\includegraphics[scale=1]{myndir/%s}' \
-           '\n\\caption{%s}\n\\end{figure}\n\\newpage\n' % (section, navn, caption)
+    return '\n\\FloatBarrier\n\\newpage\n\\section{%s}\n\\begin{figure}[h!]' \
+            '\n\\includegraphics[scale=1]{myndir/%s}' \
+           '\n\\caption{%s}\n\\label{speedbin_hovus}\n' \
+            '\\end{figure}\n\\newpage\n' % (section, navn, caption)
 
 
 def pre_plotrose(N, umax, Es, Ns):
@@ -723,8 +739,9 @@ def tekna_dist_rose(bins, data, N, umax, dypir, mal='FO', dest='LaTeX/', dpi=200
     plt.gca().set_aspect('equal', adjustable='box')
     plt.subplots_adjust(left=0.05, bottom=0.05, right=0.95, top=0.95, wspace=0.0, hspace=0.5)
     fig.savefig(dest + 'myndir/' + navn)
-    return '\n\\FloatBarrier\n\\newpage\n\\section{%s}\n\\begin{figure}[h!]\\label{rose}\n\\includegraphics[scale=1]{myndir/%s}' \
-           '\n\\caption{%s}\n\\end{figure}\n\\newpage\n' % (section, navn, caption)
+    return '\n\\FloatBarrier\n\\newpage\n\\section{%s}\n\\begin{figure}[h!]\n' \
+            '\\includegraphics[scale=1]{myndir/%s}\n\\caption{%s}\n\\label{rose}\n' \
+            '\\end{figure}\n\\newpage\n' % (section, navn, caption)
 
 
 def progressive_vector(bins, dato, uvdf, dypir, mal='FO', dest='LaTeX/', dpi=200,
@@ -766,7 +783,7 @@ def progressive_vector(bins, dato, uvdf, dypir, mal='FO', dest='LaTeX/', dpi=200
 
     def fmt(n, midfun=tempfun):
         def fun(x, pos):
-            if pos in [0, n-1]:
+            if pos in [0, n]:
                 return mdate.num2date(x).strftime('%d %b-%y\n   %H:%M')
             return midfun(x)
         return fun
@@ -1129,7 +1146,8 @@ def progressive_vector(bins, dato, uvdf, dypir, mal='FO', dest='LaTeX/', dpi=200
         glymin = max(ymin, glymin)
 
     cb = fig.colorbar(line, ax=axs,
-                      format=mpl.ticker.FuncFormatter(fmt(len(bounds) - 1, cm_tick_label)))
+                      format=mpl.ticker.FuncFormatter(fmt(len(bounds), cm_tick_label)))
+    cb.set_ticks(bounds)
     axs.legend()
     axs.set_xlim(xmin, xmax)
     axs.set_ylim(ymin, ymax)
@@ -1170,8 +1188,9 @@ def progressive_vector(bins, dato, uvdf, dypir, mal='FO', dest='LaTeX/', dpi=200
                          -dypir[bins[1] - 1],
                          -dypir[bins[2] - 1])
 
-    return '\n\\FloatBarrier\n\\newpage\n\\section{%s}\n\\begin{figure}[h!]\\label{PVD}\n\\includegraphics[scale=1]{myndir/%s}' \
-           '\n\\caption{%s}\n\\end{figure}\n\\newpage\n' % (section, navn, caption)
+    return '\n\\FloatBarrier\n\\newpage\n\\section{%s}\n\\begin{figure}[h!]\n' \
+            '\\includegraphics[scale=1]{myndir/%s}\n\\caption{%s}\n\\label{PVD}\n' \
+            '\\end{figure}\n\\newpage\n' % (section, navn, caption)
 
 
 def frequencytabellir(datadf, dypir, mal='FO', dest='LaTeX/',
@@ -1196,9 +1215,15 @@ def frequencytabellir(datadf, dypir, mal='FO', dest='LaTeX/',
     infospeed = [str(x) for x in [50, 100, 150, 200, 250, 350, 400, 450, 500, 600, 700, 800, 900, 1000, 1500]]
     inforows += infospeed
     #  gera klárt til tabellina
-    highstr = '\\begin{tabular}{|' + len(inforows)*'r|' + '}\n\\hline\n Bin&\tDepth&\t' \
-                                                          '\multicolumn{%s}{c|}{Speed [mm/s]}\\\\\\hline\n'\
-              % (len(inforows)-2,)
+    if mal =='EN':
+        speed = 'Speed'
+        tempdepth = 'Depth'
+    else:
+        speed = 'Ferð'
+        tempdepth = 'Djúbd'
+    highstr = '\\begin{tabular}{|' + len(inforows)*'r|' + \
+            '}\n\\hline\n Bin&\t%s&\t\multicolumn{%s}{c|}{%s [mm/s]}\\\\\\hline\n'\
+              % (tempdepth, len(inforows)-2, speed)
     highstr += inforows[0].rjust(4)
     for x in inforows[1::]:
         highstr += '&\t' + x.rjust(4)
@@ -1264,11 +1289,12 @@ def frequencytabellir(datadf, dypir, mal='FO', dest='LaTeX/',
 
     return '\n\\FloatBarrier\n\\newpage' \
            '\n\\section{%s}' \
-           '\n\\begin{table}[h!]\\label{high_spd}' \
+           '\n\\begin{table}[h!]' \
            '\n\\resizebox{\\textwidth}{!}{' \
            '\n\\input{Talvur/high_%s}' \
            '\n}' \
            '\n\\caption{%s}' \
+           '\n\\label{high_spd}' \
            '\n\\end{table}' \
            '\n\\newpage\n' % (sections, navn, caption)
 
@@ -1333,7 +1359,10 @@ def duration_speed(bins, dato, magdf, dypir, mal='FO', dest='LaTeX/',
                         tabell[s][d] += 1
         #  skriva tex tabell
         texstr = '\\begin{tabular}{|' + (1 + len(duration))*'r|' + '}\n'
-        texstr += '\\hline\nSpeed&\t\\multicolumn{%s}{c|}{Duration (minutes)}\\\\\\hline\n' % (len(duration),)
+        if mal == 'EN':
+            texstr += '\\hline\nSpeed&\t\\multicolumn{%s}{c|}{Duration (minutes)}\\\\\\hline\n' % (len(duration),)
+        else:
+            texstr += '\\hline\nFerð&\t\\multicolumn{%s}{c|}{Viðstøða (minutes)}\\\\\\hline\n' % (len(duration),)
         texstr += 'mm/s'
         for x in duration:
             texstr += '&\t' + str(x).rjust(4)
@@ -1356,7 +1385,7 @@ def duration_speed(bins, dato, magdf, dypir, mal='FO', dest='LaTeX/',
 
         prelabel = myprelabel(rekkja_i_bin, mal=mal)
 
-        filnovn.append(prelabel.replace(' ', '_') + '_' + navn)
+        filnovn.append(prelabel.replace(' ', '_').replace('ð', 'd') + '_' + navn)
         texfil = open(dest + 'Talvur/' + filnovn[-1], 'w')
         texfil.write(texstr)
         texfil.close()
@@ -1366,44 +1395,54 @@ def duration_speed(bins, dato, magdf, dypir, mal='FO', dest='LaTeX/',
             tempdypid = -dypir[item - 1]
 
         if mal == 'EN':
-            caption.append('at %2.0fm depth'
-                           % (tempdypid,))
+            caption.append('%s - %2.0fm'
+                           % (prelabel, tempdypid))
         else:
-            caption.append('á %2.0fm dýpið'
-                           % (tempdypid,))
+            caption.append('%s - %2.0fm'
+                           % (prelabel, tempdypid))
         label.append('\\label{Dur_%s}' % (item,))
 
+    for i, item in enumerate(caption):
+        temp = item.split(')')[1]
+        caption[i] = temp
     if mal == 'EN':
         forklarandi_tekstur = 'Occurrence (in parts per thousand) of contiguous periods longer than or equal to ' \
            'specified duration with speeds equal to or exceeding specified threshold values (Speed). ' \
            'Flagged ensembles are ignored.'
     else:
-        forklarandi_tekstur = 'Partur av samanhangandi mátingum (í promillu),' \
+        forklarandi_tekstur = 'Partur av samanhangandi tíð (í promillu),' \
                 ' ið hava verði longri enn givna tíðarskeiði við hægri enn givnu streymferð.'
-    return '\n\\FloatBarrier\n\\newpage' \
-           '\n\\section{%s}' \
-           '\n%s' \
-           '\n\\begin{table}[h!]' \
-           '\n\\centering' \
-           '\n\\resizebox{!}{3cm}{' \
-           '\n\\input{Talvur/%s}' \
-           '\n}' \
-           '\n\\caption{%s}' \
-           '\n\\end{table}' \
-           '\n\n\\vspace{-1cm}\n' \
-           '\n\\begin{table}[h!]' \
-           '\n\\centering' \
-           '\n\\resizebox{!}{3cm}{' \
-           '\n\\input{Talvur/%s}' \
-           '\n}' \
-           '\n\\caption{%s}' \
-           '\n\\end{table}' \
-           '\n\n\\vspace{-1cm}\n' \
-           '\n\\begin{table}[h!]' \
-           '\n\\centering' \
-           '\n\\resizebox{!}{3cm}{' \
-           '\n\\input{Talvur/%s}' \
-           '\n}' \
-           '\n\\caption{%s}' \
-           '\n\\end{table}' \
-           '\n\\newpage\n' % (section, forklarandi_tekstur, filnovn[0], caption[0], filnovn[1], caption[1], filnovn[2], caption[2])
+        forklarandi_tekstur = 'Partur av mátingunum/tíð ( í promillu) har streymferðin'\
+                'áhaldandi hevur verið hægri enn streymferðina sum er lýst í fyrstu kolonnu'\
+                'í longri enn tíðarskeiðið (minuttir) sum er lýst í aðru rekkju.'
+
+    out = '\n\\FloatBarrier\n\\newpage'
+    out += '\n\\section{%s}' % section
+    out += '\n\\begin{table}[h!]'
+    out += '\n\\begin{subtable}{\\textwidth}'
+    out += '\n'
+    out += '\n\\centering'
+    out += '\n\\resizebox{!}{29mm}{'
+    out += '\n\\input{Talvur/%s}' % filnovn[0]
+    out += '\n}'
+    out += '\n\\caption{%s}' % caption[0]
+    out += '\n\\end{subtable}'
+    out += '\n\\begin{subtable}{\\textwidth}'
+    out += '\n\\centering'
+    out += '\n\\resizebox{!}{29mm}{'
+    out += '\n\\input{Talvur/%s}' % filnovn[1]
+    out += '\n}'
+    out += '\n\\caption{%s}' % caption[1]
+    out += '\n\\end{subtable}'
+    out += '\n\\begin{subtable}{\\textwidth}'
+    out += '\n\\centering'
+    out += '\n\\label{samanhangandi}'
+    out += '\n\\resizebox{!}{29mm}{'
+    out += '\n\\input{Talvur/%s}' % filnovn[2]
+    out += '\n}'
+    out += '\n\\caption{%s}' % caption[2]
+    out += '\n\\end{subtable}'
+    out += '\n\\caption{%s}' % forklarandi_tekstur
+    out += '\n\\end{table}'
+    out += '\n\\newpage\n\\FloatBarrier\n'
+    return out

@@ -31,3 +31,22 @@ def minmaxvika(df, max_bin, longd = 6*12*7):
     min_v = np.argmin([np.average(mylist[x:x+longd]) for x in
                       range(100, len(mylist) - longd + 1 - 100)]) + longd
     return max_v, min_v
+
+
+def myprelabel(i, mal='FO'):
+    if i == 0:
+        if mal=='EN':
+            prelabel = 'a) Surface layer'
+        else:
+            prelabel = 'a) ovara lag'
+    elif i == 1:
+        if mal=='EN':
+            prelabel = 'b) Center layer'
+        else:
+            prelabel = 'b) miðlag'
+    else:
+        if mal=='EN':
+            prelabel = 'c) Bottom layer'
+        else:
+            prelabel = 'c) niðasta lag'
+    return prelabel
