@@ -408,7 +408,7 @@ def speedbins_minmax(bins, dato, df, max_bin, dypir, minmax=True, mal='FO', dest
                    ' Reyði kassin vísir vikuna við harðasta streymi og'\
                    ' grøni kassin vísir vikuna við veikasta streymi.',
                    'Streymferð á trimum valdum dýpum vikuna við harðasta rákið ' \
-                   '(reyði kassin á mynd~\\ref{speedbin)',
+                   '(reyði kassin á mynd~\\ref{speedbin}',
                    'Streymferð á trimum valdum dýpum vikuna við harðasta rákið ' \
                    '(grøni kassin á mynd~\\ref{speedbin})']
 
@@ -1007,7 +1007,7 @@ def progressive_vector(bins, dato, uvdf, dypir, mal='FO', dest='LaTeX/', dpi=200
         temp = interval[1]
         if temp.weekday() < 3:
             myend = temp - dt.timedelta(7 + temp.weekday())
-            myend = [myend.year, myend.month, start.day]
+            myend = [myend.year, myend.month, myend.day]
         else:
             myend = temp - dt.timedelta(temp.weekday())
             myend = [myend.year, myend.month, myend.day]

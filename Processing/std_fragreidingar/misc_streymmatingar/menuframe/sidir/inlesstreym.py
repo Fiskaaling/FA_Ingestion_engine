@@ -94,8 +94,12 @@ def inles(path_to_data, dictionary=False):
         s = (-10 - tempdypir[j]) / (tempdypir[j-1] - tempdypir[j])
 
         #  rokna og set inn í tiggju_u og tiggju_v
-        tempu = s * uvdatadf['u%s' % str(j)][i] + (1-s) * uvdatadf['u%s' % str(j+1)][i]
-        tempv = s * uvdatadf['v%s' % str(j)][i] + (1-s) * uvdatadf['v%s' % str(j+1)][i]
+        if j > 0:
+            tempu = s * uvdatadf['u%s' % str(j)][i] + (1-s) * uvdatadf['u%s' % str(j+1)][i]
+            tempv = s * uvdatadf['v%s' % str(j)][i] + (1-s) * uvdatadf['v%s' % str(j+1)][i]
+        else:
+            tempu = uvdatadf['u%s' % str(1)][i]
+            tempv = uvdatadf['v%s' % str(1)][i]
         tiggju_u.append(tempu)
         tiggju_v.append(tempv)
         #  rokna og set inn í tiggju_mag og tiggju_dir
