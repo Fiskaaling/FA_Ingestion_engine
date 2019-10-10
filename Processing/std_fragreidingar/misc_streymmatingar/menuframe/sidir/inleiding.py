@@ -9,17 +9,19 @@ def gersamadratt(datadf, uvdatadf, dypir, max_bin, date, dest='LaTeX/', lat=62,
                  dpi=200, font=7, figwidth=6, figheight=3):
 
     #  TODO finn hattar 27 tali
-    caption = 'Býti av streymferð niður gjøgnum dýpi.' \
-            ' Dýpi er á x-ásini og streymferð er á y-ásini.'\
-            ' Hvør súla vísir býtið av streymferðini á einum dýpi.'\
-            ' Tær óskavaðu súlurnar vísa máld virði og'\
-            ' tær skavaðu vísa sjóvarfallseffektina roknaða frá mátingunum.'\
-            ' Litirnir vísa brøkpartin av mátingunum har streymferðin'\
-            ' er minni enn ferðina á y-ásini.'\
-            ' T.d. vísir myndin, at á 27 m dýpi er streymferðin'\
-            ' í 75\\% av mátingunum minni enn \\SI{300}{mm/s}.'
-    out = ''
-    out += intro_bar(datadf, max_bin, dypir, dest=dest, figheight=figheight,
+    #caption = 'Býti av streymferð niður gjøgnum dýpi.' \
+    #        ' Dýpi er á x-ásini og streymferð er á y-ásini.'\
+    #        ' Hvør súla vísir býtið av streymferðini á einum dýpi.'\
+    #        ' Tær óskavaðu súlurnar vísa máld virði og'\
+    #        ' tær skavaðu vísa sjóvarfallseffektina roknaða frá mátingunum.'\
+    #        ' Litirnir vísa brøkpartin av mátingunum har streymferðin'\
+    #        ' er minni enn ferðina á y-ásini.'\
+    #        ' T.d. vísir myndin, at á 27 m dýpi er streymferðin'\
+    #        ' í 75\\% av mátingunum minni enn \\SI{300}{mm/s}.'
+    caption = 'ratta meg'
+    out = '\\newpage\n'
+    out = '\\section{Býti av streymferð á ymsum dýpum}'
+    out += intro_bar(datadf, max_bin, dypir, caption=caption, dest=dest, figheight=figheight,
                     max_sj=True, uvdata=uvdatadf, date=date)
     return out
 
@@ -179,9 +181,10 @@ def intro_bar(datadf, max_bin, dypir, navn='intro_bar.pdf', dest='LaTeX/',
 
     out = ''
     out += '\n\\FloatBarrier\n'
-    out += '\\begin{figure}[h!]%s\n' % label
+    out += '\\begin{figure}[h!]\n'
     out += '\\includegraphics[scale=1]{myndir/%s}\n' % navn
     out += '\\caption{%s}' % caption
+    out += '%s\n' % label
     out += '\n\\end{figure}\n'
     out += '\\newpage\n'
 

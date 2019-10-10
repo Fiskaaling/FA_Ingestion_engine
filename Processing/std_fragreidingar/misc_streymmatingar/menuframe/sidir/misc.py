@@ -38,15 +38,15 @@ def myprelabel(i, mal='FO'):
         if mal=='EN':
             prelabel = 'a) Surface layer'
         else:
-            prelabel = 'a) ovara lag'
+            prelabel = 'a) Ovara lag'
     elif i == 1:
         if mal=='EN':
             prelabel = 'b) Center layer'
         else:
-            prelabel = 'b) miðlag'
+            prelabel = 'b) Miðlag'
     else:
         if mal=='EN':
             prelabel = 'c) Bottom layer'
         else:
-            prelabel = 'c) niðasta lag'
+            prelabel = 'c) Niðasta lag'
     return prelabel

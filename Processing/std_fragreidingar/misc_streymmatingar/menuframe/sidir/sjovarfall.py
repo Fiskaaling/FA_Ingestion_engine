@@ -82,7 +82,7 @@ def tidal_analysis_for_depth(tin, uin, vin, lat=62,
 
     caption += ' Reftime = %s' % reftime
 
-    return '\n\\begin{table}[!ht]%s' \
+    return '\n\\begin{table}[!ht]' \
            '\n\\centering' \
            '\n\\input{Talvur/%s}' \
            '\n\\caption{%s}' \
@@ -114,9 +114,9 @@ def tidal_analysis_for_depth_bins(bins, dato, datadf, dypir, mal='FO', lat=62,
             tempdypid = -dypir[mytempbin - 1]
 
         if mal == 'EN':
-            caption = '%s, bin no: %s. at %2.0fm Depth' % (prelabel, mytempbin, tempdypid)
+            caption = '%s, bin no: %s. at %2.0f m Depth' % (prelabel, mytempbin, tempdypid)
         else:
-            caption = '%s, bin no: %s. at %2.0fm Depth' % (prelabel, mytempbin, tempdypid)
+            caption = '%s. á %2.0f m Dýpið' % (prelabel.split(')')[-1], tempdypid)
         out += tidal_analysis_for_depth(np.array(dato), u, v, lat=lat,
                                      navn='tide%s.tex' % (mytempbin,), caption=caption, dest=dest,
                                      label='\\label{tidal_bin%s}' % (mytempbin,))
@@ -273,7 +273,8 @@ def tidal_non_tidal_bins(bins, dato, datadf, dypir, mal='FO',
         if mal == 'EN':
             caption = '%s bin %s at %3.0f m' % (prelabel, item, tempdypid)
         else:
-            caption = '%s bin %s at %3.0f m' % (prelabel, item, tempdypid)
+            caption = 'Mátað og rokna streymferð á %2.0f m dýpið ' \
+                    'í Norður og Eystur ættina undir mátitíðarskeiðinum.' % (tempdypid,)
 
         tidal_non_tidal_plot(dato, datadf['dir' + str(item)].values, datadf['mag' + str(item)].values, lat=lat, verbose=verbose,
                              figname=figname, dest=dest)

@@ -319,7 +319,9 @@ def speedbins_minmax(bins, dato, df, max_bin, dypir, minmax=True, mal='FO', dest
             temp = bins[i]
             if temp == '10m':
                 temp = 10
-            prelabel += '%2.0f' % temp
+            else:
+                temp = -dypir[temp-1]
+            prelabel += '%2.0fm' % temp
 
         midaltid1 = dato[max_v]
         midaltid2 = dato[min_v]
@@ -405,10 +407,10 @@ def speedbins_minmax(bins, dato, df, max_bin, dypir, minmax=True, mal='FO', dest
         caption = ['Streymferð á trimum valdum dýpum frá øllum mátitíðarskeiðnum.'\
                    ' Reyði kassin vísir vikuna við harðasta streymi og'\
                    ' grøni kassin vísir vikuna við veikasta streymi.',
-                   'Streymferð á trimum valdum dýpum ta vikuna'\
-                   'streymurin var harðastur (reyði kassin á mynd 4)',
-                   'Streymferð á trimum valdum dýpum ta vikuna'\
-                   ' streymurin var veikastur (grøni kassin á mynd 4)']
+                   'Streymferð á trimum valdum dýpum vikuna við harðasta rákið ' \
+                   '(reyði kassin á mynd~\\ref{speedbin)',
+                   'Streymferð á trimum valdum dýpum vikuna við harðasta rákið ' \
+                   '(grøni kassin á mynd~\\ref{speedbin})']
 
     for i,item in enumerate(bins):
         axs[i].xaxis.set_major_formatter(date_fmt)
@@ -451,7 +453,7 @@ def speedbins_minmax(bins, dato, df, max_bin, dypir, minmax=True, mal='FO', dest
 
 
 def speedbins_hovus(bins, dato, df, dypir, mal='FO', dest='', dpi=200, hovusratningur=0,
-              navn='Hovus_speedbin.pdf', section='Streymur í høvusratning',
+              navn='Hovus_speedbin.pdf', section='Streymur í høvusrætning',
               font=7, figwidth=6, figheight=7.1):
     """
         teknar magdataði fyri 3 dypir
@@ -525,17 +527,18 @@ def speedbins_hovus(bins, dato, df, dypir, mal='FO', dest='', dpi=200, hovusratn
                          -dypir[bins[2] - 1])
     else:
         if bins[0] == '10m':
-            caption = 'Streymferð í Høvusratning (%3.0f°), á trimum valdum dýpum frá øllum mátitíðarskeiðnum.' \
-                    'a) %2.0f m depth, b) %2.0f m depth' \
-                      ' and c) %2.0f m depth.' \
+            caption = 'Streymferð í Høvusrætning (%3.0f°), á trimum valdum ' \
+                    'dýpum frá øllum mátitíðarskeiðnum.' \
+                    'a) %2.0f m dýpið, b) %2.0f m dýpið' \
+                      ' og c) %2.0f m dýpið.' \
                       % (hovusratningur,
                          10,
                          -dypir[bins[1] - 1],
                          -dypir[bins[2] - 1])
         else:
-            caption = 'Streymferð í Høvusratning (%3.0f°), á trimum valdum dýpum frá øllum mátitíðarskeiðnum.' \
-                    'a) %2.0f m depth, b) %2.0f m depth' \
-                      ' and c) %2.0f m depth.' \
+            caption = 'Streymferð í Høvusrætning (%3.0f°), á trimum valdum dýpum frá øllum mátitíðarskeiðnum.' \
+                    'a) %2.0f m dýpið, b) %2.0f m dýpið' \
+                      ' og c) %2.0f m dýpið.' \
                       % (hovusratningur,
                          -dypir[bins[0] - 1],
                          -dypir[bins[1] - 1],
@@ -543,7 +546,7 @@ def speedbins_hovus(bins, dato, df, dypir, mal='FO', dest='', dpi=200, hovusratn
 
 
 
-    plt.subplots_adjust(left=0.02, bottom=0.05, right=0.95, top=0.95, wspace=0.0, hspace=0.2)
+    plt.subplots_adjust(left=0.12, bottom=0.05, right=0.95, top=0.95, wspace=0.0, hspace=0.2)
     fig.savefig(dest + 'myndir/%s' % navn, dpi=dpi)
     return '\n\\FloatBarrier\n\\newpage\n\\section{%s}\n\\begin{figure}[h!]' \
             '\n\\includegraphics[scale=1]{myndir/%s}' \
@@ -1436,11 +1439,11 @@ def duration_speed(bins, dato, magdf, dypir, mal='FO', dest='LaTeX/',
     out += '\n\\end{subtable}'
     out += '\n\\begin{subtable}{\\textwidth}'
     out += '\n\\centering'
-    out += '\n\\label{samanhangandi}'
     out += '\n\\resizebox{!}{29mm}{'
     out += '\n\\input{Talvur/%s}' % filnovn[2]
     out += '\n}'
     out += '\n\\caption{%s}' % caption[2]
+    out += '\n\\label{samanhangandi}'
     out += '\n\\end{subtable}'
     out += '\n\\caption{%s}' % forklarandi_tekstur
     out += '\n\\end{table}'
