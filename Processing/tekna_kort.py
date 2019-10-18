@@ -415,8 +415,8 @@ def les_og_tekna(text, fig, canvas, silent=False):
                         lis = [float(y) for x in f for y in x.split()]
                     D_lon = np.array(lis[0: i * j]).reshape((j, i))  # first  i*j instances
                     D_lat = np.array(lis[i * j: i * j * 2]).reshape((j, i))  # second i*j instances
-                    ax.scatter(D_lon, D_lat, zorder=100, color=scatter_farv, label=scatter_legend, s=scatter_std,
-                               marker=scatter_MarkerStyle)
+                    #ax.scatter(D_lon, D_lat, zorder=100, color=scatter_farv, label=scatter_legend, s=scatter_std,
+                    #           marker=scatter_MarkerStyle)
                     D_dep = np.array(lis[i * j * 2: i * j * 3]).reshape((j, i))  # third  i*j instances
                     pda=[]
                     plon=[]
@@ -445,6 +445,7 @@ def les_og_tekna(text, fig, canvas, silent=False):
                     csvData_heilt = pd.read_csv(command[toindex::])
                 csvData = csvData_heilt
                 rows_to_drop = []
+                print('Tal av punktum áðrenn rudding: ' + str(len(csvData)))
                 for row in range(len(csvData)-1, 0, -1):
                     if float(csvData.iloc[row, 0]) > (lonmax+0.05):
                         rows_to_drop.append(row)
@@ -454,8 +455,8 @@ def les_og_tekna(text, fig, canvas, silent=False):
                         rows_to_drop.append(row)
                     elif float(csvData.iloc[row, 1]) < (latmin-0.05):
                         rows_to_drop.append(row)
-                csvData = csvData.drop(rows_to_drop)
-                print(len(csvData))
+                #csvData = csvData.drop(rows_to_drop) # TODO: Útkommentera hettar
+                print('Tal av punktum aftaná rudding: ' + str(len(csvData)))
                 btn_lon = csvData['lon']
                 btn_lat = csvData['lat']
                 dypid = csvData['d']
@@ -497,7 +498,7 @@ def les_og_tekna(text, fig, canvas, silent=False):
                         lat_out.append(btn_lat.iloc[i])
                         lon_out.append(btn_lon.iloc[i])
                 out_data = pd.DataFrame({'lon': lon_out, 'lat': lat_out})
-                out_data.to_csv('btn_finn_int.csv')
+                out_data.to_csv('btn_finn_int.csv', index=False)
             elif variable == 'btn_interpolation':
                 btn_interpolation = command[toindex::]
             elif variable == 'btn_track':
@@ -583,7 +584,8 @@ def les_og_tekna(text, fig, canvas, silent=False):
                             ax.text(line_x[i], line_y[i], lables[i], horizontalalignment='left', zorder=1000000)
                     else:
                         if Samla:
-                            ax.scatter(line_x, line_y, zorder=100, color=scatter_farv, label=scatter_legend, s=scatter_std, marker=scatter_MarkerStyle, size = textsize)
+                            ax.scatter(line_x, line_y, zorder=100, color=scatter_farv, label=scatter_legend, s=scatter_std, marker=scatter_MarkerStyle)
+
                         else:
                             lables = scatterData['legend'].values
                             for i in range(len(line_x)):
@@ -796,12 +798,10 @@ def les_og_tekna(text, fig, canvas, silent=False):
                 #grid_z0 = interpolate.interp2d(btn_x, btn_y, dypid.values, kind='cubic')
                 vmin = min(-70, min([-y for x in grid_z0 for y in x]))
                 vmin = min([-y for x in grid_z0 for y in x])
-                #vmin = 30 # og hetta
-                #vmax = 36 # Sletta hettar!
+                lv = list(frange(int(vmin/temp)*temp, float(btn_striku_hvor), float(btn_striku_hvor)))
                 lv = np.round(list(frange(vmin, 0, float(btn_striku_hvor))), 3)
                 print(lv)
                 #lv = list(frange(int(vmin/btn_striku_hvor)*btn_striku_hvor, int(btn_striku_hvor), int(btn_striku_hvor)))
-
                 if renderengine == '3D_botn':
                     cmap = plt.cm.viridis
                     for i in range(250, 256):
@@ -821,7 +821,7 @@ def les_og_tekna(text, fig, canvas, silent=False):
                     v2 = max([y for x in grid_z0 for y in x])
                     ax.set_aspect(scalefactor * v2 / v1)
                 else:
-                    c = ax.contourf(meshgridx, meshgridy, grid_z0, lv, transform=ccrs_projection)
+                    c = ax.contourf(meshgridx, meshgridy, -grid_z0, lv, transform=ccrs_projection)
                     ax.clabel(c, inline=1, fontsize=15, fmt='%2.0f')
                     #fig.colorbar(c)
                     if vmin >= -150:
@@ -831,6 +831,7 @@ def les_og_tekna(text, fig, canvas, silent=False):
                     #fig.colorbar(c, orientation='horizontal', ax=ax, ticks=confti, pad=0.02)
                     fig.colorbar(c, ax=ax, pad=0.02)
             elif command == 'btn_contour':
+                print('Number of points: ' + str(btn_lon.values) + ' ' + str(btn_lat.values) + ' ' + str(dypid.values))
                 grid_z0 = griddata((btn_lon.values, btn_lat.values), dypid.values, (meshgridx, meshgridy), method=btn_interpolation)
                 vmin = min(-70, min([-y for x in grid_z0 for y in x]))
                 temp = btn_striku_hvor
@@ -877,7 +878,6 @@ def les_og_tekna(text, fig, canvas, silent=False):
             text.tag_delete(tag)
         #text.tag_add('alt', '0.0', END)
         #text.tag_config('alt', foreground='black', background='white')
-
     canvas.draw()
     canvas.get_tk_widget().pack(fill=BOTH, expand=1)
     log_e()
@@ -931,6 +931,7 @@ def nyttkort(text, fig, canvas, root):
         text.insert(INSERT, nyttkort_text)
     les_og_tekna(text, fig, canvas)
     print(path_to_nytt_kort)
+
 
 def frange(x, y, jump):
   while x < y:

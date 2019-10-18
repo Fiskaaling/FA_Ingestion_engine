@@ -67,6 +67,7 @@ def processera(mappunavn):
         print(cast)
         print(filnavn)
         if platform.system() == 'Linux':
+            # hey hey
             # Hettar riggar bara um wine er og SBE Data processing er installera, og um settings mappan er har hon skal vera
             subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
                              "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/1_DatCnv.txt",
