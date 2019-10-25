@@ -83,7 +83,7 @@ def tegnahovmuller(data, dypid, dato, mal='FO', ratning=0, nrplots=11, figwidth=
         locint = np.ceil((dato[plotstop - 1] - dato[plotstart]) / 10)
         axs[i].xaxis.set_major_locator(mdate.DayLocator(interval=int(locint)))
         axs[i].xaxis.set_minor_locator(mdate.DayLocator(interval=1))
-        axs[i].set_ylabel('Dypi (m)')
+        axs[i].set_ylabel('Dýpi (m)')
         axs[i].tick_params(axis='x', which='major', pad=0)
     # finn hvat tiks skullu verða á color bar
     cb = fig.colorbar(contours, cax=axs[nrplots], orientation='horizontal', ticks=np.linspace(-vmax, vmax, 9))
@@ -157,7 +157,7 @@ def speedbins_standard(bins, dato, df, dypir, mal='FO', dest='', dpi=200,
 
     if len(bins) != 3:
         raise ValueError('bins skal hava 3 bins')
-    fig, axs = plt.subplots(ncols=1, nrows=3, figsize=(figwidth, figheight), dpi=dpi)
+    fig, axs = plt.subplots(ncols=1, nrows=4, figsize=(figwidth, figheight), dpi=dpi)
     mpl.rcParams['font.size'] = font
     timespan = dato[-1] - dato[0]
     if timespan > 3:
@@ -172,13 +172,22 @@ def speedbins_standard(bins, dato, df, dypir, mal='FO', dest='', dpi=200,
     else:
         date_fmt = mdate.DateFormatter('%d %b %H:%M')
         date_loc = mdate.MinuteLocator(interval= np.ceil(60*24*timespan/6))
+    axs[0].plot(dato, df['d'].values, linewidth=.5, c='k')
+    axs[0].xaxis.set_major_formatter(date_fmt)
+    axs[0].xaxis.set_major_locator(date_loc)
+    axs[0].set_ylabel('dýpi (m)')
+    axs[0].tick_params(axis='x', which='major', pad=0)
+    axs[0].set_title('Dýpi')
+    axs[0].set_xlim(dato[0], dato[-1])
+
     for (i, item) in enumerate(bins):
+        i += 1
         prelabel = myprelabel(i, mal=mal)
 
         axs[i].plot(dato, df['mag' + str(item)].values, linewidth=.5, c='k')
         axs[i].xaxis.set_major_formatter(date_fmt)
         axs[i].xaxis.set_major_locator(date_loc)
-        axs[i].set_ylabel('speed [mm/t]')
+        axs[i].set_ylabel('streymferð (mm/s)')
         axs[i].tick_params(axis='x', which='major', pad=0)
         axs[i].set_title(prelabel)
         axs[i].set_xlim(dato[0], dato[-1])
@@ -262,11 +271,10 @@ def speedbins_minmax(bins, dato, df, max_bin, dypir, minmax=True, mal='FO', dest
 
     if len(bins) != 3:
         raise ValueError('bins skal hava 3 bins')
-    fig, axs = plt.subplots(ncols=1, nrows=3, figsize=(figwidth, figheight), dpi=dpi)
-    fig2, axs2 = plt.subplots(ncols=1, nrows=3, figsize=(figwidth, figheight), dpi=dpi)
-    fig3, axs3 = plt.subplots(ncols=1, nrows=3, figsize=(figwidth, figheight), dpi=dpi)
-    mpl.rcParams['font.size'] = font
     timespan = dato[-1] - dato[0]
+    #  Finn hvat format eg skal brúka til at skriva dato
+    #  TODO hettar skal sikkurt entin skrivast sum ein funktión
+    #  TODO ella skal hettar takast onkra stani frá
     if timespan > 3:
         date_fmt = mdate.DateFormatter('%d %b')
         date_loc = mdate.DayLocator(interval=int(np.ceil(timespan/6)))
@@ -306,17 +314,55 @@ def speedbins_minmax(bins, dato, df, max_bin, dypir, minmax=True, mal='FO', dest
         date_fmt_3 = mdate.DateFormatter('%d %b %H:%M')
         date_loc_3 = mdate.MinuteLocator(interval=int(np.ceil(60*24*tidarskeid/6)))
 
+    fig, axs = plt.subplots(ncols=1, nrows=4, figsize=(figwidth, figheight), dpi=dpi)
+    fig2, axs2 = plt.subplots(ncols=1, nrows=4, figsize=(figwidth, figheight), dpi=dpi)
+    fig3, axs3 = plt.subplots(ncols=1, nrows=4, figsize=(figwidth, figheight), dpi=dpi)
+    mpl.rcParams['font.size'] = font
+
+    # TODO skriva hettar betur
+    #  tekna sjovarfalli 
+    prelabel = 'a) Dýpi'
+    midaltid1 = dato[max_v]
+    midaltid2 = dato[min_v]
+    tid1 = [np.searchsorted(dato, midaltid1-halvtid, side='left'),
+            np.searchsorted(dato, midaltid1+halvtid, side='right')]
+    tid2 = [np.searchsorted(dato, midaltid2-halvtid, side='left'),
+            np.searchsorted(dato, midaltid2+halvtid, side='right')]
+
+    axs[0].plot(dato, df['d'].values, linewidth=.5, c='k')
+    axs2[0].plot(dato[tid1[0]:tid1[1]], df['d'].values[tid1[0]:tid1[1]],
+                 linewidth=.5, c='k')
+    axs3[0].plot(dato[tid2[0]:tid2[1]], df['d'].values[tid2[0]:tid2[1]],
+                 linewidth=.5, c='k')
+
+    axs[0].set_ylabel('dýpi (m)')
+    axs[0].tick_params(axis='x', which='major', pad=0)
+    axs[0].set_title(prelabel)
+    axs[0].set_xlim(dato[0], dato[-1])
+
+    axs2[0].set_ylabel('dýpi (m)')
+    axs2[0].tick_params(axis='x', which='major', pad=0)
+    axs2[0].set_title(prelabel)
+    axs2[0].set_xlim(dato[tid1[0]], dato[tid1[1]])
+
+    axs3[0].set_ylabel('dýpi (m)')
+    axs3[0].tick_params(axis='x', which='major', pad=0)
+    axs3[0].set_title(prelabel)
+    axs3[0].set_xlim(dato[tid2[0]], dato[tid2[1]])
     for (i, item) in enumerate(bins):
+        i += 1
         if mal == 'EN':
-            prelabel = myprelabel(i, mal=mal)
+            prelabel = myprelabel(i - 1, mal=mal)
         else:
             if i == 0:
                 prelabel = 'a) '
             elif i == 1:
                 prelabel = 'b) '
-            else:
+            elif i == 2:
                 prelabel = 'c) '
-            temp = bins[i]
+            else:
+                prelabel = 'd) '
+            temp = item
             if temp == '10m':
                 temp = 10
             else:
@@ -343,28 +389,30 @@ def speedbins_minmax(bins, dato, df, max_bin, dypir, minmax=True, mal='FO', dest
                             facecolor='red', alpha=0.5)
         axs[i].set_ylim(top=y2)
 
-        axs[i].set_ylabel('speed [mm/t]')
+        axs[i].set_ylabel('Streymferð (mm/s)')
         axs[i].tick_params(axis='x', which='major', pad=0)
         axs[i].set_title(prelabel)
         axs[i].set_xlim(dato[0], dato[-1])
         axs[i].set_ylim(bottom=0)
 
-        axs2[i].set_ylabel('speed [mm/t]')
+        axs2[i].set_ylabel('Streymferð (mm/s)')
         axs2[i].tick_params(axis='x', which='major', pad=0)
         axs2[i].set_title(prelabel)
         axs2[i].set_xlim(dato[tid1[0]], dato[tid1[1]])
         axs2[i].set_ylim(bottom=0)
 
-        axs3[i].set_ylabel('speed [mm/t]')
+        axs3[i].set_ylabel('Streymferð (mm/s)')
         axs3[i].tick_params(axis='x', which='major', pad=0)
         axs3[i].set_title(prelabel)
         axs3[i].set_xlim(dato[tid2[0]], dato[tid2[1]])
         axs3[i].set_ylim(bottom=0)
 
-    tempmax = max([axs[i].get_ylim()[1] for i in range(len(bins))])
-    tempmax2 = max([axs2[i].get_ylim()[1] for i in range(len(bins))])
-    tempmax3 = max([axs3[i].get_ylim()[1] for i in range(len(bins))])
+    tempmax = max([axs[i+1].get_ylim()[1] for i in range(len(bins))])
+    tempmax2 = max([axs2[i+1].get_ylim()[1] for i in range(len(bins))])
+    tempmax3 = max([axs3[i+1].get_ylim()[1] for i in range(len(bins))])
     for i, item in enumerate(bins):
+        #  TODO skriva hettar ordiligt
+        i += 1
         axs[i].set_ylim(top=tempmax)
         axs2[i].set_ylim(top=tempmax2)
         axs3[i].set_ylim(top=tempmax3)
@@ -412,21 +460,21 @@ def speedbins_minmax(bins, dato, df, max_bin, dypir, minmax=True, mal='FO', dest
                    'Streymferð á trimum valdum dýpum vikuna við harðasta rákið ' \
                    '(grøni kassin á mynd~\\ref{speedbin})']
 
-    for i,item in enumerate(bins):
+    for i in range(len(bins)+1):
         axs[i].xaxis.set_major_formatter(date_fmt)
         axs[i].xaxis.set_major_locator(date_loc)
-        if i==3:
-            plt.subplots_adjust(left=0.1, bottom=0.05, right=0.95, top=0.95, wspace=0.0, hspace=0.2)
+        if i==4:
+            plt.subplots_adjust(left=0.1, bottom=0.05, right=0.95, top=0.975, wspace=0.0, hspace=0.2)
 
         axs2[i].xaxis.set_major_formatter(date_fmt_2)
         axs2[i].xaxis.set_major_locator(date_loc_2)
-        if i==3:
-            plt.subplots_adjust(left=0.1, bottom=0.05, right=0.95, top=0.95, wspace=0.0, hspace=0.2)
+        if i==4:
+            plt.subplots_adjust(left=0.1, bottom=0.05, right=0.95, top=0.975, wspace=0.0, hspace=0.2)
 
         axs3[i].xaxis.set_major_formatter(date_fmt_3)
         axs3[i].xaxis.set_major_locator(date_loc_3)
-        if i==3:
-            plt.subplots_adjust(left=0.1, bottom=0.05, right=0.95, top=0.95, wspace=0.0, hspace=0.2)
+        if i==4:
+            plt.subplots_adjust(left=0.1, bottom=0.05, right=0.95, top=0.975, wspace=0.0, hspace=0.2)
 
     plt.setp([a.get_xticklabels() for a in fig2.axes], visible=True)
     fig.savefig(dest + 'myndir/%s' % navn, dpi=dpi)
@@ -491,13 +539,26 @@ def speedbins_hovus(bins, dato, df, dypir, mal='FO', dest='', dpi=200, hovusratn
     tempmin = 0
     tempmax = 0
     for (i, item) in enumerate(bins):
-        prelabel = myprelabel(i, mal=mal)
+        if mal == 'EN':
+            prelabel = myprelabel(i, mal=mal)
+        else:
+            if i == 0:
+                prelabel = 'a) '
+            elif i == 1:
+                prelabel = 'b) '
+            else:
+                prelabel = 'c) '
+            if item == '10m':
+                prelabel += '10'
+            else:
+                prelabel += '%2.0f' % -dypir[item -1]
+            prelabel += 'm'
 
         ys = df['mag' + str(item)].values * np.cos(np.deg2rad(df['dir' + str(item)].values - hovusratningur))
         axs[i].plot(dato, ys, linewidth=.5, c='k')
         axs[i].xaxis.set_major_formatter(date_fmt)
         axs[i].xaxis.set_major_locator(date_loc)
-        axs[i].set_ylabel('speed [mm/t]')
+        axs[i].set_ylabel('Streymferð (mm/t)')
         axs[i].tick_params(axis='x', which='major', pad=0)
         axs[i].set_title(prelabel)
         axs[i].set_xlim(dato[0], dato[-1])
@@ -704,7 +765,20 @@ def tekna_dist_rose(bins, data, N, umax, dypir, mal='FO', dest='LaTeX/', dpi=200
     else:
         raise ValueError('lv skal vera ein listi ella ein int')
     for (i, item) in enumerate(bins):
-        prelabel = myprelabel(i, mal=mal)
+        if mal == 'EN':
+            prelabel = myprelabel(i, mal=mal)
+        else:
+            if i == 0:
+                prelabel = 'a) '
+            elif i == 1:
+                prelabel = 'b) '
+            else:
+                prelabel = 'c) '
+            if bins[i] == '10m':
+                prelabel += '10'
+            else:
+                prelabel += '%2.0f' % -dypir[bins[i] - 1]
+            prelabel += ' dýpi (m)'
 
         plotrose(axs[i, 0], N, myumax[i], lv=lvF2, F=F2[i],
              axcolor=axcolor, axline=axline, alpha=alpha)
@@ -1122,7 +1196,21 @@ def progressive_vector(bins, dato, uvdf, dypir, mal='FO', dest='LaTeX/', dpi=200
         plots.append(punktir)
 
     for i in range(len(plots)):
-        prelabel = myprelabel(i, mal=mal)
+        if mal == 'EN':
+            prelabel = myprelabel(i, mal=mal)
+        else:
+            if i == 0:
+                prelabel = 'a) '
+            elif i == 1:
+                prelabel = 'b) '
+            else:
+                prelabel = 'c)'
+            temp = bins[i]
+            if temp == '10m':
+                prelabel += '10'
+            else:
+                prelabel += '%2.0f' % -dypir[temp-1]
+            prelabel += 'm'
 
         punktir = plots[i]
         xmin = np.min(punktir[0])
@@ -1155,8 +1243,8 @@ def progressive_vector(bins, dato, uvdf, dypir, mal='FO', dest='LaTeX/', dpi=200
     axs.set_xlim(xmin, xmax)
     axs.set_ylim(ymin, ymax)
     plt.subplots_adjust(left=0.1, bottom=0.075, right=0.95, top=0.95, wspace=0.0, hspace=0.2)
-    axs.set_xlabel('Avstandur [km]')
-    axs.set_ylabel('Avstandur [km]')
+    axs.set_xlabel('Avstandur (km)')
+    axs.set_ylabel('Avstandur (km)')
     plt.axis('equal')
     fig.savefig(dest + 'myndir/%s' % navn, dpi=dpi)
 
@@ -1214,7 +1302,7 @@ def frequencytabellir(datadf, dypir, mal='FO', dest='LaTeX/',
         else:
             sections = 'Frekvenstalva'
     #  Freequency of high speeds
-    inforows = ['no.', 'm']
+    inforows = ['m']
     infospeed = [str(x) for x in [50, 100, 150, 200, 250, 350, 400, 450, 500, 600, 700, 800, 900, 1000, 1500]]
     inforows += infospeed
     #  gera klárt til tabellina
@@ -1223,10 +1311,10 @@ def frequencytabellir(datadf, dypir, mal='FO', dest='LaTeX/',
         tempdepth = 'Depth'
     else:
         speed = 'Ferð'
-        tempdepth = 'Djúbd'
+        tempdepth = 'Dýpi'
     highstr = '\\begin{tabular}{|' + len(inforows)*'r|' + \
-            '}\n\\hline\n Bin&\t%s&\t\multicolumn{%s}{c|}{%s [mm/s]}\\\\\\hline\n'\
-              % (tempdepth, len(inforows)-2, speed)
+            '}\n\\hline\n%s&\t\multicolumn{%s}{c|}{%s [mm/s]}\\\\\\hline\n'\
+              % (tempdepth, len(infospeed), speed)
     highstr += inforows[0].rjust(4)
     for x in inforows[1::]:
         highstr += '&\t' + x.rjust(4)
@@ -1277,7 +1365,7 @@ def frequencytabellir(datadf, dypir, mal='FO', dest='LaTeX/',
             highstr += '\\\\\n\\hline\n'
         else:
             highstr += '\\\\\n'
-        highstr += key.rjust(4) + '&\t' + str(-int(Depth)).rjust(4)
+        highstr += str(-int(Depth)).rjust(4)
         for x in highspeedtabelround[0:-1]:
             highstr += '&\t' + str(x).rjust(4)
     highstr += '\\\\\\hline\n\\end{tabular}'

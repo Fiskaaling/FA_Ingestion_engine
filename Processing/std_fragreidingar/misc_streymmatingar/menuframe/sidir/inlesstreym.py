@@ -129,7 +129,7 @@ def inles(path_to_data, dictionary=False):
                   axis=1, inplace=True)
 
     if dictionary:
-        return {'data':date, 'dypid':dypid, 'max_bin':max_bin,
+        return {'data':date, 'dypir':dypir, 'max_bin':max_bin,
                 'datadf':datadf, 'uvdatadf':uvdatadf
                }
     return date, dypir, max_bin, datadf, uvdatadf

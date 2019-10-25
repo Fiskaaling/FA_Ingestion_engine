@@ -22,7 +22,7 @@ def gersamadratt(datadf, uvdatadf, dypir, max_bin, date, dest='LaTeX/', lat=62,
     out = '\\newpage\n'
     out = '\\section{Býti av streymferð á ymsum dýpum}'
     out += intro_bar(datadf, max_bin, dypir, caption=caption, dest=dest, figheight=figheight,
-                    max_sj=True, uvdata=uvdatadf, date=date)
+                    figwidth=figwidth, max_sj=True, uvdata=uvdatadf, date=date)
     return out
 
 
@@ -159,8 +159,8 @@ def intro_bar(datadf, max_bin, dypir, navn='intro_bar.pdf', dest='LaTeX/',
                                      vidd, bottom=bars_sj[i-1], edgecolor='k', hatch='//'))
     axs.xaxis.set_ticks(index)
     axs.set_xticklabels([int(-x) for x in dypir])
-    axs.set_ylabel('Streymferð [mm/s]')
-    axs.set_xlabel('Dýpi [m]')
+    axs.set_ylabel('Streymferð (mm/s)')
+    axs.set_xlabel('Dýpi (m)')
     temp = bars[-1]
     temp = np.sort(temp)
     mymax = min(2 * temp[int(.5*len(temp))], 1.2*temp[-1])
