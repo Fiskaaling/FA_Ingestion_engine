@@ -87,7 +87,7 @@ def teknakort():
 
     #fig = Figure()
     figsize = [8, 12]
-    fig = Figure(figsize=figsize, dpi=100)
+    fig = Figure(figsize=figsize)
     #fig.set_size_inches((8, 12), forward=False)
     #fig = Figure(figsize=(2, 3), dpi=100)
     global ax
@@ -187,7 +187,7 @@ def teknakort():
     tekna_btn = Button(menu_frame, text='Tekna Kort', command=lambda: les_og_tekna(text_list, fig, canvas)).pack(side=LEFT)
     teknaLinjur_btn = Button(menu_frame, text='Tekna Linjur', command=lambda: teknaLinjur(text_list, root)).pack(side=LEFT)
     teknaPrikkar_btn = Button(menu_frame, text='Tekna Prikkar', command=lambda: teknaPrikkar(text_list, root)).pack(side=LEFT)
-    goymmynd_btn = Button(menu_frame, text='Goym Mynd', command=lambda: goymmynd(fig, canvas, figsize)).pack(side=LEFT)
+    goymmynd_btn = Button(menu_frame, text='Goym Mynd', command=lambda: goymmynd(fig, canvas, figsize, v_dic)).pack(side=LEFT)
 
     pan_upp = Button(controls_frame, text='↑', font='Helvetica', command=lambda: pan(0, 0.1, canvas, True)).pack(side=TOP)
     controlsLR_frame = Frame(controls_frame)
@@ -214,16 +214,16 @@ def innsetPan(text_list, fig, canvas, v_dic):
             toindex = command.find('=') + 1
             variable = command[0:toindex - 1]
             if variable == 'latmax':
-                v_dic['pos']['latmax'] = float(command[toindex::])
+                v_dic['req']['latmax'] = float(command[toindex::])
                 raw_text = raw_text.replace(command, "latmax=" + str(lat[1]))
             elif variable == 'latmin':
-                v_dic['pos']['latmin'] = float(command[toindex::])
+                v_dic['req']['latmin'] = float(command[toindex::])
                 raw_text = raw_text.replace(command, "latmin=" + str(lat[0]))
             elif variable == 'lonmin':
-                v_dic['pos']['lonmin'] = float(command[toindex::])
+                v_dic['req']['lonmin'] = float(command[toindex::])
                 raw_text = raw_text.replace(command, "lonmin=" + str(lon[0]))
             elif variable == 'lonmax':
-                v_dic['pos']['lonmax'] = float(command[toindex::])
+                v_dic['req']['lonmax'] = float(command[toindex::])
                 raw_text = raw_text.replace(command, "lonmax=" + str(lon[1]))
     text_list.delete(1.0, END)
     text_list.insert(INSERT, raw_text)
@@ -272,14 +272,13 @@ def innlesFil(text):
         F.close()
         text.insert(INSERT, nyttkort_text)
 
-def goymmynd(fig, canvas, figsize):
+def goymmynd(fig, canvas, figsize, v_dic):
     log_b()
     filnavn = filedialog.asksaveasfilename(parent=root, title="Goym mynd",  filetypes=(("pdf Fílur", "*.pdf"), ("png Fílur", "*.png"), ("jpg Fílur", "*.jpg")))
     print('Goymir mynd')
-    global dpi
     #fig.savefig(filnavn, dpi=dpi, bbox_inches='tight') # 01/04 - 19
     #fig.savefig(filnavn, dpi=dpi, bbox_inches=tns.Bbox([[0, 0], [20, 20]]))
-    fig.savefig(filnavn, dpi=dpi)
+    fig.savefig(filnavn, dpi=v_dic['req']['dpi'])
 
     print('Liðugt')
     log_e()
@@ -303,17 +302,17 @@ def zoom(mongd, textbox, v_dic):
             toindex = command.find('=')+1
             variable = command[0:toindex-1]
             if variable == 'latmax':
-                v_dic['pos']['latmax'] = float(command[toindex::])
-                raw_text = raw_text.replace(command, "latmax="+str(-mongd + v_dic['pos']['latmax']))
+                v_dic['req']['latmax'] = float(command[toindex::])
+                raw_text = raw_text.replace(command, "latmax="+str(-mongd + v_dic['req']['latmax']))
             elif variable == 'latmin':
-                v_dic['pos']['latmin'] = float(command[toindex::])
-                raw_text = raw_text.replace(command, "latmin="+str(mongd + v_dic['pos']['latmin']))
+                v_dic['req']['latmin'] = float(command[toindex::])
+                raw_text = raw_text.replace(command, "latmin="+str(mongd + v_dic['req']['latmin']))
             elif variable == 'lonmin':
-                v_dic['pos']['lonmin'] = float(command[toindex::])
-                raw_text = raw_text.replace(command, "lonmin=" + str(mongd + v_dic['pos']['lonmin']))
+                v_dic['req']['lonmin'] = float(command[toindex::])
+                raw_text = raw_text.replace(command, "lonmin=" + str(mongd + v_dic['req']['lonmin']))
             elif variable == 'lonmax':
-                v_dic['pos']['lonmax'] = float(command[toindex::])
-                raw_text = raw_text.replace(command, "lonmax=" + str(-mongd + v_dic['pos']['lonmax']))
+                v_dic['req']['lonmax'] = float(command[toindex::])
+                raw_text = raw_text.replace(command, "lonmax=" + str(-mongd + v_dic['req']['lonmax']))
     textbox.delete(1.0, END)
     textbox.insert(INSERT, raw_text)
 
@@ -332,13 +331,11 @@ def les_og_tekna(text, fig, canvas, silent=False, v_dic = {}):
     else:
         VisProgress = True
     strtext = strtext.split('\n')
-    global dpi
-    dpi = 400
     dybdarlinjur = False
-    v_dic['pos'] = {'latmax': 62.4, 'lonmax': -6.2, 'latmin': 61.35, 'lonmin': -7.7}
-
-    breiddarlinjur = np.linspace(v_dic['pos']['latmin'], v_dic['pos']['latmax'], 10)
-    longdarlinjur = np.linspace(v_dic['pos']['lonmin'], v_dic['pos']['lonmax'], 10)
+    v_dic['req'] = {'latmax': 62.4, 'lonmax': -6.2, 'latmin': 61.35, 'lonmin': -7.7}
+    v_dic['req']['dpi'] = 400
+    breiddarlinjur = np.linspace(v_dic['req']['latmin'], v_dic['req']['latmax'], 10)
+    longdarlinjur = np.linspace(v_dic['req']['lonmin'], v_dic['req']['lonmax'], 10)
     filnavn = 'test'
     landlitur = 'lightgray'
     btn_interpolation = 'nearest'
@@ -383,13 +380,13 @@ def les_og_tekna(text, fig, canvas, silent=False, v_dic = {}):
             variable = command[0:toindex-1]
 
             if variable == 'latmax':
-                v_dic['pos']['latmax'] = float(command[toindex::])
+                v_dic['req']['latmax'] = float(command[toindex::])
             elif variable == 'latmin':
-                v_dic['pos']['latmin'] = float(command[toindex::])
+                v_dic['req']['latmin'] = float(command[toindex::])
             elif variable == 'lonmin':
-                v_dic['pos']['lonmin'] = float(command[toindex::])
+                v_dic['req']['lonmin'] = float(command[toindex::])
             elif variable == 'lonmax':
-                v_dic['pos']['lonmax'] = float(command[toindex::])
+                v_dic['req']['lonmax'] = float(command[toindex::])
             elif variable == 'renderengine':
                 renderengine = command[toindex::]
             elif variable == 'landlitur':
@@ -398,7 +395,7 @@ def les_og_tekna(text, fig, canvas, silent=False, v_dic = {}):
                 ax.set_title(command[toindex::])
                 filnavn = command[toindex::]
             elif variable == 'dpi':
-                dpi = float(command[toindex::])
+                v_dic['req']['dpi'] = float(command[toindex::])
             elif variable == 'tekna_land':
                 if command[toindex::] == 'False':
                     tekna_land = False
@@ -447,13 +444,13 @@ def les_og_tekna(text, fig, canvas, silent=False, v_dic = {}):
                 rows_to_drop = []
                 print('Tal av punktum áðrenn rudding: ' + str(len(csvData)))
                 for row in range(len(csvData)-1, 0, -1):
-                    if float(csvData.iloc[row, 0]) > (v_dic['pos']['lonmax']+0.05):
+                    if float(csvData.iloc[row, 0]) > (v_dic['req']['lonmax']+0.05):
                         rows_to_drop.append(row)
-                    elif float(csvData.iloc[row, 0]) < (v_dic['pos']['lonmin']-0.05):
+                    elif float(csvData.iloc[row, 0]) < (v_dic['req']['lonmin']-0.05):
                         rows_to_drop.append(row)
-                    elif float(csvData.iloc[row, 1]) > (v_dic['pos']['latmax']+0.05):
+                    elif float(csvData.iloc[row, 1]) > (v_dic['req']['latmax']+0.05):
                         rows_to_drop.append(row)
-                    elif float(csvData.iloc[row, 1]) < (v_dic['pos']['latmin']-0.05):
+                    elif float(csvData.iloc[row, 1]) < (v_dic['req']['latmin']-0.05):
                         rows_to_drop.append(row)
                 #csvData = csvData.drop(rows_to_drop) # TODO: Útkommentera hettar
                 print('Tal av punktum aftaná rudding: ' + str(len(csvData)))
@@ -463,8 +460,8 @@ def les_og_tekna(text, fig, canvas, silent=False, v_dic = {}):
                 btn_x, btn_y = [btn_lon.values, btn_lat.values]
                 #btn_x1, btn_y1 = np.meshgrid(btn_x, btn_y)
 
-                meshgridy = np.linspace(v_dic['pos']['latmin'], v_dic['pos']['latmax'], btn_gridsize)
-                meshgridx = np.linspace(v_dic['pos']['lonmin'], v_dic['pos']['lonmax'], btn_gridsize)
+                meshgridy = np.linspace(v_dic['req']['latmin'], v_dic['req']['latmax'], btn_gridsize)
+                meshgridx = np.linspace(v_dic['req']['lonmin'], v_dic['req']['lonmax'], btn_gridsize)
                 print('Gridsize =' + str(btn_gridsize))
                 meshgridx, meshgridy = [meshgridx, meshgridy]
                 meshgridx, meshgridy = np.meshgrid(meshgridx, meshgridy)
@@ -605,13 +602,13 @@ def les_og_tekna(text, fig, canvas, silent=False, v_dic = {}):
                 siglignsferd = float(command[toindex::])
             elif variable == 'breiddarlinjur':
                 if not renderengine == '3D_botn':
-                    breiddarlinjur = np.linspace(v_dic['pos']['latmin'], v_dic['pos']['latmax'], int(command[toindex::]))
+                    breiddarlinjur = np.linspace(v_dic['req']['latmin'], v_dic['req']['latmax'], int(command[toindex::]))
                     #gl = ax.gridlines(ccrs_projection, linestyle=linjuSlag, ylocs=breiddarlinjur, xlocs=longdarlinjur, color='lightgray', draw_labels=True, zorder=100)
                     #gl.xlabels_top = False # TODO Ger hettar orduligt, eg havi útkommentera hettar tí okkurt riggar ikki
                     #gl.ylabels_left = False
             elif variable == 'longdarlinjur':
                 if not renderengine == '3D_botn':
-                    longdarlinjur = np.linspace(v_dic['pos']['lonmin'], v_dic['pos']['lonmax'], int(command[toindex::]))
+                    longdarlinjur = np.linspace(v_dic['req']['lonmin'], v_dic['req']['lonmax'], int(command[toindex::]))
                     gl = ax.gridlines(ccrs_projection, linestyle=linjuSlag, ylocs=breiddarlinjur, xlocs=longdarlinjur, color='lightgray', draw_labels=True, zorder=100)
                     gl.xlabels_top = False
                     gl.ylabels_left = False
@@ -623,7 +620,7 @@ def les_og_tekna(text, fig, canvas, silent=False, v_dic = {}):
             elif variable == 'kortSkala':
                 #m.drawmapscale(lonmax - 0.006, latmax - 0.001, lonmax + 0.018, latmax - 0.015,
                 # TODO: M riggar ikki longur, ger okkurt nýtt her
-                m.drawmapscale(v_dic['pos']['latmax'] + 0.006, v_dic['pos']['latmin'] + 0.001, v_dic['pos']['lonmax']-v_dic['pos']['lonmin'] + v_dic['pos']['lonmin'], v_dic['pos']['latmax']-v_dic['pos']['latmin']+v_dic['pos']['latmin'],
+                m.drawmapscale(v_dic['req']['latmax'] + 0.006, v_dic['req']['latmin'] + 0.001, v_dic['req']['lonmax']-v_dic['req']['lonmin'] + v_dic['req']['lonmin'], v_dic['req']['latmax']-v_dic['req']['latmin']+v_dic['req']['latmin'],
                                # 500, units = 'm',
                                int(command[toindex::]), units='km', format='%2.1f',
                                barstyle='fancy', fontsize=14, yoffset=50,
@@ -633,7 +630,7 @@ def les_og_tekna(text, fig, canvas, silent=False, v_dic = {}):
                     print('Showing Legend')
                     leg = ax.legend(loc='best', ncol=ncol)
                     leg.set_zorder(3000)
-                fig.savefig(command[toindex::], dpi=int(dpi), bbox_inches='tight')
+                fig.savefig(command[toindex::], dpi=int(v_dic['req']['dpi']), bbox_inches='tight')
             elif variable == 'quiver':
                 Qdata = pd.read_csv(command[toindex::])
                 lon = Qdata['lon']
@@ -759,7 +756,7 @@ def les_og_tekna(text, fig, canvas, silent=False, v_dic = {}):
             elif variable == 'lesmynd':
                 img = mpimg.imread(command[toindex::])
                 imgplot = ax.imshow(img, aspect='equal', extent=(-7.66666666, -6.3333333, 62.4166666, 61.4166666), transform=ccrs_projection)
-                ax.set_aspect(1 / np.cos(np.deg2rad(((v_dic['pos']['latmax'] + v_dic['pos']['latmax']) / 2))))
+                ax.set_aspect(1 / np.cos(np.deg2rad(((v_dic['req']['latmax'] + v_dic['req']['latmax']) / 2))))
             elif variable == 'textsize':
                 textsize = float(command[toindex::])
             else:
@@ -772,7 +769,7 @@ def les_og_tekna(text, fig, canvas, silent=False, v_dic = {}):
                 #ax = fig.add_subplot(111)
                 ax = fig.add_subplot(1, 1, 1, projection=ccrs_projection)
                 ax.coastlines('50m')
-                ax.set_aspect(1/np.cos(np.deg2rad(((v_dic['pos']['latmax']+v_dic['pos']['latmax'])/2))))
+                ax.set_aspect(1/np.cos(np.deg2rad(((v_dic['req']['latmax']+v_dic['req']['latmax'])/2))))
                 #ax.set_aspect('equal', adjustable='box')
                 #ax = plt.axes(projection=ccrs.PlateCarree())
             elif command == 'break':
@@ -780,7 +777,7 @@ def les_og_tekna(text, fig, canvas, silent=False, v_dic = {}):
             elif command == 'Tekna kort':
                 if renderengine == '3D_botn':
                     #m = Basemap(projection='merc', resolution=None,
-                    #            llcrnrlat=latmin, urcrnrlat=v_dic['pos']['latmax'],
+                    #            llcrnrlat=latmin, urcrnrlat=v_dic['req']['latmax'],
                     #            llcrnrlon=lonmin, urcrnrlon=lonmax, ax=ax, suppress_ticks=suppress_ticks)
                     ax = fig.add_subplot(111, projection='3d')
                 else:
@@ -792,7 +789,7 @@ def les_og_tekna(text, fig, canvas, silent=False, v_dic = {}):
                             #xpt, ypt = m(lo, la)
                             #plt.plot(xpt, ypt, 'k', linewidth=1)
                             #ax.fill(xpt, ypt, landlitur, zorder=10)
-                    ax.set_extent([v_dic['pos']['lonmin'], v_dic['pos']['lonmax'], v_dic['pos']['latmin'], v_dic['pos']['latmax']], ccrs_projection)
+                    ax.set_extent([v_dic['req']['lonmin'], v_dic['req']['lonmax'], v_dic['req']['latmin'], v_dic['req']['latmax']], ccrs_projection)
 
             elif command == 'btn_contourf':
                 grid_z0 = griddata((btn_lon.values, btn_lat.values), dypid.values, (meshgridx, meshgridy), method=btn_interpolation)
@@ -862,8 +859,8 @@ def les_og_tekna(text, fig, canvas, silent=False, v_dic = {}):
         leg = ax.legend(loc='best', ncol=ncol)
         leg.set_zorder(3000)
     if renderengine == '3D_botn':
-        s1 = v_dic['pos']['latmax']
-        s2 = v_dic['pos']['latmax']
+        s1 = v_dic['req']['latmax']
+        s2 = v_dic['req']['latmax']
         sm = max(s1,s2)
         s1 = s1/sm
         s2 = s2/sm
