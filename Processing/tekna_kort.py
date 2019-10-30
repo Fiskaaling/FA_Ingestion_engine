@@ -8,14 +8,11 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.backend_bases import key_press_handler
 from matplotlib.figure import Figure
 from matplotlib import pyplot as plt
-from matplotlib import transforms as tns
 import numpy as np
 import os
 import pandas as pd
 from scipy.interpolate import griddata
-from scipy import interpolate
 from misc.faLog import *
-import subprocess
 from tkinter import font
 import tkinter.ttk as ttk
 import cartopy.crs as ccrs
@@ -26,6 +23,8 @@ import matplotlib.ticker as mticker
 from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
 from screeninfo import get_monitors
 import matplotlib.image as mpimg
+from Processing.les_og_tekna.chk_req import chk_req
+
 
 class Window(Frame):
     def __init__(self, master=None):
@@ -54,8 +53,8 @@ def teknakort():
     root.geometry("1200x800")
 
     uhd = False
-    for m in get_monitors():
-        if '2160' in str(m):
+    for monitor in get_monitors():
+        if '2160' in str(monitor):
             uhd = True
 
     if uhd:  # 4K bullshit, Alt er forbanna lítið
@@ -203,7 +202,6 @@ def teknakort():
 def innsetPan(text_list, fig, canvas, v_dic):
     print('Innsetur nýggj pan virðir')
     global ax
-    global m
     xlim = ax.get_xlim()
     ylim = ax.get_ylim()
     lon, lat = [xlim, ylim]
@@ -322,7 +320,6 @@ def les_og_tekna(text, fig, canvas, silent=False, v_dic = {}):
     log_clear()
     log_b()
     global ax
-    global m
     VisProgress = False
     try:
         strtext = text.get("1.0", END)
@@ -378,15 +375,9 @@ def les_og_tekna(text, fig, canvas, silent=False, v_dic = {}):
         if "=" in command:
             toindex = command.find('=')+1
             variable = command[0:toindex-1]
-
-            if variable == 'latmax':
-                v_dic['req']['latmax'] = float(command[toindex::])
-            elif variable == 'latmin':
-                v_dic['req']['latmin'] = float(command[toindex::])
-            elif variable == 'lonmin':
-                v_dic['req']['lonmin'] = float(command[toindex::])
-            elif variable == 'lonmax':
-                v_dic['req']['lonmax'] = float(command[toindex::])
+            value = command[toindex::]
+            if chk_req(variable, value, v_dic):
+                pass
             elif variable == 'renderengine':
                 renderengine = command[toindex::]
             elif variable == 'landlitur':
@@ -620,11 +611,11 @@ def les_og_tekna(text, fig, canvas, silent=False, v_dic = {}):
             elif variable == 'kortSkala':
                 #m.drawmapscale(lonmax - 0.006, latmax - 0.001, lonmax + 0.018, latmax - 0.015,
                 # TODO: M riggar ikki longur, ger okkurt nýtt her
-                m.drawmapscale(v_dic['req']['latmax'] + 0.006, v_dic['req']['latmin'] + 0.001, v_dic['req']['lonmax']-v_dic['req']['lonmin'] + v_dic['req']['lonmin'], v_dic['req']['latmax']-v_dic['req']['latmin']+v_dic['req']['latmin'],
-                               # 500, units = 'm',
-                               int(command[toindex::]), units='km', format='%2.1f',
-                               barstyle='fancy', fontsize=14, yoffset=50,
-                               fillcolor1='whitesmoke', fillcolor2='gray', zorder=10000)
+                #m.drawmapscale(v_dic['req']['latmax'] + 0.006, v_dic['req']['latmin'] + 0.001, v_dic['req']['lonmax']-v_dic['req']['lonmin'] + v_dic['req']['lonmin'], v_dic['req']['latmax']-v_dic['req']['latmin']+v_dic['req']['latmin'],
+                #               # 500, units = 'm',
+                #               int(command[toindex::]), units='km', format='%2.1f',
+                #               barstyle='fancy', fontsize=14, yoffset=50,
+                #               fillcolor1='whitesmoke', fillcolor2='gray', zorder=10000)
             elif variable == 'savefig':
                 if show_legend:
                     print('Showing Legend')
@@ -884,7 +875,7 @@ def les_og_tekna(text, fig, canvas, silent=False, v_dic = {}):
 
 
     def onclick(event):
-        global m, ispressed, zoom_x_fra, zoom_y_fra
+        global ispressed, zoom_x_fra, zoom_y_fra
         global a
         global b
         a, b = event.xdata, event.ydata
