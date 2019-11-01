@@ -224,18 +224,16 @@ def skriva_doc(setup_dict, siduval_dict):
                         caption = 'Hovmüller diagram of north/south velocities for the' \
                                 'whole deployment period. The velocity scale is in mm/s'
                     else:
-                        caption = 'Streymferð í norðan (reyður litur) og sunnan (bláur litur)'\
-                                ' á øllum máldu dýpum (y- ásin) gjøgnum alt mátitíðarskeiðið.'\
-                                ' Litstigin er í mm/s'
+                        caption = 'Streymferð í norðan (reytt) og sunnan (blátt) á øllum '\
+                                'dýpum (y-ásin) gjøgnum alt mátitíðarskeiðið'
                 elif ratning == 90:
                     data = uvdatadf[['u' + x for x in colnames]].values.T
                     if mal == 'EN':
                         caption = 'Hovmüller diagram of east/west velocities for the whole' \
                                 'deployment period. The velocity scale is in mm/s'
                     else:
-                        caption = 'Streymferð í eystan (reyður litur) og vestan (bláur litur)'\
-                                ' á øllum máldu dýpum (y- ásin) gjøgnum alt mátitíðarskeiðið.'\
-                                ' Litstigin er í mm/s'
+                        caption = 'Streymferð í eystan (reytt) og vestan (blátt) á øllum '\
+                                'dýpum (y-ásin) gjøgnum alt mátitíðarskeiðið'
                 else:
                     data = uvdatadf[['v' + x for x in colnames]].values.T * \
                             np.cos(np.deg2rad(ratning)) + \
@@ -245,8 +243,9 @@ def skriva_doc(setup_dict, siduval_dict):
                         caption = 'Hovmüller diagram of [%s] velocities for the whole' \
                                 'deployment period. The velocity scale is in mm/s' % int(ratning)
                     else:
-                        caption = 'Streymuferð í %2.1f (reyður litur) og %2.1f (bláur litur).' \
-                                'litásin er í mm/s' % (ratning, (ratning + 180)%360)
+                        caption = 'Streymferð í %3.0f (reytt) og %3.0f (blátt) á øllum '\
+                                'dýpum (y-ásin) gjøgnum alt mátitíðarskeiðið'\
+                                % (ratning, (ratning + 180)%360)
                 a = tegnahovmuller(data, yaxis, date, mal=mal, ratning=ratning,
                                    navn=navn, caption=caption, vmax=vmax, dest=dest,
                                    font=font, figwidth=figwidth, figheight=figheight)

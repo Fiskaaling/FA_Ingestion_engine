@@ -40,17 +40,17 @@ def tegnahovmuller(data, dypid, dato, mal='FO', ratning=0, nrplots=11, figwidth=
         if mal == 'EN':
             section = 'Hovmüller diagrams of east/west velocities'
         else:
-            section = 'Hovmüller diagram av streymferð í eystur/vestur ættina'
+            section = 'Hovmüllerdiagramm av streymferð í eystur/vestur ættina'
     elif ratning == 0:
         if mal == 'EN':
             section = 'Hovmüller diagrams of north/south velocities'
         else:
-            section = 'Hovmüller diagram av streymferð í norður/suður ættina'
+            section = 'Hovmüllerdiagramm av streymferð í norður/suður ættina'
     else:
         if mal == 'EN':
             section = 'Hovmüller diagrams of %3.0f° velocities' % ratning
         else:
-            section = 'Streymferð í høvuðsættina %3.0f°' % ratning
+            section = 'Hovmüllerdiagramm av streymferð í %3.0f° ættina' % ratning
 
     fig, axs = plt.subplots(ncols=1, nrows=nrplots + 1, figsize=(figwidth, figheight), dpi=dpi)
     mpl.rcParams['font.size'] = font
@@ -335,39 +335,29 @@ def speedbins_minmax(bins, dato, df, max_bin, dypir, minmax=True, mal='FO', dest
     axs3[0].plot(dato[tid2[0]:tid2[1]], df['d'].values[tid2[0]:tid2[1]],
                  linewidth=.5, c='k')
 
-    axs[0].set_ylabel('dýpi (m)')
+    axs[0].set_ylabel('Vatnstøða\ndýpi (m)')
     axs[0].tick_params(axis='x', which='major', pad=0)
-    axs[0].set_title(prelabel)
     axs[0].set_xlim(dato[0], dato[-1])
 
-    axs2[0].set_ylabel('dýpi (m)')
+    axs2[0].set_ylabel('Vatnstøða\ndýpi (m)')
     axs2[0].tick_params(axis='x', which='major', pad=0)
-    axs2[0].set_title(prelabel)
     axs2[0].set_xlim(dato[tid1[0]], dato[tid1[1]])
 
-    axs3[0].set_ylabel('dýpi (m)')
+    axs3[0].set_ylabel('Vatnstøða\ndýpi (m)')
     axs3[0].tick_params(axis='x', which='major', pad=0)
-    axs3[0].set_title(prelabel)
     axs3[0].set_xlim(dato[tid2[0]], dato[tid2[1]])
     for (i, item) in enumerate(bins):
         i += 1
         if mal == 'EN':
             prelabel = myprelabel(i - 1, mal=mal)
         else:
-            if i == 0:
-                prelabel = 'a) '
-            elif i == 1:
-                prelabel = 'b) '
-            elif i == 2:
-                prelabel = 'c) '
-            else:
-                prelabel = 'd) '
+            prelabel = ''
             temp = item
             if temp == '10m':
                 temp = 10
             else:
                 temp = -dypir[temp-1]
-            prelabel += '%2.0fm' % temp
+            prelabel += '%2.0fm dýpi' % temp
 
         midaltid1 = dato[max_v]
         midaltid2 = dato[min_v]
@@ -389,21 +379,18 @@ def speedbins_minmax(bins, dato, df, max_bin, dypir, minmax=True, mal='FO', dest
                             facecolor='red', alpha=0.5)
         axs[i].set_ylim(top=y2)
 
-        axs[i].set_ylabel('Streymferð (mm/s)')
+        axs[i].set_ylabel(prelabel + '\n' + 'Streymferð (mm/s)')
         axs[i].tick_params(axis='x', which='major', pad=0)
-        axs[i].set_title(prelabel)
         axs[i].set_xlim(dato[0], dato[-1])
         axs[i].set_ylim(bottom=0)
 
-        axs2[i].set_ylabel('Streymferð (mm/s)')
+        axs2[i].set_ylabel(prelabel + '\n' + 'Streymferð (mm/s)')
         axs2[i].tick_params(axis='x', which='major', pad=0)
-        axs2[i].set_title(prelabel)
         axs2[i].set_xlim(dato[tid1[0]], dato[tid1[1]])
         axs2[i].set_ylim(bottom=0)
 
-        axs3[i].set_ylabel('Streymferð (mm/s)')
+        axs3[i].set_ylabel(prelabel + '\n' + 'Streymferð (mm/s)')
         axs3[i].tick_params(axis='x', which='major', pad=0)
-        axs3[i].set_title(prelabel)
         axs3[i].set_xlim(dato[tid2[0]], dato[tid2[1]])
         axs3[i].set_ylim(bottom=0)
 
@@ -768,17 +755,12 @@ def tekna_dist_rose(bins, data, N, umax, dypir, mal='FO', dest='LaTeX/', dpi=200
         if mal == 'EN':
             prelabel = myprelabel(i, mal=mal)
         else:
-            if i == 0:
-                prelabel = 'a) '
-            elif i == 1:
-                prelabel = 'b) '
-            else:
-                prelabel = 'c) '
+            prelabel = ''
             if bins[i] == '10m':
                 prelabel += '10'
             else:
                 prelabel += '%2.0f' % -dypir[bins[i] - 1]
-            prelabel += ' dýpi (m)'
+            prelabel += 'm dýpi'
 
         plotrose(axs[i, 0], N, myumax[i], lv=lvF2, F=F2[i],
              axcolor=axcolor, axline=axline, alpha=alpha)
@@ -1204,7 +1186,7 @@ def progressive_vector(bins, dato, uvdf, dypir, mal='FO', dest='LaTeX/', dpi=200
             elif i == 1:
                 prelabel = 'b) '
             else:
-                prelabel = 'c)'
+                prelabel = 'c) '
             temp = bins[i]
             if temp == '10m':
                 prelabel += '10'

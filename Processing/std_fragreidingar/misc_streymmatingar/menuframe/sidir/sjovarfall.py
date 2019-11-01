@@ -231,7 +231,7 @@ def tidal_non_tidal_plot(dato, direct, mag, figwidth=6, figheight=7.1, dpi=200,
     date_fmt = mdate.DateFormatter('%d %b')
     axs[0].plot(tin, u, linewidth=.2, label='Original time series')
     axs[0].plot(tin, u - reconstruckt.u, linewidth=.2, label='Original time series minus prediction')
-    axs[0].set_ylabel('Streymferð í eystur (mm/s)')
+    axs[0].set_ylabel('Streymferð í eystan (mm/s)')
     axs[0].xaxis.set_major_formatter(date_fmt)
     axs[0].set_xlim([tin[0], tin[-1]])
     axs[1].plot(tin, v, linewidth=.2, label='Original time series')
