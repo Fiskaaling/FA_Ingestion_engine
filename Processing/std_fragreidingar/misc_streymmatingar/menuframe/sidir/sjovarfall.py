@@ -8,10 +8,188 @@ import utide
 
 from .misc import myprelabel
 
+
+def sjovarfallmax(uvdata, date, dypir, max_bin, lat=62, navn='intro_max.pdf',
+                  dpi=200, font=7, figwidth=6, figheight=7.1,
+                 figut = True):
+    '''
+    finnur eitt yvirmát av hvat utide sigur at hagsti streymur fer at verða
+    :param uvdata:      dataframe við uvdata
+    :param date:        ein listi sum sigur tiðina á hvørjari máting
+    :param dypir:       ein listi sum sigur hvat dýpið er á hvørjari bin
+    :param max_bin:     ein int sum sigur hvat tann sísta bin sum eg skal hyggja eftir er
+    :param lat:         lat á mátingini input fyri utide ikki ordiliga sikkur hvat tað ger
+    :param navn:        navn á figurinum sum kemur út
+    :param dpi:         dpi á figurinum sum kemur út
+    :param font:        font á figurinum sum kemur út
+    :param figwidth:    víddin á figurinum sum kemur út
+    :param figheight:   hæddin á figurinum sum kemur út
+    :param figut:       skal er hava eina figur ella skal eg hava eina talvu
+    '''
+    fig, axs = plt.subplots(ncols=1, nrows=1, figsize=(figwidth, figheight), dpi=dpi)
+    mpl.rcParams['font.size'] = font
+    dypir = [dypir[x] for x in range(max_bin)]
+    date = np.array(date)
+    mylist = []
+    index = np.arange(max_bin)
+
+    for i in range(1, max_bin+1):
+        print(i, ' ', end='')
+        coef = utide.solve(date, uvdata['u' + str(i)].values, uvdata['v' + str(i)].values,
+                           lat=lat, verbose=False, trend=False)
+        a = sum(coef['Lsmaj'])
+        a += np.sqrt(coef['umean']**2 + coef['vmean']**2)
+        mylist.append(a)
+    print()
+
+    temp = mylist
+    temp = np.sort(temp)
+    mymax = min(2 * temp[int(.5*len(temp))], 1.2 * temp[-1])
+
+    #  TODO skriva hesa linjuna ordiligt
+    if figut:
+        fig, axs = plt.subplots(ncols=1, nrows=1, figsize=(figwidth, figheight), dpi=dpi)
+        mpl.rcParams['font.size'] = font
+
+        axs.plot(index, mylist)
+        axs.xaxis.set_ticks(index)
+        axs.set_xticklabels([int(-x) for x in dypir])
+        axs.set_ylim(0, mymax)
+        print('her verður ikki goymdur nakar figurur')
+        fig.show()
+    else:
+        return mylist, mymax
+
+
+def intro_bar(datadf, max_bin, dypir, navn='intro_bar.pdf', dest='LaTeX/',
+              caption=None, max_sj=False,
+              dpi=200, font=7, figwidth=6, figheight=7.1,
+              uvdata=None, date=None, linja=False):
+    '''
+    Hettar vísur hvussu harður streymurin er í teimun forskelligu dýpinum
+    :param datadf:      magdir data
+    :param max_bin:     eitt tal sum sigur hvat tað sísta bin sum eg skal higgja eftir
+    :param dypir:       ein listi sum sigur hvussu djúpt alt er
+    :param navn:        navn á figurinum
+    :param dest:        Path to master.tex
+    :param caption:     caption á figuri
+    :param max_sj:      skal eg hava eitt yvirmát av sjovarfallinum við
+    :param dpi:         dpi á figurinum
+    :param font:        font stødd á figurinum
+    :param figwidth:    víddin á figurinum
+    :param figheight:   hæddin á figurinum
+    :param uvdata:      uvdata hvissi eg skal tekna maxsjovarfall inní fig
+    :param date:        tíðspunktini á mátingunum hviss eg havi brúk fyri tíð
+    :param linja:       skal eg hava eina svarta linju sum vísur eitt yvirmát av sjovarfall
+
+    :return:            ein string at koyra í master.tex
+    '''
+    dypir = [dypir[x] for x in range(max_bin)]
+    stod = [25, 50, 75, 95, 99.5]
+    bars = [[] for _ in stod]
+    bars_sj = [[] for _ in stod]
+    for i in range(1, max_bin + 1):
+        temp = [x for x in datadf['mag' + str(i)].values if not np.isnan(x)]
+        temp = np.sort(temp)
+        longd = len(temp)
+        for j, brok in enumerate(stod):
+            if brok > 100:
+                raise ValueError('brok er ov stort')
+            elif brok == 100:
+                bars[j].append(temp[-1])
+            elif brok <= 0:
+                raise ValueError('brok er ov litið')
+            else:
+                bars[j].append(temp[int(brok*longd/100)])
+
+    if max_sj and uvdata is not None and date is not None:
+        tin = np.array(date)
+        for i in range(1, max_bin + 1):
+            u = np.array(datadf['mag' + str(i)] * np.cos(np.deg2rad(datadf['dir' + str(i)] - 90)))
+            v = np.array(datadf['mag' + str(i)] * np.cos(np.deg2rad(datadf['dir' + str(i)])))
+            coef = utide.solve(tin, u, v, lat=62)
+            tide = utide.reconstruct(tin, coef)
+            temp = [np.sqrt(x**2+y**2) for x, y in zip(tide['u'], tide['v'])]
+            temp = [x for x in temp if not np.isnan(x)]
+            temp = np.sort(temp)
+            longd = len(temp)
+            for j, brok in enumerate(stod):
+                if brok > 100:
+                    raise ValueError('brok er ov stort')
+                elif brok == 100:
+                    bars_sj[j].append(temp[-1])
+                elif brok <= 0:
+                    raise ValueError('brok er ov litið')
+                else:
+                    bars_sj[j].append(temp[int(brok*longd/100)])
+
+    fig, axs = plt.subplots(ncols=1, nrows=1, figsize=(figwidth, figheight), dpi=dpi)
+    mpl.rcParams['font.size'] = font
+
+
+    index = np.arange(max_bin)
+    plots = []
+    vidd = .33
+    plots.append(axs.bar([x-vidd/2 for x in index], bars[0], vidd, label=str(stod[0])+'%', edgecolor='k'))
+    for i in range(1, len(stod)):
+        plots.append(axs.bar([x-vidd/2 for x in index], [x - y for x, y in zip(bars[i], bars[i-1])],
+                                     vidd, bottom=bars[i-1], label=str(stod[i])+'%', edgecolor='k'))
+
+    plt.gca().set_prop_cycle(None)
+    plots.append(axs.bar([x + vidd/2 for x in index], bars_sj[0], vidd, edgecolor='k', hatch='//'))
+    for i in range(1, len(stod)):
+        plots.append(axs.bar([x + vidd/2 for x in index], [x - y for x, y in zip(bars_sj[i], bars_sj[i-1])],
+                                     vidd, bottom=bars_sj[i-1], edgecolor='k', hatch='//'))
+    axs.xaxis.set_ticks(index)
+    axs.set_xticklabels([int(-x) for x in dypir])
+    axs.set_ylabel('Streymferð (mm/s)')
+    axs.set_xlabel('Dýpi (m)')
+    temp = bars[-1]
+    temp = np.sort(temp)
+    mymax = min(2 * temp[int(.5*len(temp))], 1.2*temp[-1])
+
+    #  eg havi bara sett lat til defult lat=62
+    if max_sj and uvdata is not None and date is not None and linja:
+        templist, maxcand = sjovarfallmax(uvdata, date, dypir, max_bin, figut = False)
+        axs.plot(index, templist, color='k', label='yvirmát fyri sjovarfallið')
+        axs.set_ylim(0, max(mymax, maxcand))
+    else:
+        axs.set_ylim(0, mymax)
+
+    axs.legend(ncol=int(np.ceil(len(stod)/2)))
+    fig.subplots_adjust(left=0.1, bottom=0.15, right=0.99, top=0.99, wspace=0.0, hspace=0.2)
+    fig.savefig(dest + 'myndir/%s' % navn, dpi=dpi)
+
+    if caption is None:
+        caption = 'Býti av streymferð niður gjøgnum dýpi. Dýpi er á x-ásini, '
+        caption += 'og streymferð er á y-ásini. Hvør súla vísir býtið av '
+        caption += 'streymferðini á einum ávísum dýpi. Tær óskavaðu súlurnar vísa máld virði, '
+        caption += 'og tær skavaðu vísa sjóvarfalseffektina roknaða frá mátingunum. '
+        caption += 'Litirnir vísa brøkpartin av mátingunum, '
+        caption += 'har streymferðin er minni enn ferðin á y-ásini. '
+        caption += 'T.d. vísir myndin, at á \\SI{%s}{m} dýpi er streymferðin í '\
+                % str(int(-dypir[0]))
+        caption += '75\\% av mátingunum minni enn '
+        caption += '\\SI{%s}{mm/s}.' % str(int(bars[2][0]))
+
+    label = '\\label{barstreym}'
+
+    out = '\n\\FloatBarrier\n'
+    out += '\\section{Býti av streymferð á ymsum dýpum}\n'
+    out += '\\begin{figure}[h!]\n'
+    out += '\\includegraphics[scale=1]{myndir/%s}\n' % navn
+    out += '\\caption{%s}\n' % caption
+    out += '%s\n' % label
+    out += '\n\\end{figure}\n'
+    out += '\\newpage\n'
+
+    return out
+
 #  TODO skriva framskriving ordiligt
 #def tegnahovmuller(data, dypid, dato, mal='FO', ratning=0, nrplots=11, figwidth=6, figheight=7.1,
                    #font=7, vmax=None, dest='', navn='Hovmuller.pdf', caption='caption',
                    #dpi=200):
+
 
 def frammskriva(tin, uin, vin, lat=62, nrplots=12, figwidth=6, figheight=7.1,
                 navn='framskriving.pdf', dpi=200):
@@ -46,8 +224,6 @@ def tidal_analysis_for_depth(tin, uin, vin, lat=62,
     supcol = ['', 'c/hr', '', 'mm/sec', 'mm/sec', 'deg', 'deg', '']
     a = list(coef.name)
     rekkjur = min(len(coef.name), 15)
-    reftime = coef.aux.reftime
-    reftime = mdate.num2date(reftime).strftime('%Y-%m-%dT%H:%M:%S')
 
     tabel = '\\begin{tabular}{|' + 'l|' +  (len(col) -1) * 'r|' + '}\n\\hline\n'
     tabel += col[0]
@@ -80,14 +256,12 @@ def tidal_analysis_for_depth(tin, uin, vin, lat=62,
     texfil.write(tabel)
     texfil.close()
 
-    caption += ' Reftime = %s' % reftime
-
-    return '\n\\begin{table}[!ht]' \
+    return '\n\\begin{subtable}{\\textwidth}' \
            '\n\\centering' \
            '\n\\input{Talvur/%s}' \
            '\n\\caption{%s}' \
            '\n%s' \
-           '\n\\end{table}' % (navn, caption, label)
+           '\n\\end{subtable}' % (navn, caption, label)
 
 
 def tidal_analysis_for_depth_bins(bins, dato, datadf, dypir, mal='FO', lat=62,
@@ -97,9 +271,13 @@ def tidal_analysis_for_depth_bins(bins, dato, datadf, dypir, mal='FO', lat=62,
         if mal == 'EN':
             section = 'Tidal analysis for selected depths'
         else:
-            section = 'Sjóarfallsanalýsa fyri vald dýpi'
+            section = 'Sjóvarfalsanalysa fyri vald dýpi'
 
-    out = '\n\\FloatBarrier\n\\newpage\n\\section{%s}\n' % (section,)
+    #  geri out her
+    out = '\n\\FloatBarrier\n'\
+            '\\newpage\n'\
+            '\\section{%s}\\label{sec:sjovarfall_vald_dypir}\n'\
+            '\\begin{table}[h!]\n' % (section,)
     for i, mytempbin in enumerate([bins[0], bins[-1]]):
         if i == 0:
             prelabel = myprelabel(0)
@@ -116,11 +294,20 @@ def tidal_analysis_for_depth_bins(bins, dato, datadf, dypir, mal='FO', lat=62,
         if mal == 'EN':
             caption = '%s, bin no: %s. at %2.0f m Depth' % (prelabel, mytempbin, tempdypid)
         else:
-            caption = '%s. á %2.0f m Dýpið' % (prelabel.split(')')[-1], tempdypid)
+            caption = '%s - \\SI{%2.0f}{m}'\
+                    % (prelabel.split(')')[-1].lower(), tempdypid)
+        #  uppdateri hann her
         out += tidal_analysis_for_depth(np.array(dato), u, v, lat=lat,
                                      navn='tide%s.tex' % (mytempbin,), caption=caption, dest=dest,
                                      label='\\label{tidal_bin%s}' % (mytempbin,))
-    out += '\n\\newpage\n'
+    forklarandi_tekstur = 'Sjóvarfalsanalysa av streyminum ovarliga og niðarliga í sjónum. '\
+            'Sí frágreiðing um sjóvarfall í kapittul~\\ref{sec:sjovarfall}. '\
+            'Talvurnar lýsa 15 teir sterkastu sjóvarfalslutirnar'
+
+    out += '\n\\caption{%s}\n'\
+            '\\label{tidal_bins}\n'\
+            '\\end{table}\n'\
+            '\\newpage\n' % (forklarandi_tekstur,)
     return out
 
 
@@ -132,12 +319,12 @@ def tital_oll_dypir(dato, bins, Frqs, datadf, dypir, mal='FO', lat=62, verbose =
         if mal == 'EN':
             Section = 'Tidal variation with depth'
         else:
-            Section = 'Sjovarfalls broyting ígjøgnum dýpi'
+            Section = 'Sjóvarfalsbroyting ígjøgnum dýpi'
     if caption == None:
         if mal == 'EN':
             caption='Harmonic constants for constituent '
         else:
-            caption='Harmonic constants for constituent '
+            caption=''
     coefs = [None for _ in range(len(bins))]
     tin = np.array(dato)
     for i in range(len(coefs)):
@@ -147,7 +334,9 @@ def tital_oll_dypir(dato, bins, Frqs, datadf, dypir, mal='FO', lat=62, verbose =
         coefs[i] = utide.solve(tin, u, v, lat=lat, constit=Frqs, verbose=verbose)
     depts = [-dypir[x - 1] for x in bins]
 
-    out = '\n\\FloatBarrier\n\\newpage\n\\section{%s}' % (Section,)
+    out = '\n\\FloatBarrier\n'\
+            '\\newpage\n'\
+            '\\section{%s}\\label{sec:sjovarfall_oll_dypir}' % (Section,)
     col = ['Bin', 'Depth', 'Major', 'Minor', 'Theta', 'Graphl', 'R']
     supcol = ['', 'm', 'mm/sec', 'mm/sec', 'deg', 'deg', '']
 
@@ -156,6 +345,14 @@ def tital_oll_dypir(dato, bins, Frqs, datadf, dypir, mal='FO', lat=62, verbose =
     time = mdate.num2date(time).strftime('%Y-%m-%dT%H:%M:%S')
     time = ', Reftime = ' + time
     for i, frq in enumerate(Frqs):
+        if mal != 'EN':
+            if frq == 'M2':
+                caption = 'Sjóvarfalskonstantar fyri M2 á øllum dýpum. '\
+                        'M2 er hálvdagligt sjóvarfall, ið kemur av, '\
+                        'at Mánin dregur í vatnskorpuna, tá Jørðin snarar '\
+                        'eitt umfar. M2 er á flestu støðum tann sterkasti sjóvarfalsluturin.'
+            else:
+                caption = 'Sjóvarfalskonstantar fyri %s á øllum dýpum.' % frq
         tabel = '\\begin{tabular}{|' + (len(col)) * 'r|' + '}\n\\hline\n'
         tabel += col[0]
         for x in col[1:]:
@@ -186,7 +383,7 @@ def tital_oll_dypir(dato, bins, Frqs, datadf, dypir, mal='FO', lat=62, verbose =
         out += '\n\\begin{table}[!ht]'
         out += '\n\\centering'
         out += '\n\\input{Talvur/%s_%s.tex}' % (tabel_navn, frq)
-        out += '\n\\caption{%s}' % (caption + frq + time,)
+        out += '\n\\caption{%s}' % (caption,)
         out += '\n\\label{Tidalvar_%s}' % (frq,)
         out += '\n\\end{table}'
     out += '\n\\newpage\n'
@@ -240,7 +437,7 @@ def tidal_non_tidal_plot(dato, direct, mag, figwidth=6, figheight=7.1, dpi=200,
     axs[1].set_ylabel('Streymferð í norðan (mm/s)')
     axs[1].set_xlim([tin[0], tin[-1]])
     mpl.rcParams['font.size'] = 7
-    plt.subplots_adjust(left=0.1, bottom=0.05, right=0.95, top=0.95, wspace=0.1, hspace=0.1)
+    plt.subplots_adjust(left=0.15, bottom=0.05, right=0.95, top=0.95, wspace=0.1, hspace=0.1)
     fig.savefig(dest + 'myndir/' + figname)
 
 
@@ -251,8 +448,9 @@ def tidal_non_tidal_bins(bins, dato, datadf, dypir, mal='FO',
         if mal == 'EN':
             section = 'Tidal and non-tidal currents'
         else:
-            section = 'Tidal and non-tidal currents'
-    out = '\n\\FloatBarrier\n\\newpage'
+            section = 'Streymur, sum ikki er sjóvarfalsdrivin'
+    out = '\n\\FloatBarrier\n'\
+            '\\newpage'
     out += '\n\\section{%s}' % (section,)
     for i, item in enumerate(bins):
         figname = 'tidal_and_nontidal_%s.pdf' % (item,)
@@ -271,10 +469,13 @@ def tidal_non_tidal_bins(bins, dato, datadf, dypir, mal='FO',
         if mal == 'EN':
             caption = '%s bin %s at %3.0f m' % (prelabel, item, tempdypid)
         else:
-            caption = 'Mátað og rokna streymferð á %2.0f m dýpið ' \
-                    'í Norður og Eystur ættina undir mátitíðarskeiðinum.' % (tempdypid,)
+            caption = 'Bláu linjurnar vísa máldu streymferðirnar á \\SI{%2.0f}{m} dýpi í '\
+                    'eysturættina (ovara myndin) og norðurættina (niðara myndin) undir '\
+                    'mátitíðarskeiðinum. Gulu linjurnar vísa partin av rákinum, '\
+                    'sum ikki er drivin av sjóvarfallinum.' % (tempdypid,)
 
-        tidal_non_tidal_plot(dato, datadf['dir' + str(item)].values, datadf['mag' + str(item)].values, lat=lat, verbose=verbose,
+        tidal_non_tidal_plot(dato, datadf['dir' + str(item)].values,
+                             datadf['mag' + str(item)].values, lat=lat, verbose=verbose,
                              figname=figname, dest=dest)
         out += '\n\\begin{figure}[!ht]'
         out += '\n\\centering'

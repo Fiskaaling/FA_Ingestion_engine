@@ -16,8 +16,6 @@ from .hovus import hovusratningur
 
 from .sidir.inlesstreym import inles
 
-from .sidir.inleiding import gersamadratt
-
 from .sidir.streym import tegnahovmuller
 from .sidir.streym import speedbins
 from .sidir.streym import tekna_dist_rose
@@ -26,6 +24,7 @@ from .sidir.streym import progressive_vector
 from .sidir.streym import frequencytabellir
 from .sidir.streym import duration_speed
 
+from .sidir.sjovarfall import intro_bar
 from .sidir.sjovarfall import tidal_analysis_for_depth_bins
 from .sidir.sjovarfall import tital_oll_dypir
 from .sidir.sjovarfall import tidal_non_tidal_bins
@@ -105,8 +104,11 @@ def skriva_doc(setup_dict, siduval_dict):
 
 %\usepackage[inline]{showlabels}
 %\usepackage{showframe} %fjerna meg
+\usepackage{lipsum}
 %\usepackage[icelandic]{babel}
 %\usepackage{float}
+\newcommand{\permille}{‰ }
+\frenchspacing
 
 \begin{document}
 \frontmatter
@@ -133,7 +135,7 @@ def skriva_doc(setup_dict, siduval_dict):
         temp = '\\chapter{Introduction}'
     else:
         temp = '\\chapter{Innleiðing}'
-    masterfile.write('\n' + temp + '\\input{texfilir/innleiding}\n\\newpage\n')
+    masterfile.write('\n' + temp + '\n\\input{texfilir/innleiding}\n\\newpage\n')
     with open('texfilir/innleiding.tex', 'w') as f:
         f.write('innleiðingin')
 
@@ -145,7 +147,8 @@ def skriva_doc(setup_dict, siduval_dict):
         temp = '\\chapter{Mátingar}'
     masterfile.write('\n' + temp + '\\input{texfilir/matingar}\n\\newpage\n')
     with open('texfilir/matingar.tex', 'w') as f:
-        f.write('Mátingar')
+        f.write('Mátingar\n')
+        f.write('\\input{texfilir/sjovarfall}')
 
     #  Úrslit
     if mal == 'EN':
@@ -178,8 +181,9 @@ def skriva_doc(setup_dict, siduval_dict):
                 #       '\n\\caption{%s}\n\\end{figure}\n\\newpage\n' % (section, ratning, navn, caption)
             masterfile.write(a)
 
-        elif case == 'test':
-            a = gersamadratt(datadf, uvdatadf, dypir, max_bin, dest=dest, date=date)
+        elif case == 'Býti av streymferð':
+            a = intro_bar(datadf, max_bin, dypir, dest=dest, figheight=3,
+                          max_sj=True, uvdata=uvdatadf, date=date)
             masterfile.write(a)
 
         #  Setup Hovmuller
@@ -224,16 +228,18 @@ def skriva_doc(setup_dict, siduval_dict):
                         caption = 'Hovmüller diagram of north/south velocities for the' \
                                 'whole deployment period. The velocity scale is in mm/s'
                     else:
-                        caption = 'Streymferð í norðan (reytt) og sunnan (blátt) á øllum '\
-                                'dýpum (y-ásin) gjøgnum alt mátitíðarskeiðið'
+                        caption = 'Streymferð í norðan (reytt) og sunnan (blátt) '\
+                                'á øllum máldum dýpum (y-ásin) gjøgnum alt mátitíðarskeiðið. '\
+                                'Litstigin er í mm/s.'
                 elif ratning == 90:
                     data = uvdatadf[['u' + x for x in colnames]].values.T
                     if mal == 'EN':
                         caption = 'Hovmüller diagram of east/west velocities for the whole' \
                                 'deployment period. The velocity scale is in mm/s'
                     else:
-                        caption = 'Streymferð í eystan (reytt) og vestan (blátt) á øllum '\
-                                'dýpum (y-ásin) gjøgnum alt mátitíðarskeiðið'
+                        caption = 'Streymferð í eystan (reytt) og vestan (blátt) '\
+                                'á øllum máldum dýpum (y-ásin) gjøgnum alt mátitíðarskeiðið. '\
+                                'Litstigin er í mm/s.'
                 else:
                     data = uvdatadf[['v' + x for x in colnames]].values.T * \
                             np.cos(np.deg2rad(ratning)) + \
@@ -243,8 +249,9 @@ def skriva_doc(setup_dict, siduval_dict):
                         caption = 'Hovmüller diagram of [%s] velocities for the whole' \
                                 'deployment period. The velocity scale is in mm/s' % int(ratning)
                     else:
-                        caption = 'Streymferð í %3.0f (reytt) og %3.0f (blátt) á øllum '\
-                                'dýpum (y-ásin) gjøgnum alt mátitíðarskeiðið'\
+                        caption = 'Streymferð í %3.0f (reytt) og %3.0f (blátt) '\
+                                'á øllum máldum dýpum (y-ásin) gjøgnum alt mátitíðarskeiðið. '\
+                                'Litstigin er í mm/s.'\
                                 % (ratning, (ratning + 180)%360)
                 a = tegnahovmuller(data, yaxis, date, mal=mal, ratning=ratning,
                                    navn=navn, caption=caption, vmax=vmax, dest=dest,
@@ -272,7 +279,7 @@ def skriva_doc(setup_dict, siduval_dict):
         elif case == 'speedbins_hovus':
             a = speedbins_hovus(top_mid_bot_layer, date, datadf, dypir, mal=mal,
                                 dest=dest, dpi=dpi, hovusratningur=hovisrat,
-                                section='Streymur í høvusratning %3.0f°' % hovisrat,
+                                section='Streymur í høvuðsættina %3.0f°' % hovisrat,
                                 font=font, figwidth=figwidth, figheight=figheight)
             masterfile.write(a)
 

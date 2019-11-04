@@ -422,30 +422,29 @@ def speedbins_minmax(bins, dato, df, max_bin, dypir, minmax=True, mal='FO', dest
                          -dypir[bins[2] - 1])
             caption = 3 * [caption]
     else:
-        # TODO hettar skal vekk so skjótt eg finni útav at leisinin er góð nokk
-        #if bins[0] == '10m':
-        #    caption = 'Streymferð á trimum valdum dýpum frá øllum mátitíðarskeiðnum.' \
-        #            'a) %2.0f m depth, b) %2.0f m depth' \
-        #              ' and c) %2.0f m depth.' \
-        #              % (10,
-        #                 -dypir[bins[1] - 1],
-        #                 -dypir[bins[2] - 1])
-        # 
-        #else:
-        #    caption = 'Streymferð á trimum valdum dýpum frá øllum mátitíðarskeiðnum.' \
-        #            'a) %2.0f m depth, b) %2.0f m depth' \
-        #              ' and c) %2.0f m depth.' \
-        #              % (-dypir[bins[0] - 1],
-        #                 -dypir[bins[1] - 1],
-        #                 -dypir[bins[2] - 1])
-        #  TODO skriva mynd 4 sum ein ref
-        caption = ['Streymferð á trimum valdum dýpum frá øllum mátitíðarskeiðnum.'\
-                   ' Reyði kassin vísir vikuna við harðasta streymi og'\
-                   ' grøni kassin vísir vikuna við veikasta streymi.',
-                   'Streymferð á trimum valdum dýpum vikuna við harðasta rákið ' \
-                   '(reyði kassin á mynd~\\ref{speedbin}',
-                   'Streymferð á trimum valdum dýpum vikuna við harðasta rákið ' \
-                   '(grøni kassin á mynd~\\ref{speedbin})']
+        if bins[0] == '10m':
+            caption = ['Vatnstøða (ovasta myndin) og streymferð á trimum útvaldum dýpum '\
+                       'frá øllum mátitíðarskeiðinum. Strikumyndin á \\SI{10}{m} dýpi vísir '\
+                       'til máting, sum er \\SI{10}{m} frá vatnskorpuni, tá mátingin varð framd, '\
+                       'meðan %s og \\SI{%s}{m} dýpi vísa til dýpi í mun til botndýpi. '\
+                       'Reyði kassin vísir vikuna við harðasta streymi, '\
+                       'og grøni kassin vísir vikuna við veikasta streymi.'\
+                       % (str(-int(np.round(dypir[bins[1]-1]))),
+                          str(-int(np.round(dypir[bins[2]-1])))),
+                       'Vatnstøða (ovasta myndin) og streymferð á trimum útvaldum dýpum '\
+                       'ta vikuna, tá streymurin var harðastur '\
+                       '(reyði kassin á mynd~\\ref{speedbin}).',
+                       'Vatnstøða (ovasta myndin) og streymferð á trimum útvaldum dýpum '\
+                       'ta vikuna, streymurin var veikastur '\
+                       '(grøni kassin á mynd~\\ref{speedbin}).']
+        else:
+            caption = ['Streymferð á trimum valdum dýpum frá øllum mátitíðarskeiðnum.'\
+                       ' Reyði kassin vísir vikuna við harðasta streymi og'\
+                       ' grøni kassin vísir vikuna við veikasta streymi.',
+                       'Streymferð á trimum valdum dýpum vikuna við harðasta rákið ' \
+                       '(reyði kassin á mynd~\\ref{speedbin}',
+                       'Streymferð á trimum valdum dýpum vikuna við harðasta rákið ' \
+                       '(grøni kassin á mynd~\\ref{speedbin})']
 
     for i in range(len(bins)+1):
         axs[i].xaxis.set_major_formatter(date_fmt)
@@ -574,25 +573,12 @@ def speedbins_hovus(bins, dato, df, dypir, mal='FO', dest='', dpi=200, hovusratn
                          -dypir[bins[1] - 1],
                          -dypir[bins[2] - 1])
     else:
-        if bins[0] == '10m':
-            caption = 'Streymferð í Høvusrætning (%3.0f°), á trimum valdum ' \
-                    'dýpum frá øllum mátitíðarskeiðnum.' \
-                    'a) %2.0f m dýpið, b) %2.0f m dýpið' \
-                      ' og c) %2.0f m dýpið.' \
-                      % (hovusratningur,
-                         10,
-                         -dypir[bins[1] - 1],
-                         -dypir[bins[2] - 1])
-        else:
-            caption = 'Streymferð í Høvusrætning (%3.0f°), á trimum valdum dýpum frá øllum mátitíðarskeiðnum.' \
-                    'a) %2.0f m dýpið, b) %2.0f m dýpið' \
-                      ' og c) %2.0f m dýpið.' \
-                      % (hovusratningur,
-                         -dypir[bins[0] - 1],
-                         -dypir[bins[1] - 1],
-                         -dypir[bins[2] - 1])
-
-
+        caption = 'Streymferð í høvuðsrætningin (%3.0f°) á trimum valdum dýpum frá øllum '\
+                'mátitíðarskeiðnum. Høvuðsrætningurin er tann ættin, streymurin oftast '\
+                'rekur í, sí mynd~\\ref{rose}. Vanliga verður rákið býtt í høvuðsættirnar '\
+                '(norður-suður rák og eystur-vestur rák), men flest allir føroyskir firðir '\
+                'og sund venda í útnyrðing-landsynning, og tí verður streymferðin lýst '\
+                'í mun til høvuðsrætningin heldur enn høvuðsættirnar.' % hovusratningur
 
     plt.subplots_adjust(left=0.12, bottom=0.05, right=0.95, top=0.95, wspace=0.0, hspace=0.2)
     fig.savefig(dest + 'myndir/%s' % navn, dpi=dpi)
@@ -713,7 +699,7 @@ def tekna_dist_rose(bins, data, N, umax, dypir, mal='FO', dest='LaTeX/', dpi=200
         if mal == 'EN':
             section = 'Rose diagrams at selected layers'
         else:
-            section = 'Rósu diagram á ymsum dýpum'
+            section = 'Rósudiagramm á ymsum dýpum'
     if len(bins) != 3:
         print(bins)
         raise ValueError('bins skal hava 3 bins')
@@ -783,17 +769,18 @@ def tekna_dist_rose(bins, data, N, umax, dypir, mal='FO', dest='LaTeX/', dpi=200
                          -dypir[bins[2] - 1 ])
     else:
         if bins[0] == '10m':
-            caption = 'Títtleiki av streymferð í rætning á: ' \
-                      'a)~%2.0f~m~dýpið, b)~%2.0f~m~dýpið, og~c)~%2.0f~m~dýpið.' \
-                      % (10,
-                         -dypir[bins[1] - 1],
-                         -dypir[bins[2] - 1])
+            caption = 'Títtleikin av mátingum við ávísari streymferð í ávísan rætning á '\
+                    'trimum valdum dýpum. Myndirnar høgru megin hava allar somu ásir, meðan '\
+                    'myndirnar vinstru megin hava broytiligar ásir, ið best lýsa dáturnar. '\
+                    'Litstigin vísir títtleikan av mátingunum, har reyðu litirnir vísa á '\
+                    'streymferðina í tann rætningin, sum kemur oftast fyri.'
+
         else:
-            caption = 'Títtleiki av streymferð í rætning á: ' \
-                      'a)~%2.0f~m~dýpið, b)~%2.0f~m~dýpið, og~c)~%2.0f~m~dýpið.' \
-                      % (-dypir[bins[0] - 1],
-                         -dypir[bins[1] - 1],
-                         -dypir[bins[2] - 1])
+            caption = 'Títtleikin av mátingum við ávísari streymferð í ávísan rætning á '\
+                    'trimum valdum dýpum. Myndirnar høgru megin hava allar somu ásir, meðan '\
+                    'myndirnar vinstru megin hava broytiligar ásir, ið best lýsa dáturnar. '\
+                    'Litstigin vísir títtleikan av mátingunum, har reyðu litirnir vísa á '\
+                    'streymferðina í tann rætningin, sum kemur oftast fyri.'
 
     plt.gca().set_aspect('equal', adjustable='box')
     plt.subplots_adjust(left=0.05, bottom=0.05, right=0.95, top=0.95, wspace=0.0, hspace=0.5)
@@ -828,7 +815,7 @@ def progressive_vector(bins, dato, uvdf, dypir, mal='FO', dest='LaTeX/', dpi=200
     if mal == 'EN':
         section = 'Progressive vector diagrams at selected layers'
     else:
-        section = 'Progressive vector diagrams á ymskum dýpum'
+        section = 'Stigvís vektordiagramm á ymskum dýpum'
     if len(bins) != 3:
         raise ValueError('bins skal hava 3 bins')
     fig, axs = plt.subplots(ncols=1, nrows=1, figsize=(figwidth, figheight), dpi=dpi)
@@ -1244,22 +1231,9 @@ def progressive_vector(bins, dato, uvdf, dypir, mal='FO', dest='LaTeX/', dpi=200
                          -dypir[bins[1] - 1],
                          -dypir[bins[2] - 1])
     else:
-        if bins[0] == '10m':
-            caption = 'PVD-plott av mátingunum, sum vísir hvussu ein lutur hevði rikið,' \
-                    'um rákið var eins og á mátistaðnum í øllum økinum.' \
-                    'Hvør litur umboðar ein mánað sum víst á litstiganum:'\
-                    'Surface (%2.0f m depth), center (%2.0f m depth) and bottom layer (%2.0f m depth).' \
-                      % (10,
-                         -dypir[bins[1] - 1],
-                         -dypir[bins[2] - 1])
-        else:
-            caption = 'PVD-plott av mátingunum, sum vísir hvussu ein lutur hevði rikið,' \
-                    'um rákið var eins og á mátistaðnum í øllum økinum.' \
-                    'Hvør litur umboðar ein mánað sum víst á litstiganum:'\
-                    'Surface (%2.0f m depth), center (%2.0f m depth) and bottom layer (%2.0f m depth).' \
-                      % (-dypir[bins[0] - 1],
-                         -dypir[bins[1] - 1],
-                         -dypir[bins[2] - 1])
+        caption = 'Stigvís vektordiagramm (PVD-plott) av mátingunum, sum vísa, '\
+                'hvussu ein lutur hevði rikið, um rákið var eins og á mátistaðnum í øllum '\
+                'økinum. Hvør litur umboðar eina viku, sum víst á litstiganum.'
 
     return '\n\\FloatBarrier\n\\newpage\n\\section{%s}\n\\begin{figure}[h!]\n' \
             '\\includegraphics[scale=1]{myndir/%s}\n\\caption{%s}\n\\label{PVD}\n' \
@@ -1358,7 +1332,8 @@ def frequencytabellir(datadf, dypir, mal='FO', dest='LaTeX/',
     if mal == 'EN':
         caption = 'Frequency (in parts per thousand) of speeds equal to or exeeding speified values.'
     else:
-        caption = 'Frekvenstalva (í promillu), sum vísur part av mátingum hægri enn eina givna ferð.'
+        caption = 'Frekvenstalva, sum fyri hvørt dýpi vísir partin av mátingunum (í promillu), '\
+                'har ferðin er hægri enn streymferðin, sum er tilskilað í aðru rekkju.'
 
     return '\n\\FloatBarrier\n\\newpage' \
            '\n\\section{%s}' \
@@ -1392,7 +1367,7 @@ def duration_speed(bins, dato, magdf, dypir, mal='FO', dest='LaTeX/',
         if mal == 'EN':
             section = 'Duration of high speed periods'
         else:
-            section = 'Tíð av samanhangandi høgari ferð'
+            section = 'Tíðarbil við samanhangandi høgari ferð'
     if len(bins) != 3:
         raise ValueError('bins skal hava 3 bins')
     duration = [30] + list(range(60, 720 + 60, 60))
@@ -1468,11 +1443,11 @@ def duration_speed(bins, dato, magdf, dypir, mal='FO', dest='LaTeX/',
             tempdypid = -dypir[item - 1]
 
         if mal == 'EN':
-            caption.append('%s - %2.0fm'
-                           % (prelabel, tempdypid))
+            caption.append('%s - \\SI{%2.0f}{m}'
+                           % (prelabel.lower(), tempdypid))
         else:
-            caption.append('%s - %2.0fm'
-                           % (prelabel, tempdypid))
+            caption.append('%s - \\SI{%2.0f}{m}'
+                           % (prelabel.lower(), tempdypid))
         label.append('\\label{Dur_%s}' % (item,))
 
     for i, item in enumerate(caption):
@@ -1483,11 +1458,9 @@ def duration_speed(bins, dato, magdf, dypir, mal='FO', dest='LaTeX/',
            'specified duration with speeds equal to or exceeding specified threshold values (Speed). ' \
            'Flagged ensembles are ignored.'
     else:
-        forklarandi_tekstur = 'Partur av samanhangandi tíð (í promillu),' \
-                ' ið hava verði longri enn givna tíðarskeiði við hægri enn givnu streymferð.'
-        forklarandi_tekstur = 'Partur av mátingunum/tíð ( í promillu) har streymferðin'\
-                'áhaldandi hevur verið hægri enn streymferðina sum er lýst í fyrstu kolonnu'\
-                'í longri enn tíðarskeiðið (minuttir) sum er lýst í aðru rekkju.'
+        forklarandi_tekstur = 'Partur av mátingunum (í promillu), har streymferðin áhaldandi '\
+                'hevur verið hægri enn streymferðin (mm/s) sum er lýst í fyrstu kolonnu í '\
+                'longri enn tíðarskeiðið (minuttir), sum er lýst í aðru rekkju.'
 
     out = '\n\\FloatBarrier\n\\newpage'
     out += '\n\\section{%s}' % section
@@ -1513,9 +1486,9 @@ def duration_speed(bins, dato, magdf, dypir, mal='FO', dest='LaTeX/',
     out += '\n\\input{Talvur/%s}' % filnovn[2]
     out += '\n}'
     out += '\n\\caption{%s}' % caption[2]
-    out += '\n\\label{samanhangandi}'
     out += '\n\\end{subtable}'
     out += '\n\\caption{%s}' % forklarandi_tekstur
+    out += '\n\\label{samanhangandi}'
     out += '\n\\end{table}'
     out += '\n\\newpage\n\\FloatBarrier\n'
     return out

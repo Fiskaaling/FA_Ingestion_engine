@@ -33,7 +33,7 @@ def streym(frame, root):
     #                    eg havi ikki brúkt hettar
     #----------------------------------------------------------------------
     siduval_dict = {}
-    siduval_list = ['test',
+    siduval_list = ['Býti av streymferð',
                     'Introduction', 'Hovmuller', 'speedbin', 'rosa', 'speedbins_hovus',
                     'progressive',
                     'freqtabellir', 'durationtabellir', 'tidal_3_dypir',
