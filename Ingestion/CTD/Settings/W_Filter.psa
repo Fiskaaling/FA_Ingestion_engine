@@ -13,7 +13,7 @@
   <NameAppend value="" />
   <OutputFile value="" />
   <LastProcessed value="0" />
-  <ExcludeMarkedBad value="1" />
+  <ExcludeMarkedBad value="0" />
   <CalcArray Size="12" >
     <CalcArrayItem index="0" CalcID="95" >
       <Calc UnitID="3" Ordinal="0" >
