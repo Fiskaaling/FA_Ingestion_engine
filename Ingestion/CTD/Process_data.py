@@ -105,6 +105,7 @@ def processera(mappunavn):
                              "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/9_ASCII_Out.txt",
                              str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/8_Bin_Average/' + filnavn + '.cnv'),
                              str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/9_ASCII_Out'), '#m'])
+
             subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe', # Eyka - Til alt data
                              "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/9_ASCII_Out.txt",
                              str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/7_Window_Filter/' + filnavn + '.cnv'),

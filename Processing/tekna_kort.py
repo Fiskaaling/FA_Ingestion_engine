@@ -609,6 +609,7 @@ def les_og_tekna(text, fig, canvas, silent=False, v_dic = {}):
                 else:
                     suppress_ticks = False
             elif variable == 'kortSkala':
+                pass
                 #m.drawmapscale(lonmax - 0.006, latmax - 0.001, lonmax + 0.018, latmax - 0.015,
                 # TODO: M riggar ikki longur, ger okkurt nýtt her
                 #m.drawmapscale(v_dic['req']['latmax'] + 0.006, v_dic['req']['latmin'] + 0.001, v_dic['req']['lonmax']-v_dic['req']['lonmin'] + v_dic['req']['lonmin'], v_dic['req']['latmax']-v_dic['req']['latmin']+v_dic['req']['latmin'],
