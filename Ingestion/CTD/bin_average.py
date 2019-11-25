@@ -22,7 +22,7 @@ textsize = 16
 
 def bin_average_frame(frame, root2):
     # mappunavn = './Ingestion/CTD/Lokalt_Data/2019-01-31/75_All_ASCII_Out'
-    mappunavn = './Ingestion/CTD/Lokalt_Data/2019-06-04/75_All_ASCII_Out'
+    mappunavn = './Ingestion/CTD/Lokalt_Data/2019-03-14/75_All_ASCII_Out'
     mappunavn_dict = {'mappunavn': mappunavn}
     root = root2
     for widget in frame.winfo_children():
@@ -56,7 +56,6 @@ def bin_average_frame(frame, root2):
     mappunavn_dict['continuebtn'].pack(side=TOP, anchor=W)
     processera(root, fig, canvas, Quality_frame, mappunavn_dict)
 
-
 def velFil(mappunavn):
     mappunavn['mappunavn'] = filedialog.askdirectory(title='Vel túramappu', initialdir='./Ingestion/CTD/Lokalt_Data/')
 
@@ -69,7 +68,11 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
     ax = fig.subplots()
     filnavn = os.listdir(mappunavn)
     filnavn.sort()
-
+    mappunavn_dict['toggle_temp'] = 0
+    mappunavn_dict['toggle_FlECO'] = 0
+    mappunavn_dict['toggle_Sbeox0PS'] = 0
+    mappunavn_dict['toggle_Sal00'] = 0
+    mappunavn_dict['toggle_par'] = 0
     data = pd.read_csv(mappunavn + '/' + filnavn[mappunavn_dict['filur']], encoding='latin-1') # Les fíl
 
     list_of_casts = os.listdir(mappunavn)
@@ -233,6 +236,35 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
                                                    ha='center',
                                                    arrowprops=dict(arrowstyle="->"))
 
+    if True: # Um flaggi ikki er 0, markera mátingina reyða
+        fra = 0
+        til = 1
+        lastflag = 0
+        for i, flag in enumerate(data.Flag):
+            if lastflag == 0 and flag != 0:
+                fra = i
+                til = 1
+            if lastflag != 0 and flag == 0:
+                til = i
+                farvaHer = np.zeros((len(data), 1))
+                farts = []
+                for i in range(len(data)):
+                    fra = int(fra)
+                    til = int(til)
+                    if (i > fra) and (i < til):
+                        farvaHer[i] = 1
+                        farts.append(True)
+                    else:
+                        farts.append(False)
+                ax.fill_between(data.TimeS, -100, 0, where=farts, facecolor='red', alpha=0.2)
+
+            lastflag = flag
+
+        print('markeraokid')
+        print(fra)
+        print(til)
+
+
     qcontrol(quality_subframe, depth, event_dict, pump_on, filnavn[mappunavn_dict['filur']])
 
     def key(event):
@@ -242,6 +274,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
             move_amount = 1
         else:
             move_amount = 8
+        print(event.keysym)
 
         if event.keysym == 'w':
             if mappunavn_dict['filur'] < len(filnavn)-1:
@@ -251,6 +284,82 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
             if mappunavn_dict['filur'] != 0:
                 mappunavn_dict['filur'] -= 1
                 update_qframe = True
+        elif event.keysym == '1':
+            if mappunavn_dict['toggle_temp'] == 0:
+                mappunavn_dict['toggle_temp'] = 1
+                mappunavn_dict['ax2'] = ax.twinx()
+                mappunavn_dict['yplt2'] = mappunavn_dict['ax2'].plot(timeAx, data.T068C[start_index:], color='red')
+                mappunavn_dict['ax2'].set_ylabel('T068C', color='k')
+                mappunavn_dict['ax2'].set_ylim(min(data.T068C[event_dict['soak_stop']:])-0.1, max(data.T068C) + 0.1)
+            else:
+                mappunavn_dict['toggle_temp'] = 0
+                mappunavn_dict['yplt2'].pop(0).remove()
+                mappunavn_dict['ax2'].axis('off')
+            canvas.draw()
+            canvas.get_tk_widget().pack(fill=BOTH, expand=1)
+
+        elif event.keysym == '2':
+            if mappunavn_dict['toggle_FlECO'] == 0:
+                mappunavn_dict['toggle_FlECO'] = 1
+                mappunavn_dict['ax3'] = ax.twinx()
+                print(data.columns)
+                mappunavn_dict['yplt3'] = mappunavn_dict['ax3'].plot(timeAx, data['FlECO-AFL'][start_index:], color='green')
+                mappunavn_dict['ax3'].set_ylabel('FlECO - AFL', color='k')
+                mappunavn_dict['ax3'].set_ylim(min(data['FlECO-AFL'][event_dict['soak_stop']:]) - 0.1, max(data['FlECO-AFL'][event_dict['soak_stop']:event_dict['upcast_stop']]) + 0.1)
+            else:
+                mappunavn_dict['toggle_FlECO'] = 0
+                mappunavn_dict['yplt3'].pop(0).remove()
+                mappunavn_dict['ax3'].axis('off')
+            canvas.draw()
+            canvas.get_tk_widget().pack(fill=BOTH, expand=1)
+        elif event.keysym == '3':
+            if mappunavn_dict['toggle_Sbeox0PS'] == 0:
+                mappunavn_dict['toggle_Sbeox0PS'] = 1
+                mappunavn_dict['ax4'] = ax.twinx()
+                print(data.columns)
+                mappunavn_dict['yplt4'] = mappunavn_dict['ax4'].plot(timeAx, data['Sbeox0PS'][start_index:], color='lightblue')
+                mappunavn_dict['ax4'].set_ylabel('Sbeox0PS', color='k')
+                mappunavn_dict['ax4'].set_ylim(min(data['Sbeox0PS'][event_dict['soak_stop']:]) - 0.1, max(data['Sbeox0PS'][event_dict['soak_stop']:]) + 0.1)
+            else:
+                mappunavn_dict['toggle_Sbeox0PS'] = 0
+                mappunavn_dict['yplt4'].pop(0).remove()
+                mappunavn_dict['ax4'].axis('off')
+            canvas.draw()
+            canvas.get_tk_widget().pack(fill=BOTH, expand=1)
+        elif event.keysym == '4':
+            if mappunavn_dict['toggle_par'] == 0:
+                mappunavn_dict['toggle_par'] = 1
+                mappunavn_dict['ax5'] = ax.twinx()
+                print(data.columns)
+                mappunavn_dict['yplt5'] = mappunavn_dict['ax5'].plot(timeAx, data['Par/sat/log'][start_index:], color='peru')
+                mappunavn_dict['ax5'].set_ylabel('Par/sat/log', color='k')
+                mappunavn_dict['ax5'].set_ylim(min(data['Par/sat/log'][event_dict['soak_stop']:event_dict['upcast_stop']]) - 0.1, max(data['Par/sat/log'][event_dict['soak_stop']:event_dict['upcast_stop']]) + 0.1)
+            else:
+                mappunavn_dict['toggle_par'] = 0
+                mappunavn_dict['yplt5'].pop(0).remove()
+                mappunavn_dict['ax5'].axis('off')
+            canvas.draw()
+            canvas.get_tk_widget().pack(fill=BOTH, expand=1)
+        elif event.keysym == '5':
+            if mappunavn_dict['toggle_Sal00'] == 0:
+                mappunavn_dict['toggle_Sal00'] = 1
+                mappunavn_dict['ax6'] = ax.twinx()
+                print(data.columns)
+                mappunavn_dict['yplt6'] = mappunavn_dict['ax6'].plot(timeAx, data['Sal00'][start_index:], color='lightgreen')
+                mappunavn_dict['ax6'].set_ylabel('Sal00', color='k')
+                mappunavn_dict['ax6'].set_ylim(min(data['Sal00'][event_dict['soak_stop']:event_dict['upcast_stop']]) - 0.1, max(data['Sal00'][event_dict['soak_stop']:event_dict['upcast_stop']]) + 0.1)
+            else:
+                mappunavn_dict['toggle_Sal00'] = 0
+                mappunavn_dict['yplt6'].pop(0).remove()
+                mappunavn_dict['ax6'].axis('off')
+            canvas.draw()
+            canvas.get_tk_widget().pack(fill=BOTH, expand=1)
+
+            #Sbeox0PS
+            canvas.draw()
+            canvas.get_tk_widget().pack(fill=BOTH, expand=1)
+
+
         elif event.keysym == 'Return':
             log_b()
             print('Calculating')
