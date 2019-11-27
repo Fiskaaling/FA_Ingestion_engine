@@ -73,6 +73,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
     mappunavn_dict['toggle_Sbeox0PS'] = 0
     mappunavn_dict['toggle_Sal00'] = 0
     mappunavn_dict['toggle_par'] = 0
+    mappunavn_dict['toggle_C0mS'] = 0
     data = pd.read_csv(mappunavn + '/' + filnavn[mappunavn_dict['filur']], encoding='latin-1') # Les fíl
 
     list_of_casts = os.listdir(mappunavn)
@@ -226,7 +227,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
                       'upcast_stop_line': ax.plot([time_fulllength[event_dict['upcast_stop']], time_fulllength[event_dict['upcast_stop']]], [-100, 100], 'k')}
 
     event_dict['selected_event'] = 0
-    zoomed_in_dict = {'zoomed_in':  False}
+    zoomed_in_dict = {'zoomed_in':  False, 'onlyDowncast': False}
     if soak_start != -1:
         soak_line_dict['annotation'] = ax.annotate('Soak Start',
                                                    xy=(time_fulllength[soak_start], maxd + 1),
@@ -284,6 +285,16 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
             if mappunavn_dict['filur'] != 0:
                 mappunavn_dict['filur'] -= 1
                 update_qframe = True
+        elif event.keysym == 'Tab':
+            if zoomed_in_dict['onlyDowncast']:
+                zoomed_in_dict['onlyDowncast'] = False
+                ax.set_xlim(0, time_fulllength[len(time_fulllength) - 1])
+                print('Downcast')
+            else:
+                zoomed_in_dict['onlyDowncast'] = True
+                print('All')
+                ax.set_xlim(time_fulllength[event_dict['downcast_start']], time_fulllength[event_dict['downcast_stop']])
+            pass
         elif event.keysym == '1':
             if mappunavn_dict['toggle_temp'] == 0:
                 mappunavn_dict['toggle_temp'] = 1
@@ -352,6 +363,23 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
                 mappunavn_dict['toggle_Sal00'] = 0
                 mappunavn_dict['yplt6'].pop(0).remove()
                 mappunavn_dict['ax6'].axis('off')
+            canvas.draw()
+            canvas.get_tk_widget().pack(fill=BOTH, expand=1)
+        elif event.keysym == '6':
+            if mappunavn_dict['toggle_C0mS'] == 0:
+                mappunavn_dict['toggle_C0mS'] = 1
+                mappunavn_dict['ax7'] = ax.twinx()
+                mappunavn_dict['yplt7'] = mappunavn_dict['ax7'].plot(timeAx, data['C0mS/cm'][start_index:], color='gold')
+                mappunavn_dict['ax7'].set_ylabel('C0mS/cm', color='k')
+                mappunavn_dict['ax7'].set_ylim(min(data['C0mS/cm'][event_dict['soak_stop']:event_dict['upcast_stop']]) - 0.1, max(data['C0mS/cm'][event_dict['soak_stop']:event_dict['upcast_stop']]) + 0.1)
+            else:
+                mappunavn_dict['toggle_C0mS'] = 0
+                mappunavn_dict['yplt7'].pop(0).remove()
+                mappunavn_dict['ax7'].axis('off')
+            canvas.draw()
+            canvas.get_tk_widget().pack(fill=BOTH, expand=1)
+
+            #C0mS/cm
             canvas.draw()
             canvas.get_tk_widget().pack(fill=BOTH, expand=1)
 
