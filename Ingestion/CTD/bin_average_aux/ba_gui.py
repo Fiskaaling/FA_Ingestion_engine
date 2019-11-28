@@ -12,8 +12,8 @@ def refresh_qframe(Quality_frame, list_of_casts, parent_folder, filnavn, mappuna
     finished_processing = True
     for cast in list_of_casts:
         casttext = cast
-        if os.path.exists(parent_folder + '/ASCII_Downcast/metadata/' + cast.split('.')[0] + '_metadata.csv'):
-            cast_metadata_df = pd.read_csv(parent_folder + '/ASCII_Downcast/metadata/' + cast.split('.')[0] + '_metadata.csv', index_col=False)
+        if os.path.exists(parent_folder + '/ASCII/ASCII_Downcast/metadata/' + cast.split('.')[0] + '_metadata.csv'):
+            cast_metadata_df = pd.read_csv(parent_folder + '/ASCII/ASCII_Downcast/metadata/' + cast.split('.')[0] + '_metadata.csv', index_col=False)
             cast_metadata_keys = cast_metadata_df.key
             cast_metadata_values = cast_metadata_df.value
             cast_metadata = {}
@@ -29,7 +29,7 @@ def refresh_qframe(Quality_frame, list_of_casts, parent_folder, filnavn, mappuna
                 casttext += ' ✓'
         else:
             finished_processing = False
-        if os.path.exists(parent_folder + '/ASCII_Downcast/metadata/' + cast.split('.')[0] + '_do_not_use_.csv'):
+        if os.path.exists(parent_folder + '/ASCII/ASCII_Downcast/metadata/' + cast.split('.')[0] + '_do_not_use_.csv'):
             casttext += ' X'
             finished_processing = True
         if cast == filnavn[mappunavn_dict['filur']]:

@@ -22,7 +22,7 @@ textsize = 16
 
 
 def bin_average_frame(frame, root2):
-    # mappunavn = './Ingestion/CTD/Lokalt_Data/2019-01-31/75_All_ASCII_Out'
+    #mappunavn = './Ingestion/CTD/Lokalt_Data/2019-09-18/75_All_ASCII_Out'
     mappunavn = './Ingestion/CTD/Lokalt_Data/2019-01-17/Processed/ASCII_ALL'
     mappunavn_dict = {'mappunavn': mappunavn}
     root = root2
@@ -83,13 +83,16 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
     parent_folder = os.path.dirname(os.path.dirname(mappunavn))
 
     # Um mappurnar ikki eru til, ger tær
-    if not os.path.isdir(parent_folder + '/ASCII_Downcast'):
-        os.mkdir(parent_folder + '/ASCII_Downcast')
-    if not os.path.isdir(parent_folder + '/ASCII_Upcast'):
-        os.mkdir(parent_folder + '/ASCII_Upcast')
+    if not os.path.exists(parent_folder + '/Processed/7_Bin_Average/'):
+        os.mkdir(parent_folder + '/Processed/7_Bin_Average/')
+    if not os.path.exists(parent_folder + '/ASCII/'):
+        os.mkdir(parent_folder + '/ASCII/')
+        os.mkdir(parent_folder + '/ASCII/ASCII_Downcast')
+    if not os.path.isdir(parent_folder + '/Processed/ASCII_Upcast'):
+        os.mkdir(parent_folder + '/Processed/ASCII_Upcast')
     # Kanna um metadatamappan er til
-    if not os.path.isdir(parent_folder + '/ASCII_Downcast/metadata'):
-        os.makedirs(parent_folder + '/ASCII_Downcast/metadata')  # Um ikki, ger hana
+    if not os.path.isdir(parent_folder + '/ASCII/ASCII_Downcast/metadata'):
+        os.makedirs(parent_folder + '/ASCII/ASCII_Downcast/metadata')  # Um ikki, ger hana
 
     metadata, finished_processing = ba_gui.refresh_qframe(Quality_frame, list_of_casts, parent_folder, filnavn, mappunavn_dict)
     log_print('Finished_processing?: ' + str(finished_processing))
@@ -413,8 +416,8 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
                     downcast_Data = downcast_Data.join(pd.DataFrame({column: np.round(data[column].iloc[event_dict['downcast_start']:event_dict['downcast_stop']], 7)}))
                     upcast_Data = upcast_Data.join(pd.DataFrame({column: np.round(data[column].iloc[event_dict['downcast_stop']:event_dict['upcast_stop']], 7)}))
             # Og goym dataði í mappunum
-            downcast_Data.to_csv(parent_folder + '/ASCII_Downcast/' + filnavn[mappunavn_dict['filur']], index=False)
-            upcast_Data.to_csv(parent_folder + '/ASCII_Upcast/' + filnavn[mappunavn_dict['filur']], index=False)
+            downcast_Data.to_csv(parent_folder + '/ASCII/ASCII_Downcast/' + filnavn[mappunavn_dict['filur']], index=False)
+            upcast_Data.to_csv(parent_folder + '/Processed/ASCII_Upcast/' + filnavn[mappunavn_dict['filur']], index=False)
             # Roknar kvalitet
             log_print('Assesing quality')
             summary = qcontrol(quality_subframe, depth, event_dict, pump_on, filnavn[mappunavn_dict['filur']])
@@ -428,7 +431,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
                 # Hettar ger metadatafílin
                 metadatafile = 'key,value\n'
                 metadatafile += 'Data_File_Name,' + filnavn[mappunavn_dict['filur']] + '\n'
-                sha256_hash = get_hash(parent_folder + '/ASCII_Downcast/' + filnavn[mappunavn_dict['filur']])
+                sha256_hash = get_hash(parent_folder + '/ASCII/ASCII_Downcast/' + filnavn[mappunavn_dict['filur']])
                 metadatafile += 'sha256_hash,' + sha256_hash + '\n'
                 metadatafile += 'processed_by,' + getpass.getuser() + '\n'
                 for key, value in summary.items():
@@ -440,16 +443,12 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
                 metadatafile += 'upcast_stop,' + str(event_dict['upcast_stop']) + '\n'
                 log_print(metadatafile)
                 # Og her verður metadata fílurin goymdur
-                text_file = open(parent_folder + '/ASCII_Downcast/metadata/' + filnavn[mappunavn_dict['filur']].split('.')[0] + '_metadata.csv', "w")
+                text_file = open(parent_folder + '/ASCII/ASCII_Downcast/metadata/' + filnavn[mappunavn_dict['filur']].split('.')[0] + '_metadata.csv', "w")
                 text_file.write(metadatafile)
                 text_file.close()
                 update_qframe = True
 
-                # Ger síðstu mappurnar um tær ikki eru til
-                if not os.path.exists(parent_folder + '/Processed/7_Bin_Average/'):
-                    os.mkdir(parent_folder + '/Processed/7_Bin_Average/')
-                if not os.path.exists(parent_folder + '/ASCII/'):
-                    os.mkdir(parent_folder + '/ASCII/')
+
 
                 with fileinput.FileInput('/home/johannus/.wine/drive_c/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/BinAvg(1mcustomstart).psa', inplace=True, backup='.bak') as file:
                     for line in file:
