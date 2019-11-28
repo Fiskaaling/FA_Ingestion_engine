@@ -192,13 +192,14 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
     if os.path.isdir(parent_folder + '/RAW/'):
         # TODO: vit eru komin hertil
         raw_filar = os.listdir(parent_folder + '/RAW/')
+        print(raw_filar)
         raw_filnavn = '-1'
-        hesin_filur = filnavn[mappunavn_dict['filur']].upper()
+        hesin_filur = filnavn[mappunavn_dict['filur']].upper()[:]
         for raw_file in raw_filar: # Hettar finnur rætta xml fílin
             log_print(raw_file)
             log_print(hesin_filur)
-            if raw_file[0:17].upper() == hesin_filur[0:17]:
-                log_print('Alright')
+            if raw_file[0:7].upper() == hesin_filur[0:7]:
+                print('Alright')
                 raw_filnavn = raw_file
         if raw_filnavn == '-1':
             log_w('Eingin raw fílur funnin')
