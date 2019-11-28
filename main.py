@@ -90,6 +90,8 @@ def visTree(expandButton):
     Ingestion_frame.pack(expand=True)
     del expandButton
 
+
+
 # Teknar main gui
 root = Tk()
 root.geometry("1200x800")

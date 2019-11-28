@@ -1,8 +1,107 @@
 from tkinter import filedialog
 from misc.faLog import *
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.figure import Figure
 
-def plot_axis_root(frame, root2):
+
+def MultipleAxisProfile(frame, root2):
     for widget in frame.winfo_children():
         widget.destroy()
     Label(frame, text='Seabird SBE 25 CTD', font='Helvetica 18 bold').pack(side=TOP)
     Label(frame, text='Bin Average').pack(side=TOP, anchor=W)
+
+    fig = Figure(figsize=(12, 8), dpi=100)
+    plot_frame = Frame(frame, borderwidth=1, highlightbackground="green", highlightcolor="green", highlightthickness=1)
+    plot_frame.pack(fill=BOTH, expand=True, side=LEFT, anchor=N)
+    canvas = FigureCanvasTkAgg(fig, master=plot_frame)
+
+
+def PlotProfiles_multiaxis(TripNo, Hydr, Data, Profiles=False, Savefig=False, Figpath=False, Form='jpg', Scale=False):
+    """
+    PlotProfiles_multiaxis
+    Creates a figure for each station, containing two multiaxis subplots with 'temp, sal and dens' and 'temp, flu and ox' respectively
+    Input:  TripNo, Hydr, Data, Profiles, Savefig, Figpath, Form, Scale
+    Output: None
+    """
+
+    # changing 0.000 flu values to 0.01 due to use of log scale
+    Data.flu[Data.flu < 0.001] = 0.01
+
+    # possibility to choose spesific stations or all
+    if Profiles:
+        Hydro = Hydr.iloc[Profiles, :]
+    else:
+        Hydro = Hydr
+
+    # Setting variables, colors and labels for each of the two plots
+    # plotting temp sal and dens in first and temp, flu and ox in the second
+    vars0 = [['sal', 'dens', 'temp'], ['flu', 'ox', 'temp']]
+    # vars0 = [['sal', 'dens', 'temp'], ['flu', 'ox', 'temp']]
+
+    color0 = (('darkorange', 'dimgray', 'darkblue'), ('seagreen', 'tomato', 'darkblue'))
+    # label0 = ((r'Salinity [$g/kg$]', r'Density ${\sigma}_{\theta} [kg/m^3$]', r'Temperature [$^\circ C$]'),
+    #          (r'Fluorescence [$mg/m^3$]', r'Oxygen [$\%$]', r'Temperature [$^\circ C$]'))
+    label0 = ((r'Salinity [$g/kg$]', r'Density ${\sigma}_{\theta} [kg/m^3$]', r'Temperature [$^\circ C$]'),
+              (r'Fluorescence [$mg/m^3$]', r'Oxygen [$mg/L$]', r'Temperature [$^\circ C$]'))
+    if Scale == 'Global':
+        vmin = [[30.5, 23, 7.8], [0.4, 6, 7.8]]
+        vmax = [[36.5, 28, 8.1], [10, 10, 8.1]]
+    else:
+        vmin = [Data[vars0[0]].min().tolist(), Data[vars0[1]].min().tolist()]
+        vmax = [Data[vars0[0]].max().tolist(), Data[vars0[1]].max().tolist()]
+        vmin[1][0] = 0.1
+
+    print(vmin, vmax)
+
+    # iterating through stations and plotting profiles
+    for StNum in Hydro.index:
+
+        # preparing data
+        Name = Hydro.loc[StNum].StName
+        Dat = Data.loc[StNum]  # JK- Data á hesari støðini
+        Dep = Data.loc[StNum]['depth']
+        print(Dat)
+        # initiate figure
+        fig, axarr = plt.subplots(1, 2, figsize=(12, 8), sharey=True)
+        fig.suptitle('Station name: {}. Station number: {}'.format(Name, StNum), y=1.03)
+        fig.subplots_adjust(bottom=0.2, wspace=None, hspace=None)
+
+        for a, ax in enumerate(axarr):
+            # Twin the y-axis twice to make independent x-axes.
+            axes = [ax, ax.twiny(), ax.twiny()]
+
+            # Make some space in the fig at the bottom for the extra x-axis.
+            # Change the extra axis ticks and label from top to bottom
+            # Move the spine down by 0.15
+            # fig.subplots_adjust(bottom=0.2)
+            axes[1].xaxis.set_ticks_position("bottom")
+            axes[1].xaxis.set_label_position("bottom")
+            axes[1].spines['bottom'].set_position(('axes', -0.13))
+
+            data0 = Dat[vars0[a]]  # Data á hesari støðini, tveir listar við dataðinum til hvørt subplot á hvøjum lista
+            print(data0)
+            for b, ax in enumerate(axes):
+                data1 = data0[vars0[a][b]]
+                if (vars0[a][b] == 'dens'):
+                    print('Hettar er dens')
+                    print(data1)
+                elif (vars0[a][b] == 'sal'):
+                    print('Hettar er sal')
+                    print(data1)
+                if a == 1 and b == 0:  # JK - Haldi hettar ger tað at flu verður plotta í log
+                    ax.semilogx(data1, -Dat.depth, color=color0[a][b], label=label0[a][b], linewidth=2)
+                else:
+                    ax.plot(data1, -Dat.depth, color=color0[a][b], label=label0[a][b], linewidth=2)
+                ax.set_xlabel(label0[a][b], color=color0[a][b])
+                # ax.tick_params(axis = 'x', colors = color0[a][b])
+                # ax.locator_params(axis='x',nbins=5)
+                if (vars0[a][b] == 'sal'):  # Sletta hettar, hettar er bara fyri at tvey plot ikki skulla lyggja yvur hvørt annað
+                    ax.set_xlim(xmin=vmin[a][b] - 1, xmax=vmax[a][b])
+                else:
+                    ax.set_xlim(xmin=vmin[a][b], xmax=vmax[a][b])
+                if a == 0: ax.set_ylabel(r'Depth $m$')  # Ylabel - depth
+                # if Dat.depth.max() < 60: plt.ylim(ymin = -60) # Ylim - for comparison
+                plt.ylim(ymin=-20)
+        if Savefig:
+            path = Figpath + 'Multi_{0}.{1}'.format(Name, Form)
+            fig.savefig(path, format=Form, dpi=400, bbox_inches='tight')

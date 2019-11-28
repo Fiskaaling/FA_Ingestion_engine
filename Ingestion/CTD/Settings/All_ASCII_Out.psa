@@ -2,17 +2,18 @@
 <ASCII_Out >
   <Version value="7.26.7.118" />
   <ServerName value="ASCII Out" />
-  <InputDir value="Z:\home\johannus\Documents\FA_Ingestion_engine\Ingestion\CTD\Lokalt_Data\2019-01-17\SLAVA" />
-  <InputFileArray size="9" GrowBy="-1" >
-    <ArrayItem index="0" value="2019-01-17t121813 sbe0251158.cnv" />
-    <ArrayItem index="1" value="2019-01-17t122735 sbe0251158.cnv" />
-    <ArrayItem index="2" value="2019-01-17t124029 sbe0251158.cnv" />
-    <ArrayItem index="3" value="2019-01-17t132440 sbe0251158.cnv" />
-    <ArrayItem index="4" value="2019-01-17t133726 sbe0251158.cnv" />
-    <ArrayItem index="5" value="2019-01-17t134810 sbe0251158.cnv" />
-    <ArrayItem index="6" value="2019-01-17t140005 sbe0251158.cnv" />
-    <ArrayItem index="7" value="2019-01-17t141226 sbe0251158.cnv" />
-    <ArrayItem index="8" value="2019-01-17t142252 sbe0251158.cnv" />
+  <InputDir value="Z:\home\johannus\Documents\FA_Ingestion_engine\Ingestion\CTD\Lokalt_Data\2019-03-14\7_Window_Filter" />
+  <InputFileArray size="10" GrowBy="-1" >
+    <ArrayItem index="0" value="2019-03-14t110337 sbe0251158.cnv" />
+    <ArrayItem index="1" value="2019-03-14t111800 sbe0251158.cnv" />
+    <ArrayItem index="2" value="2019-03-14t113352 sbe0251158.cnv" />
+    <ArrayItem index="3" value="2019-03-14t114500 sbe0251158.cnv" />
+    <ArrayItem index="4" value="2019-03-14t120004 sbe0251158.cnv" />
+    <ArrayItem index="5" value="2019-03-14t121210 sbe0251158.cnv" />
+    <ArrayItem index="6" value="2019-03-14t122427 sbe0251158.cnv" />
+    <ArrayItem index="7" value="2019-03-14t123650 sbe0251158.cnv" />
+    <ArrayItem index="8" value="2019-03-14t124628 sbe0251158.cnv" />
+    <ArrayItem index="9" value="2019-03-14t125033 sbe0251158.cnv" />
   </InputFileArray>
   <OutputDir value="Z:\home\johannus\Documents\FA_Ingestion_engine\Ingestion\CTD\Lokalt_Data\2019-01-17\slava_ascii" />
   <NameAppend value="" />
@@ -34,7 +35,7 @@
   <FirstColumnValue value="" />
   <ReplaceBadFlag value="0" />
   <BadFlagValue value="999000000000000020146215190528.000000" />
-  <CalcArray Size="16" >
+  <CalcArray Size="15" >
     <CalcArrayItem index="0" CalcID="72" >
       <Calc UnitID="-1" Ordinal="0" >
         <FullName value="Scan Count" />
@@ -117,12 +118,7 @@
         <ApplyTauCorrection value="1" />
       </Calc>
     </CalcArrayItem>
-    <CalcArrayItem index="14" CalcID="73" >
-      <Calc UnitID="-1" Ordinal="0" >
-        <FullName value="Scans Per Bin" />
-      </Calc>
-    </CalcArrayItem>
-    <CalcArrayItem index="15" CalcID="20" >
+    <CalcArrayItem index="14" CalcID="20" >
       <Calc UnitID="-1" Ordinal="0" >
         <FullName value="Flag" />
       </Calc>
@@ -143,7 +139,6 @@
     <ArrayItem index="11" value="1" />
     <ArrayItem index="12" value="1" />
     <ArrayItem index="13" value="1" />
-    <ArrayItem index="14" value="0" />
-    <ArrayItem index="15" value="1" />
+    <ArrayItem index="14" value="1" />
   </SelectArray>
 </ASCII_Out>
