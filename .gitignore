@@ -22,3 +22,4 @@ projektir/*
 *.ipynb
 *.txt
 *.swp
+.ycm_extra_conf.py
