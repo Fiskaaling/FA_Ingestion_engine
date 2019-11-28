@@ -68,7 +68,11 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
     midlingstid = 2 # sek
     fig.clf()
     ax = fig.subplots()
-    filnavn = os.listdir(mappunavn)
+    if os.path.exists(mappunavn):
+        filnavn = os.listdir(mappunavn)
+    else:
+        messagebox.showerror("Feilur", "Mappan er ikki til")
+        return
     filnavn.sort()
     mappunavn_dict['toggle_temp'] = 0
     mappunavn_dict['toggle_FlECO'] = 0

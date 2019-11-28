@@ -61,7 +61,7 @@ def processera(mappunavn, turnummar):
 
     else:
         print('Lokala mappan er til')
-
+    casts.sort()
     for i, cast in enumerate(casts):
         # TODO: Um man velur mappu har castini ikki eru í hvør sínari mappu, processera tað allíkavæl
         filnavnorginal = os.listdir(mappunavn + '/' + cast)
