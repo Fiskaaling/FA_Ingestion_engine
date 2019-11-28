@@ -52,8 +52,8 @@ def processera(mappunavn):
         os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turdato + '/5_Loop_Edit')
         os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turdato + '/6_Derive')
         os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turdato + '/7_Window_Filter')
-        os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turdato + '/8_Bin_Average')
-        os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turdato + '/9_ASCII_Out')
+        #os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turdato + '/8_Bin_Average')
+        #os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turdato + '/9_ASCII_Out')
         os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turdato + '/75_All_ASCII_Out')
 
     else:
@@ -95,7 +95,7 @@ def processera(mappunavn):
                              str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/5_Loop_Edit/' + filnavn + '.cnv'),
                              str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/6_Derive'), '#m'])
 
-            #subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
+            #subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBartch.exe',
             #                 "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/6_Derive.txt",
             #                 str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/4_CTM/' + filnavn + '.cnv'),
             #                 str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/6_Derive'), '#m'])
@@ -104,15 +104,14 @@ def processera(mappunavn):
                              "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/7_Window_Filter.txt",
                              str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/6_Derive/' + filnavn + '.cnv'),
                              str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/7_Window_Filter'), '#m'])
-            subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
-                             "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/8_Bin_Average(1m).txt",
-                             str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/7_Window_Filter/' + filnavn + '.cnv'),
-                             str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/8_Bin_Average'), '#m'])
-            print('Ascii Out')
-            subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
-                             "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/9_ASCII_Out.txt",
-                             str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/8_Bin_Average/' + filnavn + '.cnv'),
-                             str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/9_ASCII_Out'), '#m'])
+            #subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
+            #                 "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/8_Bin_Average(1m).txt",
+            #                 str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/7_Window_Filter/' + filnavn + '.cnv'),
+            #                 str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/8_Bin_Average'), '#m'])
+            #subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
+            #                 "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/9_ASCII_Out.txt",
+            #                 str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/8_Bin_Average/' + filnavn + '.cnv'),
+            #                 str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/9_ASCII_Out'), '#m'])
             print('All Ascii out')
             subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe', # Eyka - Til alt data
                              "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/9_All_ASCII_Out.txt",

@@ -1,11 +1,12 @@
 from tkinter import *
 from tkinter import filedialog
-from misc.faLog import *
+from misc.faLog import gerlog, log_e, log_b, log_print, log_w, log_clear
 import pandas as pd
 import getpass # Til at fáa brúkaranavn
 import numpy as np
 import os
 from shutil import copyfile
+import fileinput
 import subprocess
 from matplotlib import pyplot as plt
 import matplotlib
@@ -22,19 +23,19 @@ textsize = 16
 
 def bin_average_frame(frame, root2):
     # mappunavn = './Ingestion/CTD/Lokalt_Data/2019-01-31/75_All_ASCII_Out'
-    mappunavn = './Ingestion/CTD/Lokalt_Data/2019-03-14/75_All_ASCII_Out'
+    mappunavn = './Ingestion/CTD/Lokalt_Data/2019-01-17/75_All_ASCII_Out'
     mappunavn_dict = {'mappunavn': mappunavn}
     root = root2
     for widget in frame.winfo_children():
         widget.destroy()
     Label(frame, text='Seabird SBE 25 CTD', font='Helvetica 18 bold').pack(side=TOP)
     Label(frame, text='Bin Average').pack(side=TOP, anchor=W)
-    controlsFrame = Frame(frame)
-    controlsFrame.pack(side=TOP, anchor=W)
-    velMappuBtn = Button(controlsFrame, text='Vel Fílir', command=lambda: velFil(mappunavn_dict))
+    mappunavn_dict['controlsFrame'] = Frame(frame)
+    mappunavn_dict['controlsFrame'].pack(side=TOP, anchor=W)
+    velMappuBtn = Button(mappunavn_dict['controlsFrame'], text='Vel Fílir', command=lambda: velFil(mappunavn_dict))
     velMappuBtn.pack(side=LEFT, anchor=W)
 
-    processBtn = Button(controlsFrame, text='Processera', command=lambda: processera(root, fig, canvas, Quality_frame, mappunavn_dict))
+    processBtn = Button(mappunavn_dict['controlsFrame'], text='Processera', command=lambda: processera(root, fig, canvas, Quality_frame, mappunavn_dict))
     processBtn.pack(side=LEFT, anchor=W)
 
     Right_frame = Frame(frame)
@@ -54,6 +55,7 @@ def bin_average_frame(frame, root2):
 
     mappunavn_dict['continuebtn'] = Button(Quality_frame, text='Halt áfram', command=lambda: Ingestion.CTD.skraset_stodir(frame, root2))
     mappunavn_dict['continuebtn'].pack(side=TOP, anchor=W)
+
     processera(root, fig, canvas, Quality_frame, mappunavn_dict)
 
 def velFil(mappunavn):
@@ -79,8 +81,18 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
     list_of_casts = os.listdir(mappunavn)
     list_of_casts.sort()
     parent_folder = os.path.dirname(mappunavn)
+
+    # Um mappurnar ikki eru til, ger tær
+    if not os.path.isdir(parent_folder + '/ASCII_Downcast'):
+        os.mkdir(parent_folder + '/ASCII_Downcast')
+    if not os.path.isdir(parent_folder + '/ASCII_Upcast'):
+        os.mkdir(parent_folder + '/ASCII_Upcast')
+    # Kanna um metadatamappan er til
+    if not os.path.isdir(parent_folder + '/ASCII_Downcast/metadata'):
+        os.makedirs(parent_folder + '/ASCII_Downcast/metadata')  # Um ikki, ger hana
+
     metadata, finished_processing = ba_gui.refresh_qframe(Quality_frame, list_of_casts, parent_folder, filnavn, mappunavn_dict)
-    print('Finished_processing?: ' + str(finished_processing))
+    log_print('Finished_processing?: ' + str(finished_processing))
     if finished_processing:
         pass
     #        mappunavn_dict['continuebtn'].lift()
@@ -90,7 +102,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
 
     depth = data[data.columns[0]]
     time_fulllength = data['TimeS']
-    print(time_fulllength)
+    log_print(time_fulllength)
     maxd = max(depth)
     start_index = 0
     for time in data.TimeS:
@@ -114,7 +126,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
         diff_d.append((depth[i-1]-depth[i])/(time_fulllength.iloc[i-1]-time_fulllength.iloc[i]))
     states = ["PreSoak", "soak_start", "soak_stop", "downcast_start", "downcast_stop", "upcast_start", "upcast_stop"]
     current_stat = states[0]
-    print(current_stat)
+    log_print(current_stat)
 
     soaktime = -1
     soak_depth = -1
@@ -127,7 +139,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
         upcast_stop = -1
         for i, d in enumerate(depth):  # Hettar er kodan ið finnur nær tey ymsku tingini henda
             if current_stat == "PreSoak":  # Bíða 5 sek áðrenn byrja verður at leita eftir hvar soak byrjar
-                print(time_fulllength[i])
+                log_print(time_fulllength[i])
                 if time_fulllength[i] > 5:
                     current_stat = "soak_start"
             if current_stat == "soak_start":
@@ -137,7 +149,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
                     if np.var(dypid[i:i + n_midlingspunktir]) < 0.01:
                         soak_start = i
                         current_stat = "soak_stop"
-                    #    print('Farts '+ str(i))
+                    #    log_print('Farts '+ str(i))
             elif current_stat == "soak_stop":
                 if np.var(dypid[i:i + n_midlingspunktir]) > 0.01:
                     soak_stop = i + n_midlingspunktir
@@ -167,7 +179,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
             else:
                 pass
     else:
-        print('Lesur goymd event virðir')
+        log_print('Lesur goymd event virðir')
         soak_start = int(metadata['soak_start'])
         soak_stop = int(metadata['soak_stop'])
         downcast_start = int(metadata['downcast_start'])
@@ -179,10 +191,10 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
         raw_filnavn = '-1'
         hesin_filur = filnavn[mappunavn_dict['filur']].upper()
         for raw_file in raw_filar: # Hettar finnur rætta xml fílin
-            print(raw_file)
-            print(hesin_filur)
+            log_print(raw_file)
+            log_print(hesin_filur)
             if raw_file[0:17].upper() == hesin_filur[0:17]:
-                print('Alright')
+                log_print('Alright')
                 raw_filnavn = raw_file
         if raw_filnavn == '-1':
             log_w('Eingin raw fílur funnin')
@@ -203,13 +215,13 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
                 elif line[0] == '0' and lastLine == '1':
                     pump_off = i
                 lastLine = line[0]
-        print('Pump ' + str(pump_on))
+        log_print('Pump ' + str(pump_on))
         if pump_on != -1:
             ax.plot([pump_on/16, pump_on/16], [-100, 100], ':')
-            print('Pumpan tendraði aftaná: ' + str(pump_on/16) + ' sek')
+            log_print('Pumpan tendraði aftaná: ' + str(pump_on/16) + ' sek')
 
         if pump_off != -1:
-            print('Pumpan sløknaði aftaná: ' + str(pump_off/16) + ' sek')
+            log_print('Pumpan sløknaði aftaná: ' + str(pump_off/16) + ' sek')
             ax.plot([pump_off/16, pump_off/16], [-100, 100], ':')
         bin_stodd = 1 # [m]
     if downcast_start != -1:
@@ -261,10 +273,13 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
 
             lastflag = flag
 
-        print('markeraokid')
-        print(fra)
-        print(til)
+        log_print('markeraokid')
+        log_print(fra)
+        log_print(til)
 
+    for column in data.columns.values:
+        button1 = Button(mappunavn_dict['controlsFrame'], text=column, relief=SUNKEN)
+        button1.pack(side=LEFT)
 
     qcontrol(quality_subframe, depth, event_dict, pump_on, filnavn[mappunavn_dict['filur']])
 
@@ -275,7 +290,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
             move_amount = 1
         else:
             move_amount = 8
-        print(event.keysym)
+        log_print(event.keysym)
 
         if event.keysym == 'w':
             if mappunavn_dict['filur'] < len(filnavn)-1:
@@ -285,16 +300,17 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
             if mappunavn_dict['filur'] != 0:
                 mappunavn_dict['filur'] -= 1
                 update_qframe = True
-        elif event.keysym == 'Tab':
+        elif event.keysym == 'e':
             if zoomed_in_dict['onlyDowncast']:
                 zoomed_in_dict['onlyDowncast'] = False
                 ax.set_xlim(0, time_fulllength[len(time_fulllength) - 1])
-                print('Downcast')
+                log_print('Downcast')
             else:
                 zoomed_in_dict['onlyDowncast'] = True
-                print('All')
+                log_print('All')
                 ax.set_xlim(time_fulllength[event_dict['downcast_start']], time_fulllength[event_dict['downcast_stop']])
-            pass
+            canvas.draw()
+            canvas.get_tk_widget().pack(fill=BOTH, expand=1)
         elif event.keysym == '1':
             if mappunavn_dict['toggle_temp'] == 0:
                 mappunavn_dict['toggle_temp'] = 1
@@ -308,12 +324,10 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
                 mappunavn_dict['ax2'].axis('off')
             canvas.draw()
             canvas.get_tk_widget().pack(fill=BOTH, expand=1)
-
         elif event.keysym == '2':
             if mappunavn_dict['toggle_FlECO'] == 0:
                 mappunavn_dict['toggle_FlECO'] = 1
                 mappunavn_dict['ax3'] = ax.twinx()
-                print(data.columns)
                 mappunavn_dict['yplt3'] = mappunavn_dict['ax3'].plot(timeAx, data['FlECO-AFL'][start_index:], color='green')
                 mappunavn_dict['ax3'].set_ylabel('FlECO - AFL', color='k')
                 mappunavn_dict['ax3'].set_ylim(min(data['FlECO-AFL'][event_dict['soak_stop']:]) - 0.1, max(data['FlECO-AFL'][event_dict['soak_stop']:event_dict['upcast_stop']]) + 0.1)
@@ -327,7 +341,6 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
             if mappunavn_dict['toggle_Sbeox0PS'] == 0:
                 mappunavn_dict['toggle_Sbeox0PS'] = 1
                 mappunavn_dict['ax4'] = ax.twinx()
-                print(data.columns)
                 mappunavn_dict['yplt4'] = mappunavn_dict['ax4'].plot(timeAx, data['Sbeox0PS'][start_index:], color='lightblue')
                 mappunavn_dict['ax4'].set_ylabel('Sbeox0PS', color='k')
                 mappunavn_dict['ax4'].set_ylim(min(data['Sbeox0PS'][event_dict['soak_stop']:]) - 0.1, max(data['Sbeox0PS'][event_dict['soak_stop']:]) + 0.1)
@@ -341,7 +354,6 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
             if mappunavn_dict['toggle_par'] == 0:
                 mappunavn_dict['toggle_par'] = 1
                 mappunavn_dict['ax5'] = ax.twinx()
-                print(data.columns)
                 mappunavn_dict['yplt5'] = mappunavn_dict['ax5'].plot(timeAx, data['Par/sat/log'][start_index:], color='peru')
                 mappunavn_dict['ax5'].set_ylabel('Par/sat/log', color='k')
                 mappunavn_dict['ax5'].set_ylim(min(data['Par/sat/log'][event_dict['soak_stop']:event_dict['upcast_stop']]) - 0.1, max(data['Par/sat/log'][event_dict['soak_stop']:event_dict['upcast_stop']]) + 0.1)
@@ -355,7 +367,6 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
             if mappunavn_dict['toggle_Sal00'] == 0:
                 mappunavn_dict['toggle_Sal00'] = 1
                 mappunavn_dict['ax6'] = ax.twinx()
-                print(data.columns)
                 mappunavn_dict['yplt6'] = mappunavn_dict['ax6'].plot(timeAx, data['Sal00'][start_index:], color='lightgreen')
                 mappunavn_dict['ax6'].set_ylabel('Sal00', color='k')
                 mappunavn_dict['ax6'].set_ylim(min(data['Sal00'][event_dict['soak_stop']:event_dict['upcast_stop']]) - 0.1, max(data['Sal00'][event_dict['soak_stop']:event_dict['upcast_stop']]) + 0.1)
@@ -390,8 +401,8 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
 
         elif event.keysym == 'Return':
             log_b()
-            print('Calculating')
-            print(data.columns.values)
+            log_print('Calculating')
+            log_print(data.columns.values)
 
             downcast_Data = pd.DataFrame({'DepSM': np.round(data.DepSM.iloc[event_dict['downcast_start']:event_dict['downcast_stop']], 7)})
             upcast_Data = pd.DataFrame({'DepSM': np.round(data.DepSM.iloc[event_dict['downcast_stop']:event_dict['upcast_stop']], 7)})
@@ -400,16 +411,11 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
                 if column != "DepSM":
                     downcast_Data = downcast_Data.join(pd.DataFrame({column: np.round(data[column].iloc[event_dict['downcast_start']:event_dict['downcast_stop']], 7)}))
                     upcast_Data = upcast_Data.join(pd.DataFrame({column: np.round(data[column].iloc[event_dict['downcast_stop']:event_dict['upcast_stop']], 7)}))
-            # Um mappurnar ikki eru til, ger tær
-            if not os.path.isdir(parent_folder + '/ASCII_Downcast'):
-                os.mkdir(parent_folder + '/ASCII_Downcast')
-            if not os.path.isdir(parent_folder + '/ASCII_Upcast'):
-                os.mkdir(parent_folder + '/ASCII_Upcast')
             # Og goym dataði í mappunum
             downcast_Data.to_csv(parent_folder + '/ASCII_Downcast/' + filnavn[mappunavn_dict['filur']], index=False)
             upcast_Data.to_csv(parent_folder + '/ASCII_Upcast/' + filnavn[mappunavn_dict['filur']], index=False)
             # Roknar kvalitet
-            print('Assesing quality')
+            log_print('Assesing quality')
             summary = qcontrol(quality_subframe, depth, event_dict, pump_on, filnavn[mappunavn_dict['filur']])
             confirmation = False
             if summary['downcast_quality'] < 0:
@@ -418,9 +424,6 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
             else:
                 confirmation = True
             if confirmation:
-                # Kanna um metadatamappan er til
-                if not os.path.isdir(parent_folder + '/ASCII_Downcast/metadata'):
-                    os.makedirs(parent_folder + '/ASCII_Downcast/metadata') # Um ikki, ger hana
                 # Hettar ger metadatafílin
                 metadatafile = 'key,value\n'
                 metadatafile += 'Data_File_Name,' + filnavn[mappunavn_dict['filur']] + '\n'
@@ -434,13 +437,34 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
                 metadatafile += 'downcast_start,' + str(event_dict['downcast_start']) + '\n'
                 metadatafile += 'downcast_stop,' + str(event_dict['downcast_stop']) + '\n'
                 metadatafile += 'upcast_stop,' + str(event_dict['upcast_stop']) + '\n'
-                print(metadatafile)
+                log_print(metadatafile)
                 # Og her verður metadata fílurin goymdur
                 text_file = open(parent_folder + '/ASCII_Downcast/metadata/' + filnavn[mappunavn_dict['filur']].split('.')[0] + '_metadata.csv', "w")
                 text_file.write(metadatafile)
                 text_file.close()
                 update_qframe = True
-                print('Done exporting')
+
+                # Ger síðstu mappurnar um tær ikki eru til
+                if not os.path.exists(parent_folder + '/8_Bin_Average/'):
+                    os.mkdir(parent_folder + '/8_Bin_Average/')
+                if not os.path.exists(parent_folder + '/9_ASCII_Out/'):
+                    os.mkdir(parent_folder + '/9_ASCII_Out/')
+
+                with fileinput.FileInput('/home/johannus/.wine/drive_c/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/BinAvg(1mcustomstart).psa', inplace=True, backup='.bak') as file:
+                    for line in file:
+                        print(line.replace('-77', str(data.iloc[event_dict['downcast_start'], 1])), end='')
+
+                turdato = os.path.dirname(mappunavn).split('/')[-1]
+                subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
+                                 "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/8_Bin_Average(1m-customstart).txt",
+                                 str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/7_Window_Filter/' + filnavn[mappunavn_dict['filur']].split('.')[0] + '.cnv'),
+                                 str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/8_Bin_Average'), '#m'])
+                subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
+                                 "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/9_ASCII_Out.txt",
+                                 str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/8_Bin_Average/' + filnavn[mappunavn_dict['filur']].split('.')[0] + '.cnv'),
+                                 str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/9_ASCII_Out'), '#m'])
+
+                log_print('Done exporting')
             log_e()
         elif event.keysym == 'l':
             if not zoomed_in_dict['zoomed_in']:

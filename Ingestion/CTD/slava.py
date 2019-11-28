@@ -13,8 +13,8 @@ print(turdato)
 
 if not os.path.exists('./Lokalt_Data/' + turdato + '/8_Bin_Average_slava/'):
     print('Ger lokala mappu')
-    os.mkdir('./Lokalt_Data/' + turdato + '/8_Bin_Average_slava')
-    os.mkdir('./Lokalt_Data/' + turdato + '/9_ASCII_Out_slava')
+    os.mkdir('./Lokalt_Data/' + turdato + '/8_Bin_Average')
+    os.mkdir('./Lokalt_Data/' + turdato + '/9_ASCII_Out')
 
 print(data)
 print('test')
@@ -29,15 +29,15 @@ for index, fn in enumerate(data.iloc[:,0]):
     with fileinput.FileInput('/home/johannus/.wine/drive_c/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/BinAvg(1mcustomstart).psa', inplace=True, backup='.bak') as file:
         for line in file:
             print(line.replace('-77', str(data.iloc[index, 1])), end='')
-
+    #str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/7_Window_Filter/' + filnavn + '.cnv'),
     subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
                      "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/8_Bin_Average(1m-customstart).txt",
-                     str('Z:' + os.getcwd() + '/Lokalt_Data/' + turdato + '/7_Window_Filter/' + filnavn + '.cnv'),
-                     str('Z:' + os.getcwd() + '/Lokalt_Data/' + turdato + '/8_Bin_Average_slava'), '#m'])
+                     str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/7_Window_Filter/' + filnavn + '.cnv'),
+                     str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/8_Bin_Average'), '#m'])
     subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
                      "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/9_ASCII_Out.txt",
-                     str('Z:' + os.getcwd() + '/Lokalt_Data/' + turdato + '/8_Bin_Average_slava/' + filnavn + '.cnv'),
-                     str('Z:' + os.getcwd() + '/Lokalt_Data/' + turdato + '/9_ASCII_Out_slava'), '#m'])
+                     str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/8_Bin_Average/' + filnavn + '.cnv'),
+                     str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/9_ASCII_Out'), '#m'])
 
 print('done')
 
