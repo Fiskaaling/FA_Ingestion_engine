@@ -35,7 +35,7 @@ def bin_average_frame(frame, root2):
     velMappuBtn = Button(mappunavn_dict['controlsFrame'], text='Vel Fílir', command=lambda: velFil(mappunavn_dict))
     velMappuBtn.pack(side=LEFT, anchor=W)
 
-    processBtn = Button(mappunavn_dict['controlsFrame'], text='Processera', command=lambda: processera(root, fig, canvas, Quality_frame, mappunavn_dict))
+    processBtn = Button(mappunavn_dict['controlsFrame'], text='Les inn', command=lambda: processera(root, fig, canvas, Quality_frame, mappunavn_dict))
     processBtn.pack(side=LEFT, anchor=W)
 
     Right_frame = Frame(frame)
