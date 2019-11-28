@@ -458,11 +458,11 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
                 turdato = os.path.dirname(os.path.dirname(mappunavn)).split('/')[-1]
                 subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
                                  "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/8_Bin_Average(1m-customstart).txt",
-                                 str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/6_Window_Filter/' + filnavn[mappunavn_dict['filur']].split('.')[0] + '.cnv'),
+                                 str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/6_Window_Filter/' + filnavn[mappunavn_dict['filur']].split('.')[0]),
                                  str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/7_Bin_Average'), '#m'])
                 subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
                                  "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/9_ASCII_Out.txt",
-                                 str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/7_Bin_Average/' + filnavn[mappunavn_dict['filur']].split('.')[0] + '.cnv'),
+                                 str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/7_Bin_Average/' + filnavn[mappunavn_dict['filur']].split('.')[0]),
                                  str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/ASCII'), '#m'])
 
                 log_print('Done exporting')
