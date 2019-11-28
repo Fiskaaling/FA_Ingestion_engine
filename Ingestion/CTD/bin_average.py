@@ -23,7 +23,7 @@ textsize = 16
 
 def bin_average_frame(frame, root2):
     # mappunavn = './Ingestion/CTD/Lokalt_Data/2019-01-31/75_All_ASCII_Out'
-    mappunavn = './Ingestion/CTD/Lokalt_Data/2019-01-17/75_All_ASCII_Out'
+    mappunavn = './Ingestion/CTD/Lokalt_Data/2019-01-17/Processed/ASCII_ALL'
     mappunavn_dict = {'mappunavn': mappunavn}
     root = root2
     for widget in frame.winfo_children():
@@ -80,7 +80,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
 
     list_of_casts = os.listdir(mappunavn)
     list_of_casts.sort()
-    parent_folder = os.path.dirname(mappunavn)
+    parent_folder = os.path.dirname(os.path.dirname(mappunavn))
 
     # Um mappurnar ikki eru til, ger tær
     if not os.path.isdir(parent_folder + '/ASCII_Downcast'):
@@ -186,8 +186,9 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
         downcast_stop = int(metadata['downcast_stop'])
         upcast_stop = int(metadata['upcast_stop'])
 
-    if os.path.isdir(parent_folder + '/0_RAW_DATA'):
-        raw_filar = os.listdir(parent_folder + '/0_RAW_DATA/')
+    if os.path.isdir(parent_folder + '/RAW/'):
+        # TODO: vit eru komin hertil
+        raw_filar = os.listdir(parent_folder + '/RAW/')
         raw_filnavn = '-1'
         hesin_filur = filnavn[mappunavn_dict['filur']].upper()
         for raw_file in raw_filar: # Hettar finnur rætta xml fílin
@@ -201,7 +202,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
             return
         #raw_filnavn = raw_filar[filur]
         print('Lesur raw fíl: ' + raw_filnavn)
-        with open(parent_folder + '/0_RAW_DATA/' + raw_filnavn, 'r') as raw_file:
+        with open(parent_folder + '/RAW/' + raw_filnavn, 'r') as raw_file:
             raw_data = raw_file.read()
         raw_data = raw_data.split('*END*')
         raw_data = raw_data[1].split('\n')
@@ -445,24 +446,24 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
                 update_qframe = True
 
                 # Ger síðstu mappurnar um tær ikki eru til
-                if not os.path.exists(parent_folder + '/8_Bin_Average/'):
-                    os.mkdir(parent_folder + '/8_Bin_Average/')
-                if not os.path.exists(parent_folder + '/9_ASCII_Out/'):
-                    os.mkdir(parent_folder + '/9_ASCII_Out/')
+                if not os.path.exists(parent_folder + '/Processed/7_Bin_Average/'):
+                    os.mkdir(parent_folder + '/Processed/7_Bin_Average/')
+                if not os.path.exists(parent_folder + '/ASCII/'):
+                    os.mkdir(parent_folder + '/ASCII/')
 
                 with fileinput.FileInput('/home/johannus/.wine/drive_c/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/BinAvg(1mcustomstart).psa', inplace=True, backup='.bak') as file:
                     for line in file:
                         print(line.replace('-77', str(data.iloc[event_dict['downcast_start'], 1])), end='')
 
-                turdato = os.path.dirname(mappunavn).split('/')[-1]
+                turdato = os.path.dirname(os.path.dirname(mappunavn)).split('/')[-1]
                 subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
                                  "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/8_Bin_Average(1m-customstart).txt",
-                                 str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/7_Window_Filter/' + filnavn[mappunavn_dict['filur']].split('.')[0] + '.cnv'),
-                                 str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/8_Bin_Average'), '#m'])
+                                 str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/6_Window_Filter/' + filnavn[mappunavn_dict['filur']].split('.')[0] + '.cnv'),
+                                 str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/7_Bin_Average'), '#m'])
                 subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
                                  "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/9_ASCII_Out.txt",
-                                 str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/8_Bin_Average/' + filnavn[mappunavn_dict['filur']].split('.')[0] + '.cnv'),
-                                 str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/9_ASCII_Out'), '#m'])
+                                 str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/7_Bin_Average/' + filnavn[mappunavn_dict['filur']].split('.')[0] + '.cnv'),
+                                 str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/ASCII'), '#m'])
 
                 log_print('Done exporting')
             log_e()

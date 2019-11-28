@@ -44,25 +44,25 @@ def processera(mappunavn):
     if not os.path.exists('./Ingestion/CTD/Lokalt_Data/' + turdato + '/'):
         print('Ger lokala mappu')
         os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turdato)
-        os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turdato + '/0_RAW_DATA')
-        os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turdato + '/1_Data_Conversion')
-        os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turdato + '/2_Filter')
-        os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turdato + '/3_Align_CTD')
-        os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turdato + '/4_CTM')
-        os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turdato + '/5_Loop_Edit')
-        os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turdato + '/6_Derive')
-        os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turdato + '/7_Window_Filter')
-        #os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turdato + '/8_Bin_Average')
-        #os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turdato + '/9_ASCII_Out')
-        os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turdato + '/75_All_ASCII_Out')
+        os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed')
+        os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turdato + '/RAW')
+        os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/1_Data_Conversion')
+        os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/2_Filter')
+        os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/3_Align_CTD')
+        os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/4_CTM')
+        os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/5_Derive')
+        os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/6_Window_Filter')
+        os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/ASCII_ALL')
 
     else:
         print('Lokala mappan er til')
 
     for cast in casts:
+        # TODO: Um man velur mappu har castini ikki eru í hvør sínari mappu, processera tað allíkavæl
         filnavn = os.listdir(mappunavn + '/' + cast)
         filnavn = filnavn[0]
-        copyfile(mappunavn + '/' + cast + '/' + filnavn, './Ingestion/CTD/Lokalt_Data/' + turdato + '/0_RAW_DATA/' + filnavn)
+        # TODO: Flyt ístaðin fyri at kopiera
+        copyfile(mappunavn + '/' + cast + '/' + filnavn, './Ingestion/CTD/Lokalt_Data/' + turdato + '/RAW/' + filnavn)
         filnavn = filnavn[:-4]
         print(cast)
         print(filnavn)
@@ -71,52 +71,33 @@ def processera(mappunavn):
             # Hettar riggar bara um wine er og SBE Data processing er installera, og um settings mappan er har hon skal vera
             subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
                              "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/1_DatCnv.txt",
-                             str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/0_RAW_DATA/' + filnavn + '.xml'),
-                             str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/1_Data_Conversion'), '#m'])
+                             str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/RAW/' + filnavn + '.xml'),
+                             str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/1_Data_Conversion'), '#m'])
             subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
                              "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/2_Filter.txt",
-                             str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/1_Data_Conversion/' + filnavn + '.cnv'),
-                             str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/2_Filter'), '#m'])
+                             str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/1_Data_Conversion/' + filnavn + '.cnv'),
+                             str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/2_Filter'), '#m'])
             subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
                              "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/3_Align_CTD.txt",
-                             str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/2_Filter/' + filnavn + '.cnv'),
-                             str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/3_Align_CTD'), '#m'])
+                             str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/2_Filter/' + filnavn + '.cnv'),
+                             str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/3_Align_CTD'), '#m'])
             subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
                              "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/4_CTM.txt",
-                             str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/3_Align_CTD/' + filnavn + '.cnv'),
-                             str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/4_CTM'), '#m'])
-            subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
-                             "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/5_Loop_Edit.txt",
-                             str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/4_CTM/' + filnavn + '.cnv'),
-                             str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/5_Loop_Edit'), '#m'])
-
+                             str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/3_Align_CTD/' + filnavn + '.cnv'),
+                             str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/4_CTM'), '#m'])
             subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
                              "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/6_Derive.txt",
-                             str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/5_Loop_Edit/' + filnavn + '.cnv'),
-                             str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/6_Derive'), '#m'])
-
-            #subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBartch.exe',
-            #                 "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/6_Derive.txt",
-            #                 str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/4_CTM/' + filnavn + '.cnv'),
-            #                 str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/6_Derive'), '#m'])
+                             str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/4_CTM/' + filnavn + '.cnv'),
+                             str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/5_Derive'), '#m'])
 
             subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
                              "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/7_Window_Filter.txt",
-                             str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/6_Derive/' + filnavn + '.cnv'),
-                             str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/7_Window_Filter'), '#m'])
-            #subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
-            #                 "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/8_Bin_Average(1m).txt",
-            #                 str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/7_Window_Filter/' + filnavn + '.cnv'),
-            #                 str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/8_Bin_Average'), '#m'])
-            #subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
-            #                 "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/9_ASCII_Out.txt",
-            #                 str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/8_Bin_Average/' + filnavn + '.cnv'),
-            #                 str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/9_ASCII_Out'), '#m'])
-            print('All Ascii out')
+                             str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/5_Derive/' + filnavn + '.cnv'),
+                             str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/6_Window_Filter'), '#m'])
             subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe', # Eyka - Til alt data
                              "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/9_All_ASCII_Out.txt",
-                             str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/7_Window_Filter/' + filnavn + '.cnv'),
-                             str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/75_All_ASCII_Out'), '#m'])
+                             str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/6_Window_Filter/' + filnavn + '.cnv'),
+                             str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/ASCII_ALL'), '#m'])
         else:
             log_w('Koda ikki skriva til hesa stýriskipan')
 
