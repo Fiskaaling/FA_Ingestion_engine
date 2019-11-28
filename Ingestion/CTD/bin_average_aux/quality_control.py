@@ -104,9 +104,9 @@ def qcontrol(Quality_subframe, depth, event_dict, pump_on, filnavn):
 
     Label(Quality_subframe, text='Kvalitetur: ' + str(np.round(cast_quality+downcast_quality+upcast_quality,2)), font=("Helvetica", textsize)).pack(side=TOP, anchor=W)
     datetimestring = filnavn.split()
-    measurement_time = datetime.datetime.strptime(datetimestring[0], '%Y-%m-%dt%H%M%S') + datetime.timedelta(0,time_fulllength[event_dict['downcast_start']])
-    print(measurement_time)
-
+    #measurement_time = datetime.datetime.strptime(datetimestring[0], '%Y-%m-%dt%H%M%S') + datetime.timedelta(0,time_fulllength[event_dict['downcast_start']])
+    #print(measurement_time)
+    measurement_time = "Todo"
     Label(Quality_subframe, text=('―' * 40), font=("Courier", 8)).pack(side=TOP, anchor=W) ## Seperator
     Label(Quality_subframe, text='Soaktid: ' + str(time_fulllength[event_dict['soak_stop']] - time_fulllength[event_dict['soak_start']]) + ' sek', font=("Courier", textsize-4)).pack(side=TOP, anchor=W)
     Label(Quality_subframe, text='Soakdypið:' + str(np.round(np.mean(depth[event_dict['soak_start']:event_dict['soak_stop']]), 3)) + ' m', font=("Courier", textsize-4)).pack(side=TOP, anchor=W)

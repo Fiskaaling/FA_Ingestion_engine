@@ -1,3 +1,4 @@
+import datetime
 import tkinter.messagebox
 import tkinter.ttk as ttk
 from tkinter import filedialog
@@ -117,13 +118,19 @@ def stovna_okid(frame, root2, db_info, mating_id=1):
     dypidEntry = Entry(settings_frame, width=8)
     dypidEntry.pack(side=LEFT)
 
+    Label(settings_frame, text='Dato/Klokka:').pack(side=LEFT)
+    datetimeEntry = Entry(settings_frame, width=8)
+    datetimeEntry.pack(side=LEFT)
 
+    Label(settings_frame, text='Hædd:').pack(side=LEFT)
+    heightEntry = Entry(settings_frame, width=8)
+    heightEntry.pack(side=LEFT)
 
 
     kortFrame = Frame(lframe)
     kortFrame.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
     punktir = ttk.Treeview(rframe)
-    punktir.bind("<Double-1>", lambda event, arg=punktir: OnDoubleClick(event, arg, idLabel_var, idEntry, CRSvariable, Okidvariable, latEntry, lonEntry, waypointEntry, dypidEntry, punktir, fig, canvas, db_info))
+    punktir.bind("<Double-1>", lambda event, arg=punktir: OnDoubleClick(event, arg, idLabel_var, idEntry, CRSvariable, Okidvariable, latEntry, lonEntry, waypointEntry, dypidEntry, punktir, fig, canvas, db_info, datetimeEntry, heightEntry))
     scrollbar = Scrollbar(rframe, orient=VERTICAL)
     scrollbar.config(command=punktir.yview)
     scrollbar.pack(side=RIGHT, fill=Y)
@@ -193,6 +200,10 @@ def lesfraCSV(root, id_string, fig, canvas, Okidvariable, db_info, tree, CRSvari
     innset_var = tkinter.messagebox.askquestion("Innset mátingar", "Ert tú sikkur?", icon='warning')
     if innset_var == 'yes':
         waypoints = data['name']
+        #datetimestr = datetime.datetime.strptime(data['time'], '%Y-%m-%dT%H:%M:%SZ')
+        datetimestr = data['time']
+        elevation = data['ele']
+        print(datetimestr)
         db_connection = db.connect(**db_info)
         cursor = db_connection.cursor()
         for i, item in enumerate(data['lat']):
@@ -205,9 +216,14 @@ def lesfraCSV(root, id_string, fig, canvas, Okidvariable, db_info, tree, CRSvari
                 print(lonData[i])
                 print(waypoints[i])
                 print(CRSvariable)
+                print(elevation[i])
+                datetimestr[i] = datetimestr[i].replace('T', ' ')
+                datetimestr[i] = datetimestr[i].replace('Z', '')
+                #datetimestr[i] = '\"' + datetimestr[i] + '\"'
+                print(datetimestr[i])
                 cursor.execute(
-                    "INSERT INTO Økir (Máting_ID, Økið, Lat, Lon, Waypoint, Coordinate_Reference_System) VALUES (%s, %s, %s, %s, %s, %s)",
-                    (id_string, Okidvariable.get(), item, lonData[i], waypoints[i], CRSvariable))
+                    "INSERT INTO Økir (Máting_ID, Økið, Lat, Lon, Waypoint, Coordinate_Reference_System, DateTime, Hædd) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+                    (id_string, Okidvariable.get(), item, lonData[i], waypoints[i], CRSvariable, datetimestr[i], elevation[i]))
         db_connection.commit()
         db_connection.disconnect()
 
@@ -299,7 +315,7 @@ def dagfor_tree(result, punktir):
     punktir.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
 
 
-def OnDoubleClick(event, arg, idLabel_var, idEntry, CRSvariable, Okidvariable, latEntry, lonEntry, waypointEntry, dypidEntry, tree, fig, canvas, db_info):
+def OnDoubleClick(event, arg, idLabel_var, idEntry, CRSvariable, Okidvariable, latEntry, lonEntry, waypointEntry, dypidEntry, tree, fig, canvas, db_info, datetimeEntry, heightEntry):
     item = tree.identify('item', event.x, event.y)
     item = tree.item(item, "text")
     idLabel_var.set(item)
@@ -318,6 +334,8 @@ def OnDoubleClick(event, arg, idLabel_var, idEntry, CRSvariable, Okidvariable, l
     idEntry.insert(0, result[1])
     waypointEntry.delete(0, END)
     dypidEntry.delete(0, END)
+    datetimeEntry.delete(0, END)
+    heightEntry.delete(0, END)
     if result[5]:
         waypointEntry.insert(0, result[5])
     if result[6]:

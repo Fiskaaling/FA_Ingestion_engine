@@ -2,16 +2,13 @@
 <Data_Conversion >
   <Version value="7.26.7.118" />
   <ServerName value="Data Conversion" />
-  <InstrumentPath value="Z:\home\johannus\Documents\Projektir\CTD\cru1902\Settings\25-1158.xmlcon" />
+  <InstrumentPath value="C:\Program Files (x86)\Sea-Bird\SBEDataProcessing-Win32\Settings\25-1158.xmlcon" />
   <InstrumentMatch value="0" />
-  <InputDir value="Z:\home\johannus\Documents\Projektir\CTD\cru1902\RAW" />
-  <InputFileArray size="4" GrowBy="-1" >
-    <ArrayItem index="0" value="1902000.xml" />
-    <ArrayItem index="1" value="1902001.xml" />
-    <ArrayItem index="2" value="1902002.xml" />
-    <ArrayItem index="3" value="1902003.xml" />
+  <InputDir value="Z:\home\johannus\Documents\FA_Ingestion_engine\Ingestion\CTD\Lokalt_Data\2018-12-12\0_RAW_DATA" />
+  <InputFileArray size="1" GrowBy="-1" >
+    <ArrayItem index="0" value="2018-12-12t145408 sbe0251158.xml" />
   </InputFileArray>
-  <OutputDir value="Z:\home\johannus\Documents\Projektir\CTD\cru1902\0 - Data_Conversion" />
+  <OutputDir value="Z:\home\johannus\Documents\FA_Ingestion_engine\Ingestion\CTD\Lokalt_Data\2018-12-12\1_Data_Conversion" />
   <NameAppend value="" />
   <OutputFile value="" />
   <LastProcessed value="0" />
@@ -27,7 +24,7 @@
   <ScanRangeDuration value="2.000000" />
   <StartTimeOption value="0" />
   <PromptForNoteAndOrStartTime value="0" />
-  <CalcArray Size="8" >
+  <CalcArray Size="9" >
     <CalcArrayItem index="0" CalcID="72" >
       <Calc UnitID="-1" Ordinal="0" >
         <FullName value="Scan Count" />
@@ -71,6 +68,11 @@
       <Calc UnitID="-1" Ordinal="0" >
         <FullName value="PAR/Logarithmic, Satlantic [umol photons/m^2/sec]" />
         <PAR_Units value="1" />
+      </Calc>
+    </CalcArrayItem>
+    <CalcArrayItem index="8" CalcID="84" >
+      <Calc UnitID="52" Ordinal="0" >
+        <FullName value="Time, Elapsed [seconds]" />
       </Calc>
     </CalcArrayItem>
   </CalcArray>

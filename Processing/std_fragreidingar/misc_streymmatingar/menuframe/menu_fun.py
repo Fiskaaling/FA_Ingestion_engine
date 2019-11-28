@@ -2,6 +2,7 @@ import os
 import shutil
 
 from . import master
+from .gui_par import insert_gui_par
 
 def germappu(setup_dict, siduval_dict):
     startdir = os.getcwd()
@@ -40,12 +41,18 @@ def germappu(setup_dict, siduval_dict):
     metafil = open(os.path.join('setup', 'metadata.tex'), 'w')
     metafil.write(germetafilin(setup_dict, Myndin))
     metafil.close()
+    insert_gui_par(setup_dict, setup_dict['gui_par'])
+
+
+    master.skriva_doc(setup_dict, siduval_dict)
+    '''
     try:
         master.skriva_doc(setup_dict, siduval_dict)
     except Exception as e:
         print(e.args)
         print()
         print(dir(e))
+    '''
 
     os.chdir(startdir)
 
@@ -64,4 +71,5 @@ def germetafilin(setup_dict, mynd):
         else:
             ini = meta[i].get()
         out += '\\def\\%s{%s}\n\n' % (i, ini)
+    out += '\\def\\samandr{\\input{texfilir/Samandrattur.tex}}'
     return out

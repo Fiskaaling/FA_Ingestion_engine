@@ -14,7 +14,7 @@ from matplotlib.colors import ListedColormap, BoundaryNorm
 from scipy.interpolate import griddata
 
 from .misc import minmaxvika
-
+from .misc import myprelabel
 
 def tegnahovmuller(data, dypid, dato, mal='FO', ratning=0, nrplots=11, figwidth=6, figheight=7.1,
                    font=7, vmax=None, dest='', navn='Hovmuller.pdf', caption='caption',
@@ -35,24 +35,22 @@ def tegnahovmuller(data, dypid, dato, mal='FO', ratning=0, nrplots=11, figwidth=
     """
 
     print('byrja uppá ' + navn)
-    #  TODO finn útav hvat eg geri við lang har er eitt petti í master og eitt petti her
-
     #  finn titil av síðini
     if ratning == 90:
         if mal == 'EN':
             section = 'Hovmüller diagrams of east/west velocities'
         else:
-            section = 'Hovmüller diagram av streymferð í eystur/vestur ættina'
+            section = 'Hovmüllerdiagramm av streymferð í eystur/vestur ættina'
     elif ratning == 0:
         if mal == 'EN':
             section = 'Hovmüller diagrams of north/south velocities'
         else:
-            section = 'Hovmüller diagram av streymferð í norður/suður ættina'
+            section = 'Hovmüllerdiagramm av streymferð í norður/suður ættina'
     else:
         if mal == 'EN':
-            section = 'Hovmüller diagrams of %2.1f velocities' % ratning
+            section = 'Hovmüller diagrams of %3.0f° velocities' % ratning
         else:
-            section = 'Hovmüller diagram av streymferð í %2.1f ættina' % ratning
+            section = 'Hovmüllerdiagramm av streymferð í %3.0f° ættina' % ratning
 
     fig, axs = plt.subplots(ncols=1, nrows=nrplots + 1, figsize=(figwidth, figheight), dpi=dpi)
     mpl.rcParams['font.size'] = font
@@ -88,14 +86,16 @@ def tegnahovmuller(data, dypid, dato, mal='FO', ratning=0, nrplots=11, figwidth=
         axs[i].set_ylabel('Dýpi (m)')
         axs[i].tick_params(axis='x', which='major', pad=0)
     # finn hvat tiks skullu verða á color bar
-    fig.colorbar(contours, cax=axs[nrplots], orientation='horizontal', ticks=np.linspace(-vmax, vmax, 9))
+    cb = fig.colorbar(contours, cax=axs[nrplots], orientation='horizontal', ticks=np.linspace(-vmax, vmax, 9))
+    cb.set_label('mm/s')
     mpl.rcParams['font.size'] = 7
     plt.subplots_adjust(left=0.1, bottom=0.05, right=0.95, top=0.95, wspace=0.5, hspace=0.5)
     mpl.rcParams['xtick.major.pad'] = 0
     fig.savefig(dest + 'myndir/' + navn, dpi=dpi)
     print('enda ' + navn)
-    return '\n\\FloatBarrier\n\\newpage\n\\section{%s}\n\\begin{figure}[h!]\\label{Hov%2.1f}\n\\includegraphics[scale=1]{myndir/%s}' \
-           '\n\\caption{%s}\n\\end{figure}\n\\newpage\n' % (section, ratning, navn, caption)
+    return '\n\\FloatBarrier\n\\newpage\n\\section{%s}\n\\begin{figure}[h!]' \
+           '\n\\includegraphics[scale=1]{myndir/%s}\n\\caption{%s}\n' \
+            '\\label{Hov%2.1f}\n\\end{figure}\n\\newpage\n' % (section, navn, caption, ratning)
 
 
 def speedbins(bins, dato, df, max_bin, dypir, minmax=False, dest='', dpi=200,
@@ -110,7 +110,7 @@ def speedbins(bins, dato, df, max_bin, dypir, minmax=False, dest='', dpi=200,
     :param df:      dataði sum skal plottast
     :param max_bin: tann ovasta binnin vit higgja eftir
     :param dypir:   ein lista av dypinum á øllum bins
-    :param minmax:  skullu vit hava tvar subsections við til veikan og sterkan streym
+    :param minmax:  skullu vit hava tvar subsections við til veikan og sterkan streym (um inset verður int ella float verður tað tað antali í døgum)
     :param dest:    str sum siður hvar latex dokumenti skal skrivast
     :param dpi:     upplysningurin á figurinum
     :param navn:    navnið á figurinum
@@ -124,16 +124,20 @@ def speedbins(bins, dato, df, max_bin, dypir, minmax=False, dest='', dpi=200,
             section = 'Timeseries of speed at selected layers'
         else:
             section = 'Streymferð á útvaldum dýpum'
+    out = ''
     if minmax:
-        return speedbins2(bins, dato, df, max_bin, dypir, mal=mal, dest=dest, dpi=dpi,
+        out += speedbins_minmax(bins, dato, df, max_bin, dypir, minmax=minmax,
+                                mal=mal, dest=dest, dpi=dpi,
+                                navn=navn, section=section,
+                                font=font, figwidth=figwidth, figheight=figheight)
+    else:
+        out += speedbins_standard(bins, dato, df, dypir, mal=mal, dest=dest, dpi=dpi,
               navn=navn, section=section,
               font=font, figwidth=figwidth, figheight=figheight)
-    return speedbins1(bins, dato, df, dypir, mal=mal, dest=dest, dpi=dpi,
-          navn=navn, section=section,
-          font=font, figwidth=figwidth, figheight=figheight)
+    return out
 
-
-def speedbins1(bins, dato, df, dypir, mal='FO', dest='', dpi=200,
+#  TODO kanska vís hvar minmax er um man sær tað illa
+def speedbins_standard(bins, dato, df, dypir, mal='FO', dest='', dpi=200,
               navn='streymstyrkiyvirtid.pdf', section='Timeseries of speed at selected layers',
               font=7, figwidth=6, figheight=7.1):
     """
@@ -153,50 +157,86 @@ def speedbins1(bins, dato, df, dypir, mal='FO', dest='', dpi=200,
 
     if len(bins) != 3:
         raise ValueError('bins skal hava 3 bins')
-    fig, axs = plt.subplots(ncols=1, nrows=3, figsize=(figwidth, figheight), dpi=dpi)
+    fig, axs = plt.subplots(ncols=1, nrows=4, figsize=(figwidth, figheight), dpi=dpi)
     mpl.rcParams['font.size'] = font
-    date_fmt = mdate.DateFormatter('%d %b')
+    timespan = dato[-1] - dato[0]
+    if timespan > 3:
+        date_fmt = mdate.DateFormatter('%d %b')
+        date_loc = mdate.DayLocator(iterval=np.ceil(timespan/6))
+    elif timespan >= 0.95:
+        date_fmt = mdate.DateFormatter('%d %b %H:%M')
+        date_loc = mdate.HourLocator(byhour=[0, 6, 12, 18])
+    elif timespan > 2/24:
+        date_fmt = mdate.DateFormatter('%d %b %H:%M')
+        date_loc = mdate.HourLocator()
+    else:
+        date_fmt = mdate.DateFormatter('%d %b %H:%M')
+        date_loc = mdate.MinuteLocator(interval= np.ceil(60*24*timespan/6))
+    axs[0].plot(dato, df['d'].values, linewidth=.5, c='k')
+    axs[0].xaxis.set_major_formatter(date_fmt)
+    axs[0].xaxis.set_major_locator(date_loc)
+    axs[0].set_ylabel('dýpi (m)')
+    axs[0].tick_params(axis='x', which='major', pad=0)
+    axs[0].set_title('Dýpi')
+    axs[0].set_xlim(dato[0], dato[-1])
+
     for (i, item) in enumerate(bins):
-        if i == 0:
-            prelabel = 'a) Surface layer'
-        elif i == 1:
-            prelabel = 'b) Center layer'
-        else:
-            prelabel = 'c) Bottom layer'
+        i += 1
+        prelabel = myprelabel(i, mal=mal)
+
         axs[i].plot(dato, df['mag' + str(item)].values, linewidth=.5, c='k')
         axs[i].xaxis.set_major_formatter(date_fmt)
-        axs[i].set_ylabel('speed [mm/t]')
+        axs[i].xaxis.set_major_locator(date_loc)
+        axs[i].set_ylabel('streymferð (mm/s)')
         axs[i].tick_params(axis='x', which='major', pad=0)
         axs[i].set_title(prelabel)
         axs[i].set_xlim(dato[0], dato[-1])
         axs[i].set_ylim(bottom=0)
 
     if mal=='EN':
-        caption = 'Timeseries of speed at three selected bins:' \
-                'a) %2.0f m depth, b) %2.0f m depth' \
-                  ' and c) %2.0f m depth.' \
-                  % (-dypir[bins[0]],
-                     -dypir[bins[1]],
-                     -dypir[bins[2]])
+        if bins[0] == '10m':
+            caption = 'Timeseries of speed at three selected bins:' \
+                    'a) %2.0f m depth, b) %2.0f m depth' \
+                      ' and c) %2.0f m depth.' \
+                      % (10,
+                         -dypir[bins[1] - 1],
+                         -dypir[bins[2] - 1])
+        else:
+            caption = 'Timeseries of speed at three selected bins:' \
+                    'a) %2.0f m depth, b) %2.0f m depth' \
+                      ' and c) %2.0f m depth.' \
+                      % (-dypir[bins[0] - 1],
+                         -dypir[bins[1] - 1],
+                         -dypir[bins[2] - 1])
     else:
-        caption = 'Streymferð á trimum valdum dýpum frá øllum mátitíðarskeiðnum.' \
-                'a) %2.0f m depth, b) %2.0f m depth' \
-                  ' and c) %2.0f m depth.' \
-                  % (-dypir[bins[0]],
-                     -dypir[bins[1]],
-                     -dypir[bins[2]])
+        if bins[0] == '10m':
+            caption = 'Streymferð á trimum valdum dýpum frá øllum mátitíðarskeiðnum.' \
+                    'a) %2.0f m depth, b) %2.0f m depth' \
+                      ' and c) %2.0f m depth.' \
+                      % (10,
+                         -dypir[bins[1] - 1],
+                         -dypir[bins[2] - 1])
+        else:
+            caption = 'Streymferð á trimum valdum dýpum frá øllum mátitíðarskeiðnum.' \
+                    'a) %2.0f m depth, b) %2.0f m depth' \
+                      ' and c) %2.0f m depth.' \
+                      % (-dypir[bins[0] - 1],
+                         -dypir[bins[1] - 1],
+                         -dypir[bins[2] - 1])
 
     plt.subplots_adjust(left=0.1, bottom=0.05, right=0.95, top=0.95, wspace=0.0, hspace=0.2)
     fig.savefig(dest + 'myndir/%s' % navn, dpi=dpi)
-    return '\n\\FloatBarrier\n\\newpage\n\\section{%s}\n\\begin{figure}[h!]\\label{speedbin}\n\\includegraphics[scale=1]{myndir/%s}' \
-           '\n\\caption{%s}\n\\end{figure}\n\\newpage\n' % (section, navn, caption)
+    return '\n\\FloatBarrier\n\\newpage\n\\section{%s}\n\\begin{figure}[h!]\n' \
+            '\\includegraphics[scale=1]{myndir/%s}\n\\caption{%s}\n' \
+            '\\label{speedbin}\n\\end{figure}\n\\newpage\n' % (section, navn, caption)
 
 
-def speedbins2(bins, dato, df, max_bin, dypir, mal='FO', dest='', dpi=200,
+def speedbins_minmax(bins, dato, df, max_bin, dypir, minmax=True, mal='FO', dest='', dpi=200,
               navn='streymstyrkiyvirtid.pdf', section='Timeseries of speed at selected layers',
               font=7, figwidth=6, figheight=7.1):
     """
-        teknar magdataði fyri 3 dypir
+    tríggjar síðir eina við øllum strekkinum eitt við allarari tíðini
+    og tvey stytri har vit hava hægsta og minsta streym
     :param bins: [list int] len(bins)==3 tríggjar bins, [surface layer,
                                                           Center layer,
                                                           Bottom layer]
@@ -204,116 +244,359 @@ def speedbins2(bins, dato, df, max_bin, dypir, mal='FO', dest='', dpi=200,
     :param df:      dataði sum skal plottast
     :param max_bin: tann ovasta binnin vit higgja eftir
     :param dypir:   ein lista av dypinum á øllum bins
+    :param minmax:  um hettar er ein int ella float so seti eg greinsinar eftir tíð
     :param dest:    str sum siður hvar latex dokumenti skal skrivast
     :param dpi:     upplysningurin á figurinum
     :param navn:    navnið á figurinum
     :param section: navni á sectiónini
     :return:        ein string sum kann setast inní eitt latex document
     """
-    #  TODO kanska hav miðal yvir dýpið inni í master.py
 
     #finn minmax
     #   finn miðalstreym
     max_v, min_v = minmaxvika(df, max_bin)
 
+    if isinstance(minmax, bool):
+        tidarskeid = 7
+    elif isinstance(minmax, (int, float)):
+        if minmax == 0:
+            tidarskeid = 7
+        else:
+            tidarskeid = minmax
+    else:
+        tidarskeid = minmax
+
+    halvtid = tidarskeid/2
+
 
     if len(bins) != 3:
         raise ValueError('bins skal hava 3 bins')
-    fig, axs = plt.subplots(ncols=1, nrows=3, figsize=(figwidth, figheight), dpi=dpi)
-    fig2, axs2 = plt.subplots(ncols=1, nrows=3, figsize=(figwidth, figheight), dpi=dpi)
-    fig3, axs3 = plt.subplots(ncols=1, nrows=3, figsize=(figwidth, figheight), dpi=dpi)
+    timespan = dato[-1] - dato[0]
+    #  Finn hvat format eg skal brúka til at skriva dato
+    #  TODO hettar skal sikkurt entin skrivast sum ein funktión
+    #  TODO ella skal hettar takast onkra stani frá
+    if timespan > 3:
+        date_fmt = mdate.DateFormatter('%d %b')
+        date_loc = mdate.DayLocator(interval=int(np.ceil(timespan/6)))
+    elif timespan >= 0.95:
+        date_fmt = mdate.DateFormatter('%d %b %H:%M')
+        date_loc = mdate.HourLocator(byhour=[0, 6, 12, 18])
+    elif timespan > 2/24:
+        date_fmt = mdate.DateFormatter('%d %b %H:%M')
+        date_loc = mdate.HourLocator()
+    else:
+        date_fmt = mdate.DateFormatter('%d %b %H:%M')
+        date_loc = mdate.MinuteLocator(interval=int(np.ceil(60*24*timespan/6)))
+
+    if tidarskeid > 3:
+        date_fmt_2 = mdate.DateFormatter('%d %b')
+        date_loc_2 = mdate.DayLocator(interval=int(np.ceil(tidarskeid/6)))
+    elif tidarskeid >= 0.95:
+        date_fmt_2 = mdate.DateFormatter('%d %b %H:%M')
+        date_loc_2 = mdate.HourLocator(byhour=[0, 6, 12, 18])
+    elif tidarskeid > 2/24:
+        date_fmt_2 = mdate.DateFormatter('%d %b %H:%M')
+        date_loc_2 = mdate.HourLocator()
+    else:
+        date_fmt_2 = mdate.DateFormatter('%d %b %H:%M')
+        date_loc_2 = mdate.MinuteLocator(interval=int(np.ceil(60*24*tidarskeid/6)))
+
+    if tidarskeid > 3:
+        date_fmt_3 = mdate.DateFormatter('%d %b')
+        date_loc_3 = mdate.DayLocator(interval=int(np.ceil(tidarskeid/6)))
+    elif tidarskeid >= 0.95:
+        date_fmt_3 = mdate.DateFormatter('%d %b %H:%M')
+        date_loc_3 = mdate.HourLocator(byhour=[0, 6, 12, 18])
+    elif tidarskeid > 2/24:
+        date_fmt_3 = mdate.DateFormatter('%d %b %H:%M')
+        date_loc_3 = mdate.HourLocator()
+    else:
+        date_fmt_3 = mdate.DateFormatter('%d %b %H:%M')
+        date_loc_3 = mdate.MinuteLocator(interval=int(np.ceil(60*24*tidarskeid/6)))
+
+    fig, axs = plt.subplots(ncols=1, nrows=4, figsize=(figwidth, figheight), dpi=dpi)
+    fig2, axs2 = plt.subplots(ncols=1, nrows=4, figsize=(figwidth, figheight), dpi=dpi)
+    fig3, axs3 = plt.subplots(ncols=1, nrows=4, figsize=(figwidth, figheight), dpi=dpi)
     mpl.rcParams['font.size'] = font
-    date_fmt = mdate.DateFormatter('%d %b')
+
+    # TODO skriva hettar betur
+    #  tekna sjovarfalli 
+    prelabel = 'a) Dýpi'
+    midaltid1 = dato[max_v]
+    midaltid2 = dato[min_v]
+    tid1 = [np.searchsorted(dato, midaltid1-halvtid, side='left'),
+            np.searchsorted(dato, midaltid1+halvtid, side='right')]
+    tid2 = [np.searchsorted(dato, midaltid2-halvtid, side='left'),
+            np.searchsorted(dato, midaltid2+halvtid, side='right')]
+
+    axs[0].plot(dato, df['d'].values, linewidth=.5, c='k')
+    axs2[0].plot(dato[tid1[0]:tid1[1]], df['d'].values[tid1[0]:tid1[1]],
+                 linewidth=.5, c='k')
+    axs3[0].plot(dato[tid2[0]:tid2[1]], df['d'].values[tid2[0]:tid2[1]],
+                 linewidth=.5, c='k')
+
+    axs[0].set_ylabel('Vatnstøða\ndýpi (m)')
+    axs[0].tick_params(axis='x', which='major', pad=0)
+    axs[0].set_xlim(dato[0], dato[-1])
+
+    axs2[0].set_ylabel('Vatnstøða\ndýpi (m)')
+    axs2[0].tick_params(axis='x', which='major', pad=0)
+    axs2[0].set_xlim(dato[tid1[0]], dato[tid1[1]])
+
+    axs3[0].set_ylabel('Vatnstøða\ndýpi (m)')
+    axs3[0].tick_params(axis='x', which='major', pad=0)
+    axs3[0].set_xlim(dato[tid2[0]], dato[tid2[1]])
     for (i, item) in enumerate(bins):
-        if i == 0:
-            prelabel = 'a) Surface layer'
-        elif i == 1:
-            prelabel = 'b) Center layer'
+        i += 1
+        if mal == 'EN':
+            prelabel = myprelabel(i - 1, mal=mal)
         else:
-            prelabel = 'c) Bottom layer'
+            prelabel = ''
+            temp = item
+            if temp == '10m':
+                temp = 10
+            else:
+                temp = -dypir[temp-1]
+            prelabel += '%2.0fm dýpi' % temp
+
         midaltid1 = dato[max_v]
         midaltid2 = dato[min_v]
-        tid1 = [np.searchsorted(dato, midaltid1-3.5), np.searchsorted(dato, midaltid1+3.5)]
-        tid2 = [np.searchsorted(dato, midaltid2-3.5), np.searchsorted(dato, midaltid2+3.5)]
+        tid1 = [np.searchsorted(dato, midaltid1-halvtid, side='left'),
+                np.searchsorted(dato, midaltid1+halvtid, side='right')]
+        tid2 = [np.searchsorted(dato, midaltid2-halvtid, side='left'),
+                np.searchsorted(dato, midaltid2+halvtid, side='right')]
 
         axs[i].plot(dato, df['mag' + str(item)].values, linewidth=.5, c='k')
-        axs2[i].plot(dato[tid1[0]:tid1[1]], df['mag' + str(item)].values[tid1[0]:tid1[1]], linewidth=.5, c='k')
-        axs3[i].plot(dato[tid2[0]:tid2[1]], df['mag' + str(item)].values[tid2[0]:tid2[1]], linewidth=.5, c='k')
-        #  TODO eg skal ikki hava hattar scatter
-        axs[i].scatter(dato[max_v], 1000, c='r')
-        axs[i].scatter(dato[min_v], 1000, c='g')
+        axs2[i].plot(dato[tid1[0]:tid1[1]], df['mag' + str(item)].values[tid1[0]:tid1[1]],
+                     linewidth=.5, c='k')
+        axs3[i].plot(dato[tid2[0]:tid2[1]], df['mag' + str(item)].values[tid2[0]:tid2[1]],
+                     linewidth=.5, c='k')
 
-        axs[i].xaxis.set_major_formatter(date_fmt)
-        axs[i].set_ylabel('speed [mm/t]')
+        y2 = axs[i].get_ylim()[1]
+        axs[i].fill_between([dato[min_v]-halvtid, dato[min_v]+halvtid], 0, 100000,
+                            facecolor='green', alpha=0.5)
+        axs[i].fill_between([dato[max_v]-halvtid, dato[max_v]+halvtid], 0, 100000,
+                            facecolor='red', alpha=0.5)
+        axs[i].set_ylim(top=y2)
+
+        axs[i].set_ylabel(prelabel + '\n' + 'Streymferð (mm/s)')
         axs[i].tick_params(axis='x', which='major', pad=0)
-        axs[i].set_title(prelabel)
         axs[i].set_xlim(dato[0], dato[-1])
         axs[i].set_ylim(bottom=0)
 
-        axs2[i].xaxis.set_major_formatter(date_fmt)
-        axs2[i].set_ylabel('speed [mm/t]')
+        axs2[i].set_ylabel(prelabel + '\n' + 'Streymferð (mm/s)')
         axs2[i].tick_params(axis='x', which='major', pad=0)
-        axs2[i].set_title(prelabel)
         axs2[i].set_xlim(dato[tid1[0]], dato[tid1[1]])
         axs2[i].set_ylim(bottom=0)
 
-        axs3[i].xaxis.set_major_formatter(date_fmt)
-        axs3[i].set_ylabel('speed [mm/t]')
+        axs3[i].set_ylabel(prelabel + '\n' + 'Streymferð (mm/s)')
         axs3[i].tick_params(axis='x', which='major', pad=0)
-        axs3[i].set_title(prelabel)
         axs3[i].set_xlim(dato[tid2[0]], dato[tid2[1]])
         axs3[i].set_ylim(bottom=0)
 
-    if mal == 'EN':
-        caption = 'Timeseries of speed at three selected bins:' \
-                'a) %2.0f m depth, b) %2.0f m depth' \
-                  ' and c) %2.0f m depth.' \
-                  % (-dypir[bins[0]],
-                     -dypir[bins[1]],
-                     -dypir[bins[2]])
-    else:
-        caption = 'Streymferð á trimum valdum dýpum frá øllum mátitíðarskeiðnum.' \
-                'a) %2.0f m depth, b) %2.0f m depth' \
-                  ' and c) %2.0f m depth.' \
-                  % (-dypir[bins[0]],
-                     -dypir[bins[1]],
-                     -dypir[bins[2]])
+    tempmax = max([axs[i+1].get_ylim()[1] for i in range(len(bins))])
+    tempmax2 = max([axs2[i+1].get_ylim()[1] for i in range(len(bins))])
+    tempmax3 = max([axs3[i+1].get_ylim()[1] for i in range(len(bins))])
+    for i, item in enumerate(bins):
+        #  TODO skriva hettar ordiligt
+        i += 1
+        axs[i].set_ylim(top=tempmax)
+        axs2[i].set_ylim(top=tempmax2)
+        axs3[i].set_ylim(top=tempmax3)
 
-    plt.subplots_adjust(left=0.1, bottom=0.05, right=0.95, top=0.95, wspace=0.0, hspace=0.2)
+    if mal == 'EN':
+        if bins[0] == '10m':
+            caption = 'Timeseries of speed at three selected bins:' \
+                    'a) %2.0f m depth, b) %2.0f m depth' \
+                      ' and c) %2.0f m depth.' \
+                      % (10,
+                         -dypir[bins[1] - 1],
+                         -dypir[bins[2] - 1])
+            caption = 3 * [caption]
+        else:
+            caption = 'Timeseries of speed at three selected bins:' \
+                    'a) %2.0f m depth, b) %2.0f m depth' \
+                      ' and c) %2.0f m depth.' \
+                      % (-dypir[bins[0] - 1],
+                         -dypir[bins[1] - 1],
+                         -dypir[bins[2] - 1])
+            caption = 3 * [caption]
+    else:
+        if bins[0] == '10m':
+            caption = ['Vatnstøða (ovasta myndin) og streymferð á trimum útvaldum dýpum '\
+                       'frá øllum mátitíðarskeiðinum. Strikumyndin á \\SI{10}{m} dýpi vísir '\
+                       'til máting, sum er \\SI{10}{m} frá vatnskorpuni, tá mátingin varð framd, '\
+                       'meðan %s og \\SI{%s}{m} dýpi vísa til dýpi í mun til botndýpi. '\
+                       'Reyði kassin vísir vikuna við harðasta streymi, '\
+                       'og grøni kassin vísir vikuna við veikasta streymi.'\
+                       % (str(-int(np.round(dypir[bins[1]-1]))),
+                          str(-int(np.round(dypir[bins[2]-1])))),
+                       'Vatnstøða (ovasta myndin) og streymferð á trimum útvaldum dýpum '\
+                       'ta vikuna, tá streymurin var harðastur '\
+                       '(reyði kassin á mynd~\\ref{speedbin}).',
+                       'Vatnstøða (ovasta myndin) og streymferð á trimum útvaldum dýpum '\
+                       'ta vikuna, streymurin var veikastur '\
+                       '(grøni kassin á mynd~\\ref{speedbin}).']
+        else:
+            caption = ['Streymferð á trimum valdum dýpum frá øllum mátitíðarskeiðnum.'\
+                       ' Reyði kassin vísir vikuna við harðasta streymi og'\
+                       ' grøni kassin vísir vikuna við veikasta streymi.',
+                       'Streymferð á trimum valdum dýpum vikuna við harðasta rákið ' \
+                       '(reyði kassin á mynd~\\ref{speedbin}',
+                       'Streymferð á trimum valdum dýpum vikuna við harðasta rákið ' \
+                       '(grøni kassin á mynd~\\ref{speedbin})']
+
+    for i in range(len(bins)+1):
+        axs[i].xaxis.set_major_formatter(date_fmt)
+        axs[i].xaxis.set_major_locator(date_loc)
+        if i==4:
+            plt.subplots_adjust(left=0.1, bottom=0.05, right=0.95, top=0.975, wspace=0.0, hspace=0.2)
+
+        axs2[i].xaxis.set_major_formatter(date_fmt_2)
+        axs2[i].xaxis.set_major_locator(date_loc_2)
+        if i==4:
+            plt.subplots_adjust(left=0.1, bottom=0.05, right=0.95, top=0.975, wspace=0.0, hspace=0.2)
+
+        axs3[i].xaxis.set_major_formatter(date_fmt_3)
+        axs3[i].xaxis.set_major_locator(date_loc_3)
+        if i==4:
+            plt.subplots_adjust(left=0.1, bottom=0.05, right=0.95, top=0.975, wspace=0.0, hspace=0.2)
+
+    plt.setp([a.get_xticklabels() for a in fig2.axes], visible=True)
     fig.savefig(dest + 'myndir/%s' % navn, dpi=dpi)
     fig2.savefig(dest + 'myndir/%s' % 'high_' + navn, dpi=dpi)
     fig3.savefig(dest + 'myndir/%s' % 'low_' + navn, dpi=dpi)
     if mal =='EN':
         subsections = ['high current', 'low current']
     else:
-        subsections = ['Høgur streymur', 'Lágur streymur']
+        subsections = ['Harður streymur', 'Veikur streymur']
     out = ''
-    out += '\n\\FloatBarrier\n\\newpage\n\\section{%s}\n\\begin{figure}[h!]\\label{speedbin}\n\\includegraphics[scale=1]{myndir/%s}' \
-            '\n\\caption{%s}\n\\end{figure}\n\\newpage\n' % (section, navn, caption)
-    out += '\n\\FloatBarrier\n\\newpage\n\\subsection{%s}\n\\begin{figure}[h!]\\label{speedbin}\n\\includegraphics[scale=1]{myndir/%s}' \
-            '\n\\caption{%s}\n\\end{figure}\n\\newpage\n' % (subsections[0], 'high_' + navn, caption)
-    out += '\n\\FloatBarrier\n\\newpage\n\\subsection{%s}\n\\begin{figure}[h!]\\label{speedbin}\n\\includegraphics[scale=1]{myndir/%s}' \
-            '\n\\caption{%s}\n\\end{figure}\n\\newpage\n' % (subsections[1], 'low_' + navn, caption)
+    out += '\n\\FloatBarrier\n\\newpage\n\\section{%s}\n'\
+            '\\begin{figure}[h!]\n\\includegraphics[scale=1]{myndir/%s}' \
+            '\n\\caption{%s}\n\\label{speedbin}\n\\end{figure}\n\\newpage'\
+            '\n' % (section, navn, caption[0])
+    out += '\n\\FloatBarrier\n\\newpage\n\\subsection{%s}\n'\
+            '\\begin{figure}[h!]\n\\includegraphics[scale=1]{myndir/%s}' \
+            '\n\\caption{%s}\n\\label{speedbin_high}\n\\end{figure}\n'\
+            '\\newpage\n' % (subsections[0], 'high_' + navn, caption[1])
+    out += '\n\\FloatBarrier\n\\newpage\n\\subsection{%s}\n'\
+            '\\begin{figure}[h!]\n\\includegraphics[scale=1]{myndir/%s}' \
+            '\n\\caption{%s}\n\\label{speedbin_low}\n\\end{figure}\n\\newpage'\
+            '\n' % (subsections[1], 'low_' + navn, caption[2])
     return out
 
 
-def plotrose(ax, N, umax, lv, Es, Ns, eind='mm/s', axline=.5, axcolor='k', alpha=.5):
-    '''
-    teknar eina rósu har eg fari at reina at gera tað møguligt at tekna tað í bins
-    og í confidens interval
+def speedbins_hovus(bins, dato, df, dypir, mal='FO', dest='', dpi=200, hovusratningur=0,
+              navn='Hovus_speedbin.pdf', section='Streymur í høvusrætning',
+              font=7, figwidth=6, figheight=7.1):
+    """
+        teknar magdataði fyri 3 dypir
+    :param bins: [list int] len(bins)==3 tríggjar bins, [surface layer,
+                                                          Center layer,
+                                                          Bottom layer]
+    :param dato:    mdate fyri samplini
+    :param df:      dataði sum skal plottast
+    :param dypir:   ein lista av dypinum á øllum bins
+    :param dest:    str sum siður hvar latex dokumenti skal skrivast
+    :param dpi:     upplysningurin á figurinum
+    :param navn:    navnið á figurinum
+    :param section: navni á sectiónini
+    :return:        ein string sum kann setast inní eitt latex document
+    """
 
-    :param ax:      axin sum rósan skal plottast á
+    if len(bins) != 3:
+        raise ValueError('bins skal hava 3 bins')
+    fig, axs = plt.subplots(ncols=1, nrows=3, figsize=(figwidth, figheight), dpi=dpi)
+    mpl.rcParams['font.size'] = font
+    timespan = dato[-1] - dato[0]
+    if timespan > 3:
+        date_fmt = mdate.DateFormatter('%d %b')
+        date_loc = mdate.DayLocator(interval=int(np.ceil(timespan/6)))
+    elif timespan >= 0.95:
+        date_fmt = mdate.DateFormatter('%d %b %H:%M')
+        date_loc = mdate.HourLocator(byhour=[0, 6, 12, 18])
+    elif timespan > 2/24:
+
+        date_fmt = mdate.DateFormatter('%d %b %H:%M')
+        date_loc = mdate.HourLocator()
+    else:
+        date_fmt = mdate.DateFormatter('%d %b %H:%M')
+        date_loc = mdate.MinuteLocator(interval=np.ceil(60*24*timespan/6))
+    tempmin = 0
+    tempmax = 0
+    for (i, item) in enumerate(bins):
+        if mal == 'EN':
+            prelabel = myprelabel(i, mal=mal)
+        else:
+            if i == 0:
+                prelabel = 'a) '
+            elif i == 1:
+                prelabel = 'b) '
+            else:
+                prelabel = 'c) '
+            if item == '10m':
+                prelabel += '10'
+            else:
+                prelabel += '%2.0f' % -dypir[item -1]
+            prelabel += 'm'
+
+        ys = df['mag' + str(item)].values * np.cos(np.deg2rad(df['dir' + str(item)].values - hovusratningur))
+        axs[i].plot(dato, ys, linewidth=.5, c='k')
+        axs[i].xaxis.set_major_formatter(date_fmt)
+        axs[i].xaxis.set_major_locator(date_loc)
+        axs[i].set_ylabel('Streymferð (mm/t)')
+        axs[i].tick_params(axis='x', which='major', pad=0)
+        axs[i].set_title(prelabel)
+        axs[i].set_xlim(dato[0], dato[-1])
+        ys = np.sort(ys)
+        tempmin = min(tempmin, 1.1 * ys[int(0.005*len(ys))])
+        tempmax = max(tempmax, 1.1 * ys[int(0.995*len(ys))])
+        temp = max(abs(tempmin), tempmax)
+    for i, item in enumerate(bins):
+        axs[i].set_ylim(bottom=-temp, top=temp)
+
+    if mal=='EN':
+        if bins[0] == '10m':
+            caption = 'Timeseries of velosety in the main direction (%3.0f°) of 3 selected bins:' \
+                    'a) %2.0f m depth, b) %2.0f m depth' \
+                      ' and c) %2.0f m depth.' \
+                      % (hovusratningur,
+                         10,
+                         -dypir[bins[1] - 1],
+                         -dypir[bins[2] - 1])
+        else:
+            caption = 'Timeseries of velosety in the main direction (%3.0f°) of 3 selected bins:' \
+                    'a) %2.0f m depth, b) %2.0f m depth' \
+                      ' and c) %2.0f m depth.' \
+                      % (hovusratningur,
+                         -dypir[bins[0] - 1],
+                         -dypir[bins[1] - 1],
+                         -dypir[bins[2] - 1])
+    else:
+        caption = 'Streymferð í høvuðsrætningin (%3.0f°) á trimum valdum dýpum frá øllum '\
+                'mátitíðarskeiðnum. Høvuðsrætningurin er tann ættin, streymurin oftast '\
+                'rekur í, sí mynd~\\ref{rose}. Vanliga verður rákið býtt í høvuðsættirnar '\
+                '(norður-suður rák og eystur-vestur rák), men flest allir føroyskir firðir '\
+                'og sund venda í útnyrðing-landsynning, og tí verður streymferðin lýst '\
+                'í mun til høvuðsrætningin heldur enn høvuðsættirnar.' % hovusratningur
+
+    plt.subplots_adjust(left=0.12, bottom=0.05, right=0.95, top=0.95, wspace=0.0, hspace=0.2)
+    fig.savefig(dest + 'myndir/%s' % navn, dpi=dpi)
+    return '\n\\FloatBarrier\n\\newpage\n\\section{%s}\n\\begin{figure}[h!]' \
+            '\n\\includegraphics[scale=1]{myndir/%s}' \
+           '\n\\caption{%s}\n\\label{speedbin_hovus}\n' \
+            '\\end{figure}\n\\newpage\n' % (section, navn, caption)
+
+
+def pre_plotrose(N, umax, Es, Ns):
+    '''
+    roknar hvat hvat frequesurin er í teir forskelligu rattningarnar
+
     :param N:       hvussu nógvar bins dataði skal sorterast í av fyrstan tíð
     :param umax:    hvar greinsunar á ásunum skullu verða
-    :param lv:      hvar levels á contour plottinum skullu verða
     :param Es:      u data   Haldi eg  í hvussu er data Est
     :param Ns:      v data   Haldi eg  í hvussu er data North
-    :param eind:    eindin á Es og Ns sum skal verða tað sama
-    :param axline:  tjúktin á linjunum
-    :param axcolor: farvan á linjunum
-    :param alpha:   alpha á linjunum
-    :return:        figurin út aftur við øllum breitingunum
-                    (veit ikki um tað er neyðut at returna hann)
+    :return:        F eitt array sum sigur hvat frequensurin er í hvønn kassa
     '''
     #  variablin har eg samli dataði í
     F = np.zeros(shape=(N, N))
@@ -329,14 +612,45 @@ def plotrose(ax, N, umax, lv, Es, Ns, eind='mm/s', axline=.5, axcolor='k', alpha
     antal_pertiklar = len(Ns)
     arial_av_kassa = (2 * umax / (N-1))**2
     F /= antal_pertiklar * arial_av_kassa
+    F = np.array(F)
+    return F
 
+
+def plotrose(ax, N, umax, lv, F, eind='mm/s', axline=.5, axcolor='k', alpha=.5):
+    '''
+    teknar eina rósu har eg fari at reina at gera tað møguligt at tekna tað í bins
+    og í confidens interval
+
+    :param ax:      axin sum rósan skal plottast á
+    :param N:       hvussu nógvar bins dataði skal sorterast í av fyrstan tíð
+    :param umax:    hvar greinsunar á ásunum skullu verða
+    :param lv:      hvar levels á contour plottinum skullu verða
+    :param F        hvat sum skal plottast
+    :param eind:    eindin á Es og Ns sum skal verða tað sama
+    :param axline:  tjúktin á linjunum
+    :param axcolor: farvan á linjunum
+    :param alpha:   alpha á linjunum
+    :return:        figurin út aftur við øllum breitingunum
+                    (veit ikki um tað er neyðut at returna hann)
+    '''
+    #----------------------------------------------------------------------
+    # ax N umax lv eind axline axcolor alpha
     #  hvat er index á binnunum
     x = np.linspace(-umax, umax, N)
     X, Y = np.meshgrid(x, x)
     #  ger eitt interpolering uppá eitt størri data sett eftir hvat er í F
     #til at gera eitt stórt contour til confidens
 
-    con = ax.contourf(X, Y, F, levels=lv, cmap=cm.jet)
+    #con = ax.contour(X, Y, F, levels=lv)
+    mymax = max(j for i in F for j in i)
+    mask = np.zeros_like(F, dtype=bool)
+    for i, rekkja in enumerate(F):
+        for j, eliement in enumerate(rekkja):
+            #print(eliement)
+            if eliement < mymax/10:
+                mask[i][j] = True
+    z = np.ma.array(F, mask=mask)
+    con = ax.contourf(X, Y, z, levels=lv, cmap=cm.jet, corner_mask=True)
     cb = plt.colorbar(con, ax=ax)
     cb.set_ticks([])
 
@@ -364,7 +678,7 @@ def tekna_dist_rose(bins, data, N, umax, dypir, mal='FO', dest='LaTeX/', dpi=200
                                                                 Center layer,
                                                                 Bottom layer]
     :param data:        Dataði sum skal til at tekna rósurnar
-    :param N:           Hvussu nógvar bins dataði skal sorterast í av fyrstan tíð
+    :param N:           Hvussu nógvir kassar eru í hvønn ratning
     :param umax:        Hvar greinsunar á ásunum skullu verða
     :param dypir        Ein listi av øllum dýpinum har dýpi er dypir(bin+1)
     :param dest:        Hvat fyri mappu skullu plottini í (undirmappu)
@@ -385,54 +699,95 @@ def tekna_dist_rose(bins, data, N, umax, dypir, mal='FO', dest='LaTeX/', dpi=200
         if mal == 'EN':
             section = 'Rose diagrams at selected layers'
         else:
-            section = 'Rósu diagram á ymsum dýpum'
+            section = 'Rósudiagramm á ymsum dýpum'
     if len(bins) != 3:
         print(bins)
         raise ValueError('bins skal hava 3 bins')
     fig, axs = plt.subplots(ncols=2, nrows=3, figsize=(figwidth, figheight), dpi=dpi)
     mpl.rcParams['font.size'] = font
+    myumax = []
+    F = []
+    F2 = []
+    Es = []
+    Ns = []
     for (i, item) in enumerate(bins):
-        if i == 0:
-            prelabel = 'a) Surface layer'
-        elif i == 1:
-            prelabel = 'b) Center layer'
-        else:
-            prelabel = 'c) Bottom layer'
-        Es = data['u' + str(item)].dropna().values
-        Ns = data['v' + str(item)].dropna().values
-
+        Es.append(data['u' + str(item)].dropna().values)
+        Ns.append(data['v' + str(item)].dropna().values)
         umax2 = []
-        for x in Es:
+        for x in Es[i]:
             umax2.append(abs(x))
-        for x in Ns:
+        for x in Ns[i]:
             umax2.append(abs(x))
         umax2.sort()
         umax2 = umax2[int(0.95 * len(umax2))]
+        myumax.append(umax2)
 
-        plotrose(axs[i, 0], N, umax2, lv=10, Es=Es, Ns=Ns,
+        F2.append(pre_plotrose(N, umax2, Es=Es[i], Ns=Ns[i]))
+    umax = max(myumax)
+    for (i, item) in enumerate(bins):
+        F.append(pre_plotrose(N, umax, Es=Es[i], Ns=Ns[i]))
+
+    lv = 10
+    if isinstance(lv, list):
+        pass
+    elif isinstance(lv, int):
+        Fmax = max([k for i in F for j in i for k in j])
+        F2max = max([k for i in F2 for j in i for k in j])
+        lvF = np.linspace(0, Fmax, lv)
+        lvF2 = np.linspace(0, F2max, lv)
+    else:
+        raise ValueError('lv skal vera ein listi ella ein int')
+    for (i, item) in enumerate(bins):
+        if mal == 'EN':
+            prelabel = myprelabel(i, mal=mal)
+        else:
+            prelabel = ''
+            if bins[i] == '10m':
+                prelabel += '10'
+            else:
+                prelabel += '%2.0f' % -dypir[bins[i] - 1]
+            prelabel += 'm dýpi'
+
+        plotrose(axs[i, 0], N, myumax[i], lv=lvF2, F=F2[i],
+             axcolor=axcolor, axline=axline, alpha=alpha)
+        plotrose(axs[i, 1], N, umax, lv=lvF, F=F[i],
              axcolor=axcolor, axline=axline, alpha=alpha)
         axs[i, 0].set_ylabel(prelabel + '\n' + axs[i, 0].get_ylabel())
-        plotrose(axs[i, 1], N, umax, lv=10, Es=Es, Ns=Ns,
-             axcolor=axcolor, axline=axline, alpha=alpha)
         axs[i, 1].set_ylabel('')
     if mal == 'EN':
-        caption = 'Distribution of velocity vectors: ' \
-                  'a)~%2.0f~m~depth, b)~%2.0f~m~depth, and~c)~%2.0f~m~depth.' \
-                  % (-dypir[bins[0]],
-                     -dypir[bins[1]],
-                     -dypir[bins[2]])
+        if bins[0] == '10m':
+            caption = 'Distribution of velocity vectors: ' \
+                      'a)~%2.0f~m~depth, b)~%2.0f~m~depth, and~c)~%2.0f~m~depth.' \
+                      % (10,
+                         -dypir[bins[1] - 1],
+                         -dypir[bins[2] - 1])
+        else:
+            caption = 'Distribution of velocity vectors: ' \
+                      'a)~%2.0f~m~depth, b)~%2.0f~m~depth, and~c)~%2.0f~m~depth.' \
+                      % (-dypir[bins[0] - 1 ],
+                         -dypir[bins[1] - 1 ],
+                         -dypir[bins[2] - 1 ])
     else:
-        caption = 'Títtleiki av streymferð í rætning á: ' \
-                  'a)~%2.0f~m~dýpið, b)~%2.0f~m~dýpið, og~c)~%2.0f~m~dýpið.' \
-                  % (-dypir[bins[0]],
-                     -dypir[bins[1]],
-                     -dypir[bins[2]])
+        if bins[0] == '10m':
+            caption = 'Títtleikin av mátingum við ávísari streymferð í ávísan rætning á '\
+                    'trimum valdum dýpum. Myndirnar høgru megin hava allar somu ásir, meðan '\
+                    'myndirnar vinstru megin hava broytiligar ásir, ið best lýsa dáturnar. '\
+                    'Litstigin vísir títtleikan av mátingunum, har reyðu litirnir vísa á '\
+                    'streymferðina í tann rætningin, sum kemur oftast fyri.'
+
+        else:
+            caption = 'Títtleikin av mátingum við ávísari streymferð í ávísan rætning á '\
+                    'trimum valdum dýpum. Myndirnar høgru megin hava allar somu ásir, meðan '\
+                    'myndirnar vinstru megin hava broytiligar ásir, ið best lýsa dáturnar. '\
+                    'Litstigin vísir títtleikan av mátingunum, har reyðu litirnir vísa á '\
+                    'streymferðina í tann rætningin, sum kemur oftast fyri.'
 
     plt.gca().set_aspect('equal', adjustable='box')
     plt.subplots_adjust(left=0.05, bottom=0.05, right=0.95, top=0.95, wspace=0.0, hspace=0.5)
     fig.savefig(dest + 'myndir/' + navn)
-    return '\n\\FloatBarrier\n\\newpage\n\\section{%s}\n\\begin{figure}[h!]\\label{rose}\n\\includegraphics[scale=1]{myndir/%s}' \
-           '\n\\caption{%s}\n\\end{figure}\n\\newpage\n' % (section, navn, caption)
+    return '\n\\FloatBarrier\n\\newpage\n\\section{%s}\n\\begin{figure}[h!]\n' \
+            '\\includegraphics[scale=1]{myndir/%s}\n\\caption{%s}\n\\label{rose}\n' \
+            '\\end{figure}\n\\newpage\n' % (section, navn, caption)
 
 
 def progressive_vector(bins, dato, uvdf, dypir, mal='FO', dest='LaTeX/', dpi=200,
@@ -455,12 +810,12 @@ def progressive_vector(bins, dato, uvdf, dypir, mal='FO', dest='LaTeX/', dpi=200
     :param figwidth:    Breiddin á fig
     :param figheight:   Hæddin á fig
 
-    :return:        ein string sum kann setast inní eitt latex document
+    :return:            ein string sum kann setast inní eitt latex document
     '''
     if mal == 'EN':
         section = 'Progressive vector diagrams at selected layers'
     else:
-        section = 'Progressive vector diagrams á ymskum dýpum'
+        section = 'Stigvís vektordiagramm á ymskum dýpum'
     if len(bins) != 3:
         raise ValueError('bins skal hava 3 bins')
     fig, axs = plt.subplots(ncols=1, nrows=1, figsize=(figwidth, figheight), dpi=dpi)
@@ -469,34 +824,313 @@ def progressive_vector(bins, dato, uvdf, dypir, mal='FO', dest='LaTeX/', dpi=200
 
     # ein funktión til at finna tað fyrsta og sísta elementi
     # og formatera alt
-    def fmt(n):
+    def tempfun(x):
+        return mdate.num2date(x).strftime('%B')
+
+    def fmt(n, midfun=tempfun):
         def fun(x, pos):
-            if pos in [0, n-1]:
+            if pos in [0, n]:
                 return mdate.num2date(x).strftime('%d %b-%y\n   %H:%M')
-            return mdate.num2date(x).strftime('%B')
+            return midfun(x)
         return fun
 
     #  finn bounds--------------------
     interval = [mdate.num2date(dato[0]), mdate.num2date(dato[-1])]
-    interval = [[x.year, x.month, 1] for x in interval]
-    interval[0][1] += 1
-    iterativ = interval[0]
-    bounds = []
-    while 12*iterativ[0] + iterativ[1] <= 12 *  interval[1][0] + interval[1][1]:
-        bounds.append(mdate.date2num(dt.datetime(*iterativ)))
-        if iterativ[1] == 12:
-            iterativ[0] += 1
-            iterativ[1] = 1
+    #  interval er ein listi av 2 elementum start tíðspunkt og enda tíðspunkt
+    total_dagar = dato[-1] - dato[0] #  Dato stendur í matplotlib.dates so hettar gevur dagar
+    #  finn hvat fyri interval vit skullu brúka á cm
+    #  fyrsta og sísta bin skullu verða tað fyrsta og tað sísta
+    #  finn ein máta at finna hvussu vit rokna okkum víðari
+    if total_dagar > 6 * 366:
+        cmresolution = 'Ár'
+        def cm_tick_label(x):
+            return mdate.num2date(x).strftime('%Y')
+
+        if interval[0].month > 8:
+            mystart = [interval[0].year + 2, 1, 1]
         else:
-            iterativ[1] += 1
-    #  kanna um vit eru ov tatt við
-    if abs(bounds[0] - dato[0]) < 5:
-        bounds = bounds[1:]
-    if abs(bounds[-1] - dato[-1]) <5:
-        bounds = bounds[:-1]
+            mystart = [interval[0].year + 1, 1, 1]
+
+        if interval[1].month < 4:
+            myend = [interval[1].year - 2, 1, 1]
+        else:
+            myend = [interval[1].year - 1, 1, 1]
+
+        bounds = []
+        bounds.append(mystart)
+        iterativ = mystart
+        while iterativ[0] < myend[0]:
+            iterativ[0] += 1
+            bounds.append(iterativ.copy())
+        bounds = [mdate.date2num(dt.datetime(*x)) for x in bounds]
+
+    elif total_dagar > 3 * 366:
+        cmresolution = 'Hálv Ár'
+        def cm_tick_label(x):
+            return mdate.num2date(x).strftime('%b-%y')
+
+        temp = interval[0]
+        if temp.month < 5:
+            mystart = [temp.year, 7, 1]
+        elif temp.month < 10:
+            mystart = [temp.year + 1, 1, 1]
+        else:
+            mystart = [temp.year + 1, 7, 1]
+
+        temp = interval[1]
+        if temp.month > 9:
+            myend = [temp.year, 6, 1]
+        elif temp.month > 2:
+            myend = [temp.year, 1, 1]
+        else:
+            myend = [temp.year - 1, 6, 1]
+
+        bounds = []
+        iterativ = mystart
+        enddate = dt.datetime(*myend)
+        while (enddate - dt.datetime(*iterativ)).days >= 0:
+            bounds.append(iterativ.copy())
+            if iterativ[1] == 6:
+                iterativ[0] += 1
+                iterativ[1] = 1
+            else:
+                iterativ[1] = 6
+        bounds = [mdate.date2num(dt.datetime(*x)) for x in bounds]
+
+    elif total_dagar > 1.5 * 366:
+        cmresolution = 'Qvartal'
+        def cm_tick_label(x):
+            return mdate.num2date(x).strftime('%b-%y')
+
+        temp = interval[0]
+        if temp.month < 3:
+            mystart = [temp.year, 4, 1]
+        elif temp.month < 6:
+            mystart = [temp.year, 7, 1]
+        elif temp.month < 9:
+            mystart = [temp.year, 10, 1]
+        elif temp.month < 12:
+            mystart = [temp.year + 1, 1, 1]
+        else:
+            mystart = [temp.year + 1, 4, 1]
+
+        temp = interval[1]
+        if temp.month > 10:
+            myend = [temp.year, 10, 1]
+        elif temp.month > 7:
+            myend = [temp.year, 7, 1]
+        elif temp.month > 4:
+            myend = [temp.year, 4, 1]
+        elif temp.month > 1:
+            myend = [temp.year, 1, 1]
+        else:
+            myend = [temp.year - 1, 10, 1]
+
+        bounds = []
+        iterativ = mystart
+        enddate = dt.datetime(*myend)
+        while (enddate - dt.datetime(*iterativ)).days >= 0:
+            bounds.append(iterativ.copy())
+            if iterativ[1] == 10:
+                iterativ[0] += 1
+                iterativ[1] = 1
+            elif iterativ[1] == 7:
+                iterativ[1] = 10
+            elif iterativ[1] == 4:
+                iterativ[1] = 7
+            else:
+                iterativ[1] = 4
+        bounds = [mdate.date2num(dt.datetime(*x)) for x in bounds]
+
+    elif total_dagar > 6 * 31:
+        cmresolution = 'Mánar'
+        def cm_tick_label(x):
+            return mdate.num2date(x).strftime('%B')
+
+        temp = interval[0]
+        if temp.day > 25:
+            startm = temp.month + 2
+        else:
+            startm = temp.month + 1
+        if startm > 12:
+            mystart = [temp.year + 1, startm - 12, 1]
+        else:
+            mystart = [temp.year, startm, 1]
+        del(startm)
+
+        temp = interval[1]
+        if temp.day < 5:
+            endm = temp.month - 2
+        else:
+            endm = temp.month - 1
+        if endm < 1:
+            myend = [temp.year - 1, endm + 12, 1]
+        else:
+            myend = [temp.year, endm, 1]
+        del(endm)
+
+        bounds = []
+        iterativ = mystart
+        enddate = dt.datetime(*myend)
+        while (enddate - dt.datetime(*iterativ)).days >= 0:
+            bounds.append(iterativ.copy())
+            if iterativ[1] == 12:
+                iterativ[0] += 1
+                iterativ[1] = 1
+            else:
+                iterativ[1] += 1
+        bounds = [mdate.date2num(dt.datetime(*x)) for x in bounds]
+
+    elif total_dagar > 3 * 31:
+        cmresolution = 'Hálv Mánar'
+        def cm_tick_label(x):
+            return mdate.num2date(x).strftime('%d %b')
+
+        temp = interval[0]
+        if temp.day > 25:
+            startm = temp.month + 1
+            startd = 15
+        elif temp.day > 10:
+            startm = temp.month + 1
+            startd = 1
+        else:
+            startm = temp.month
+            startd = 15
+        if startm > 12:
+            mystart = [temp.year + 1, startm - 12, startd]
+        else:
+            mystart = [temp.year, startm, startd]
+        del(startm, startd)
+
+        temp = interval[1]
+        if temp.day < 5:
+            endm = temp.month - 1
+            endd = 15
+        elif temp.day < 20:
+            endm = temp.month
+            endd = 1
+        else:
+            endm = temp.month
+            endd = 15
+        if endm < 1:
+            myend = [temp.year, endm + 12, endd]
+        else:
+            myend = [temp.year, endm, endd]
+        del(endm, endd)
+
+        bounds = []
+        iterativ = mystart
+        enddate = dt.datetime(*myend)
+        while (enddate - dt.datetime(*iterativ)).days >= 0:
+            bounds.append(iterativ.copy())
+            if iterativ[2] == 15:
+                if iterativ[1] == 12:
+                    iterativ[0] += 1
+                    iterativ[1] = 1
+                else:
+                    iterativ[1] += 1
+                iterativ[2] = 1
+            else:
+                iterativ[2] = 15
+        bounds = [mdate.date2num(dt.datetime(*x)) for x in bounds]
+
+    elif total_dagar > 6 * 7:
+        cmresolution = 'Vikur'
+        def cm_tick_label(x):
+            return mdate.num2date(x).strftime('%d %b')
+
+        temp = interval[0]
+        if temp.weekday() > 5:
+            mystart = temp + dt.timedelta(14 - temp.weekday())
+            mystart = [mystart.year, mystart.month, mystart.day]
+        else:
+            mystart = temp + dt.timedelta(7 - temp.weekday())
+            mystart = [mystart.year, mystart.month, mystart.day]
+
+        temp = interval[1]
+        if temp.weekday() < 3:
+            myend = temp - dt.timedelta(7 + temp.weekday())
+            myend = [myend.year, myend.month, myend.day]
+        else:
+            myend = temp - dt.timedelta(temp.weekday())
+            myend = [myend.year, myend.month, myend.day]
+
+        bounds = []
+        iterativ = mystart
+        enddate = dt.datetime(*myend)
+        iterativ = dt.datetime(*iterativ)
+        while (enddate - iterativ).days >= 0:
+            bounds.append(iterativ)
+            iterativ += dt.timedelta(7)
+        bounds = [mdate.date2num(x) for x in bounds]
+
+    elif total_dagar > 3 * 7:
+        cmresolution = '4 Dagar'
+        def cm_tick_label(x):
+            return mdate.num2date(x).strftime('%d %b')
+
+        temp = interval[0]
+        mystart = temp.replace(hour=0, minute=0) + dt.timedelta(4)
+        mystart = [mystart.year, mystart.month, mystart.day]
+
+        temp = interval[1]
+        myend = temp.replace(hour=0, minute=0) - dt.timedelta(5)
+        myend = [myend.year, myend.month, myend.day]
+
+        bounds = []
+        iterativ = mystart
+        enddate = dt.datetime(*myend)
+        iterativ = dt.datetime(*iterativ)
+        while (enddate - iterativ).days >= 0:
+            bounds.append(iterativ)
+            iterativ += dt.timedelta(4)
+        bounds = [mdate.date2num(x) for x in bounds]
+
+    elif total_dagar > 12:
+        cmresolution = '2 Dagar'
+        def cm_tick_label(x):
+            return mdate.num2date(x).strftime('%d %b')
+
+        temp = interval[0]
+        mystart = temp.replace(hour=0, minute=0) + dt.timedelta(2)
+        mystart = [mystart.year, mystart.month, mystart.day]
+
+        temp = interval[1]
+        myend = temp.replace(hour=0, minute=0) - dt.timedelta(3)
+        myend = [myend.year, myend.month, myend.day]
+
+        bounds = []
+        iterativ = mystart
+        enddate = dt.datetime(*myend)
+        iterativ = dt.datetime(*iterativ)
+        while (enddate - iterativ).days >= 0:
+            bounds.append(iterativ)
+            iterativ += dt.timedelta(2)
+        bounds = [mdate.date2num(x) for x in bounds]
+
+    else:
+        cmresolution = 'Dagar'
+        def cm_tick_label(x):
+            return mdate.num2date(x).strftime('%d %b')
+
+        temp = interval[0]
+        mystart = temp.replace(hour=0, minute=0) + dt.timedelta(1)
+        mystart = [mystart.year, mystart.month, mystart.day]
+
+        temp = interval[1]
+        myend = temp.replace(hour=0, minute=0) - dt.timedelta(2)
+        myend = [myend.year, myend.month, myend.day]
+
+        bounds = []
+        iterativ = mystart
+        enddate = dt.datetime(*myend)
+        iterativ = dt.datetime(*iterativ)
+        while (enddate - iterativ).days >= 0:
+            bounds.append(iterativ)
+            iterativ += dt.timedelta(1)
+        bounds = [mdate.date2num(x) for x in bounds]
 
     bounds = [dato[0]] + bounds + [dato[-1]]
-    # end finn bounds--------------------
 
     glxmax = -np.inf
     glymax = -np.inf
@@ -531,12 +1165,22 @@ def progressive_vector(bins, dato, uvdf, dypir, mal='FO', dest='LaTeX/', dpi=200
         plots.append(punktir)
 
     for i in range(len(plots)):
-        if i == 0:
-            prelabel = 'Surface layer'
-        elif i == 1:
-            prelabel = 'Center layer'
+        if mal == 'EN':
+            prelabel = myprelabel(i, mal=mal)
         else:
-            prelabel = 'Bottom layer'
+            if i == 0:
+                prelabel = 'a) '
+            elif i == 1:
+                prelabel = 'b) '
+            else:
+                prelabel = 'c) '
+            temp = bins[i]
+            if temp == '10m':
+                prelabel += '10'
+            else:
+                prelabel += '%2.0f' % -dypir[temp-1]
+            prelabel += 'm'
+
         punktir = plots[i]
         xmin = np.min(punktir[0])
         xmax = np.max(punktir[0])
@@ -561,33 +1205,39 @@ def progressive_vector(bins, dato, uvdf, dypir, mal='FO', dest='LaTeX/', dpi=200
         glxmin = max(xmin, glxmin)
         glymin = max(ymin, glymin)
 
-    cb = fig.colorbar(line, ax=axs, format=mpl.ticker.FuncFormatter(fmt(len(bounds))))
+    cb = fig.colorbar(line, ax=axs,
+                      format=mpl.ticker.FuncFormatter(fmt(len(bounds), cm_tick_label)))
+    cb.set_ticks(bounds)
     axs.legend()
     axs.set_xlim(xmin, xmax)
     axs.set_ylim(ymin, ymax)
     plt.subplots_adjust(left=0.1, bottom=0.075, right=0.95, top=0.95, wspace=0.0, hspace=0.2)
-    axs.set_xlabel('Distance [Km]')
-    axs.set_ylabel('Distance [Km]')
+    axs.set_xlabel('Avstandur (km)')
+    axs.set_ylabel('Avstandur (km)')
     plt.axis('equal')
     fig.savefig(dest + 'myndir/%s' % navn, dpi=dpi)
 
     if mal == 'EN':
-        caption = 'Progressive vector diagrams at three selected layers: Surface (%2.0f m depth),' \
-                  ' center (%2.0f m depth) and bottom layer (%2.0f m depth).' \
-                  % (-dypir[bins[0]],
-                     -dypir[bins[1]],
-                     -dypir[bins[2]])
+        if bins[0] == '10m':
+            caption = 'Progressive vector diagrams at three selected layers: Surface (%2.0f m depth),' \
+                      ' center (%2.0f m depth) and bottom layer (%2.0f m depth).' \
+                      % (10,
+                         -dypir[bins[1] - 1],
+                         -dypir[bins[2] - 1])
+        else:
+            caption = 'Progressive vector diagrams at three selected layers: Surface (%2.0f m depth),' \
+                      ' center (%2.0f m depth) and bottom layer (%2.0f m depth).' \
+                      % (-dypir[bins[0] - 1],
+                         -dypir[bins[1] - 1],
+                         -dypir[bins[2] - 1])
     else:
-        caption = 'PVD-plott av mátingunum, sum vísir hvussu ein lutur hevði rikið,' \
-                'um rákið var eins og á mátistaðnum í øllum økinum.' \
-                'Hvør litur umboðar ein mánað sum víst á litstiganum:'\
-                'Surface (%2.0f m depth), center (%2.0f m depth) and bottom layer (%2.0f m depth).' \
-                  % (-dypir[bins[0]],
-                     -dypir[bins[1]],
-                     -dypir[bins[2]])
+        caption = 'Stigvís vektordiagramm (PVD-plott) av mátingunum, sum vísa, '\
+                'hvussu ein lutur hevði rikið, um rákið var eins og á mátistaðnum í øllum '\
+                'økinum. Hvør litur umboðar eina viku, sum víst á litstiganum.'
 
-    return '\n\\FloatBarrier\n\\newpage\n\\section{%s}\n\\begin{figure}[h!]\\label{PVD}\n\\includegraphics[scale=1]{myndir/%s}' \
-           '\n\\caption{%s}\n\\end{figure}\n\\newpage\n' % (section, navn, caption)
+    return '\n\\FloatBarrier\n\\newpage\n\\section{%s}\n\\begin{figure}[h!]\n' \
+            '\\includegraphics[scale=1]{myndir/%s}\n\\caption{%s}\n\\label{PVD}\n' \
+            '\\end{figure}\n\\newpage\n' % (section, navn, caption)
 
 
 def frequencytabellir(datadf, dypir, mal='FO', dest='LaTeX/',
@@ -604,17 +1254,23 @@ def frequencytabellir(datadf, dypir, mal='FO', dest='LaTeX/',
     '''
     if sections == None:
         if mal == 'EN':
-            sections = ['Frequency of high speeds', 'Frequency of low speeds']
+            sections = 'Frequency of high speeds'
         else:
-            sections = ['Frekvenstalva', 'Frekvenstalva']
+            sections = 'Frekvenstalva'
     #  Freequency of high speeds
-    inforows = ['no.', 'm']
+    inforows = ['m']
     infospeed = [str(x) for x in [50, 100, 150, 200, 250, 350, 400, 450, 500, 600, 700, 800, 900, 1000, 1500]]
     inforows += infospeed
     #  gera klárt til tabellina
-    highstr = '\\begin{tabular}{|' + len(inforows)*'r|' + '}\n\\hline\n Bin&\tDepth&\t' \
-                                                          '\multicolumn{%s}{c|}{Speed [mm/s]}\\\\\\hline\n'\
-              % (len(inforows)-2,)
+    if mal =='EN':
+        speed = 'Speed'
+        tempdepth = 'Depth'
+    else:
+        speed = 'Ferð'
+        tempdepth = 'Dýpi'
+    highstr = '\\begin{tabular}{|' + len(inforows)*'r|' + \
+            '}\n\\hline\n%s&\t\multicolumn{%s}{c|}{%s [mm/s]}\\\\\\hline\n'\
+              % (tempdepth, len(infospeed), speed)
     highstr += inforows[0].rjust(4)
     for x in inforows[1::]:
         highstr += '&\t' + x.rjust(4)
@@ -633,12 +1289,7 @@ def frequencytabellir(datadf, dypir, mal='FO', dest='LaTeX/',
                     tally[k] += 1
                     break
         # tally er hvussu nógv data er minni enn tað samsvarandi virði í sortboxir
-        #print(len(data) - sum(tally))
         tally = [1000*x/sum(tally) for x in tally]
-        lowspeedtabel = tally
-        #  rokna tey ordiligu tølini sum skullu til lowspeed
-        for k in range(1, len(tally)):
-            lowspeedtabel[k] = lowspeedtabel[k-1] + tally[k]
 
 
         #  rokna tey ordiligu tølini sum skullu til highspeed
@@ -670,62 +1321,30 @@ def frequencytabellir(datadf, dypir, mal='FO', dest='LaTeX/',
             highstr += '\\\\\n\\hline\n'
         else:
             highstr += '\\\\\n'
-        highstr += key.rjust(4) + '&\t' + str(-int(Depth)).rjust(4)
+        highstr += str(-int(Depth)).rjust(4)
         for x in highspeedtabelround[0:-1]:
             highstr += '&\t' + str(x).rjust(4)
-        #  finn tølini sum skullu í lowspeed tabellina
-        lowspeedtabelround = lowspeedtabel
-        for (k, x) in enumerate(lowspeedtabelround):
-            if 0.005 < x < 1:
-                lowspeedtabelround[k] = np.round(x, 2)
-            else:
-                lowspeedtabelround[k] = int(np.round(x, 0))
-        #  skriva tølini sum skullu í lowspeed tabellina
-        #  if fyri at seta eina linju yvir eina rekkju
-        if i == loopvar[0][0]:
-            lowstr += '\\\\\n\\hline\n'
-        else:
-            lowstr += '\\\\\n'
-        lowstr += key.rjust(4) + '&\t' + str(-int(Depth)).rjust(4)
-        for x in lowspeedtabelround[0:-1]:
-            lowstr += '&\t' + str(x).rjust(4)
     highstr += '\\\\\\hline\n\\end{tabular}'
-    lowstr += '\\\\\\hline\n\\end{tabular}'
     file = open(dest + 'Talvur/high_' + navn, 'w')
     file.write(highstr)
     file.close()
-    file = open(dest + 'Talvur/low_' + navn, 'w')
-    file.write(lowstr)
-    file.close()
 
-    if len(dypir) > 15:
-        newpage = '\\newpage\n'
-    else:
-        newpage = ''
     if mal == 'EN':
-        caption = ['Frequency (in parts per thousand) of speeds equal to or exeeding speified values.',
-                   'Frequency (in parts per thousand) of speeds less than speified values.']
+        caption = 'Frequency (in parts per thousand) of speeds equal to or exeeding speified values.'
     else:
-        caption = ['Frekvenstalva (í promillu), sum vísur part av mátingum hægri enn eina givna ferð.',
-                   'Frekvenstalva (í promillu), sum vísur part av mátingum spakari enn eina givna ferð.']
+        caption = 'Frekvenstalva, sum fyri hvørt dýpi vísir partin av mátingunum (í promillu), '\
+                'har ferðin er hægri enn streymferðin, sum er tilskilað í aðru rekkju.'
 
     return '\n\\FloatBarrier\n\\newpage' \
            '\n\\section{%s}' \
-           '\n\\begin{table}[h!]\\label{high_spd}' \
+           '\n\\begin{table}[h!]' \
            '\n\\resizebox{\\textwidth}{!}{' \
            '\n\\input{Talvur/high_%s}' \
            '\n}' \
            '\n\\caption{%s}' \
+           '\n\\label{high_spd}' \
            '\n\\end{table}' \
-           '\n%s' \
-           '\n\\section{%s}' \
-           '\n\\begin{table}[h!]\\label{low_spd}' \
-           '\n\\resizebox{\\textwidth}{!}{' \
-           '\n\\input{Talvur/low_%s}' \
-           '\n}' \
-           '\n\\caption{%s}' \
-           '\n\\end{table}' \
-           '\n\\newpage\n' % (sections[0], navn, caption[0], newpage, sections[1], navn, caption[1])
+           '\n\\newpage\n' % (sections, navn, caption)
 
 
 def duration_speed(bins, dato, magdf, dypir, mal='FO', dest='LaTeX/',
@@ -748,10 +1367,10 @@ def duration_speed(bins, dato, magdf, dypir, mal='FO', dest='LaTeX/',
         if mal == 'EN':
             section = 'Duration of high speed periods'
         else:
-            section = 'Tíð av samanhangandi høgari ferð'
+            section = 'Tíðarbil við samanhangandi høgari ferð'
     if len(bins) != 3:
         raise ValueError('bins skal hava 3 bins')
-    duration = list(range(60, 1020 + 60, 60))
+    duration = [30] + list(range(60, 720 + 60, 60))
     #  kanska set speed inn sum ein variabel
     speed = [50, 100, 150, 200, 300, 400, 500, 600, 800, 1000]
     filnovn = []
@@ -788,11 +1407,15 @@ def duration_speed(bins, dato, magdf, dypir, mal='FO', dest='LaTeX/',
                         tabell[s][d] += 1
         #  skriva tex tabell
         texstr = '\\begin{tabular}{|' + (1 + len(duration))*'r|' + '}\n'
-        texstr += '\\hline\nSpeed&\t\\multicolumn{%s}{c|}{Duration (minutes)}\\\\\\hline\n' % (len(duration),)
+        if mal == 'EN':
+            texstr += '\\hline\nSpeed&\t\\multicolumn{%s}{c|}{Duration (minutes)}\\\\\\hline\n' % (len(duration),)
+        else:
+            texstr += '\\hline\nFerð&\t\\multicolumn{%s}{c|}{Viðstøða (minutes)}\\\\\\hline\n' % (len(duration),)
         texstr += 'mm/s'
         for x in duration:
             texstr += '&\t' + str(x).rjust(4)
         texstr += '\\\\\\hline\n'
+
         for s in range(len(speed)):
             texstr += str(speed[s]).rjust(4)
             for d in range(len(duration)):
@@ -808,55 +1431,64 @@ def duration_speed(bins, dato, magdf, dypir, mal='FO', dest='LaTeX/',
         texstr += '\\hline'
         texstr += '\n\\end{tabular}'
 
-        if rekkja_i_bin == 0:
-            prelabel = 'Surface layer'
-        elif rekkja_i_bin == 1:
-            prelabel = 'Center layer'
-        else:
-            prelabel = 'Bottom layer'
-        filnovn.append(prelabel.replace(' ', '_') + '_' + navn)
+        prelabel = myprelabel(rekkja_i_bin, mal=mal)
+
+        filnovn.append(prelabel.replace(' ', '_').replace('ð', 'd') + '_' + navn)
         texfil = open(dest + 'Talvur/' + filnovn[-1], 'w')
         texfil.write(texstr)
         texfil.close()
-        if mal == 'EN':
-            caption.append('%s, at %2.0fm Depth'
-                           % (prelabel, -dypir[item - 1]))
+        if item == '10m':
+            tempdypid = 10
         else:
-            caption.append('%s, á %2.0fm Dýpið'
-                           % (prelabel, -dypir[item - 1]))
+            tempdypid = -dypir[item - 1]
+
+        if mal == 'EN':
+            caption.append('%s - \\SI{%2.0f}{m}'
+                           % (prelabel.lower(), tempdypid))
+        else:
+            caption.append('%s - \\SI{%2.0f}{m}'
+                           % (prelabel.lower(), tempdypid))
         label.append('\\label{Dur_%s}' % (item,))
 
+    for i, item in enumerate(caption):
+        temp = item.split(')')[1]
+        caption[i] = temp
     if mal == 'EN':
         forklarandi_tekstur = 'Occurrence (in parts per thousand) of contiguous periods longer than or equal to ' \
            'specified duration with speeds equal to or exceeding specified threshold values (Speed). ' \
            'Flagged ensembles are ignored.'
     else:
-        forklarandi_tekstur = 'Partur av samanhangandi mátingum (í promillu),' \
-                'ið hava verði longri enn givna tíðarskeiði við hægri enn givnu streymferð.'
-    return '\n\\FloatBarrier\n\\newpage' \
-           '\n\\section{%s}' \
-           '\n%s' \
-           '\n\\begin{table}[h!]' \
-           '\n\\centering' \
-           '\n\\resizebox{\\textwidth}{!}{' \
-           '\n\\input{Talvur/%s}' \
-           '\n}' \
-           '\n\\caption{%s}' \
-           '\n\\end{table}' \
-           '\n' \
-           '\n\\begin{table}[h!]' \
-           '\n\\centering' \
-           '\n\\resizebox{\\textwidth}{!}{' \
-           '\n\\input{Talvur/%s}' \
-           '\n}' \
-           '\n\\caption{%s}' \
-           '\n\\end{table}' \
-           '\n' \
-           '\n\\begin{table}[h!]' \
-           '\n\\centering' \
-           '\n\\resizebox{\\textwidth}{!}{' \
-           '\n\\input{Talvur/%s}' \
-           '\n}' \
-           '\n\\caption{%s}' \
-           '\n\\end{table}' \
-           '\n\\newpage\n' % (section, forklarandi_tekstur, filnovn[0], caption[0], filnovn[1], caption[1], filnovn[2], caption[2])
+        forklarandi_tekstur = 'Partur av mátingunum (í promillu), har streymferðin áhaldandi '\
+                'hevur verið hægri enn streymferðin (mm/s) sum er lýst í fyrstu kolonnu í '\
+                'longri enn tíðarskeiðið (minuttir), sum er lýst í aðru rekkju.'
+
+    out = '\n\\FloatBarrier\n\\newpage'
+    out += '\n\\section{%s}' % section
+    out += '\n\\begin{table}[h!]'
+    out += '\n\\begin{subtable}{\\textwidth}'
+    out += '\n'
+    out += '\n\\centering'
+    out += '\n\\resizebox{!}{29mm}{'
+    out += '\n\\input{Talvur/%s}' % filnovn[0]
+    out += '\n}'
+    out += '\n\\caption{%s}' % caption[0]
+    out += '\n\\end{subtable}'
+    out += '\n\\begin{subtable}{\\textwidth}'
+    out += '\n\\centering'
+    out += '\n\\resizebox{!}{29mm}{'
+    out += '\n\\input{Talvur/%s}' % filnovn[1]
+    out += '\n}'
+    out += '\n\\caption{%s}' % caption[1]
+    out += '\n\\end{subtable}'
+    out += '\n\\begin{subtable}{\\textwidth}'
+    out += '\n\\centering'
+    out += '\n\\resizebox{!}{29mm}{'
+    out += '\n\\input{Talvur/%s}' % filnovn[2]
+    out += '\n}'
+    out += '\n\\caption{%s}' % caption[2]
+    out += '\n\\end{subtable}'
+    out += '\n\\caption{%s}' % forklarandi_tekstur
+    out += '\n\\label{samanhangandi}'
+    out += '\n\\end{table}'
+    out += '\n\\newpage\n\\FloatBarrier\n'
+    return out

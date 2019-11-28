@@ -12,7 +12,7 @@ def streym(frame, root):
     #                    Start parametrar til alt
     #----------------------------------------------------------------------
     setup_dict = {'Language'            : 'FO', # Møgulig mál eru FO og EN
-                  'N'                   : 31,   # Hvussu nógvar kassar í rósini
+                  'N'                   : 25,   # Hvussu nógvar kassar í rósini
                   'axcolor'             : 'k',
                   'axline'              : 0.5,
                   'alpha'               : 0.5,
@@ -21,9 +21,10 @@ def streym(frame, root):
                   'figheight'           : 7.1,  # Stødd á plottum fulla síðu (tummar)
                   'dpi'                 : 800,
                   'top_mid_bot_layer'   : False, # Set inn hvat fyrði bins skullu brúkast
-                  'Hov_hadd'            : -10,  # Ovara greinsa á Hovmuller
+                  'Hov_hadd'            : -0,  # Ovara greinsa á Hovmuller
+                  'Hov_cmap'            : -10,  # Hvarfrá skullu vit finna cmap
                   'sama_aksa'           : True,
-                  'Hov_rat'             : [0, 90, -35], # Ratning á Hov
+                  'Hov_rat'             : [0, 90], # Ratning á Hov
                   'tidal_oll_Frqs'      : ['M2', 'S2', 'N2', 'O1', 'K1'], # Frq til tidal_oll_dypir
                   'minmax'              : True # speedbin subsections
                  }
@@ -32,7 +33,9 @@ def streym(frame, root):
     #                    eg havi ikki brúkt hettar
     #----------------------------------------------------------------------
     siduval_dict = {}
-    siduval_list = ['Introduction', 'Hovmuller', 'speedbin', 'rosa', 'progressive',
+    siduval_list = ['Býti av streymferð',
+                    'Introduction', 'Hovmuller', 'speedbin', 'rosa', 'speedbins_hovus',
+                    'progressive',
                     'freqtabellir', 'durationtabellir', 'tidal_3_dypir',
                     'tidal_oll_dypir', 'tidal_non_tidal_bins', 'sjovarfalsdrivi']
     #----------------------------------------------------------------------
@@ -52,7 +55,7 @@ def streym(frame, root):
 
     # Framin har metadataði verður sett inn
     meta_frame = Frame(BodyFrame)
-    meta_frame.grid(row=0, column=0, columnspan=10)
+    meta_frame.grid(row=0, column=0, columnspan=3)
     setupframe.setupmetaframe(meta_frame, setup_dict)
 
     # Framin har síðinar vera valdar frá
@@ -65,7 +68,14 @@ def streym(frame, root):
     valdarsidir_frame.grid(row=1, column=1)
     setupframe.valdarsigur(valdarsidir_frame, siduval_dict)
 
-    # TODO okkurt til at velja parametrarnar
+    # Framin til at til at seta nakrar parametrar
+    parlist = ['Language', 'N', 'dpi', 'top_mid_bot_layer',
+               'Hov_hadd', 'Hov_rat', 'tidal_oll_Frqs', 'minmax',
+               'Hov_cmap']
+    parametur_frame = Frame(BodyFrame)
+    parametur_frame.grid(row=1, column=2, columnspan=2)
+    setupframe.parametur(parametur_frame, setup_dict, parlist)
+
 
     # inlesur setup.txt
     path = os.path.dirname(__file__)
@@ -80,11 +90,14 @@ def streym(frame, root):
         if key in setup_dict['meta'].keys():
             setup_dict['meta'][key].delete(0, END)
             if str(temp[key]) != 'nan':
-                setup_dict['meta'][key].insert(0, temp[key])
+                setup_dict['meta'][key].insert(0, temp[key].strip())
         elif key in setup_dict['path'].keys():
-            setup_dict['path'][key].set(temp[key])
+            setup_dict['path'][key].set(temp[key].strip())
         elif key in siduval_list:
             if temp[key].strip().lower() == 'true' and not siduval_dict['valdar_tree'].exists(key):
                 siduval_dict['valdar_tree'].insert('', 'end', key, text=key)
+        elif key in setup_dict['gui_par'].keys():
+            setup_dict['gui_par'][key].delete(0, END)
+            setup_dict['gui_par'][key].insert(0, temp[key].strip())
         else:
             print(key, temp[key].strip())
