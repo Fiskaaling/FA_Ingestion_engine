@@ -18,6 +18,7 @@ from misc.sha2calc import get_hash
 import Ingestion.CTD.bin_average_aux.ba_gui as ba_gui
 from Ingestion.CTD.bin_average_aux.quality_control import qcontrol
 import Ingestion.CTD.skraset_stodir
+from shutil import copyfile
 textsize = 16
 
 
@@ -32,6 +33,8 @@ def bin_average_frame(frame, root2):
     Label(frame, text='Bin Average').pack(side=TOP, anchor=W)
     mappunavn_dict['controlsFrame'] = Frame(frame)
     mappunavn_dict['controlsFrame'].pack(side=TOP, anchor=W)
+    mappunavn_dict['sensorsFrame'] = Frame(mappunavn_dict['controlsFrame'])
+    mappunavn_dict['sensorsFrame'].pack(side=LEFT, anchor=N)
     velMappuBtn = Button(mappunavn_dict['controlsFrame'], text='Vel Fílir', command=lambda: velFil(mappunavn_dict))
     velMappuBtn.pack(side=LEFT, anchor=W)
 
@@ -286,9 +289,13 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
         log_print(fra)
         log_print(til)
 
+
+    for widget in mappunavn_dict['sensorsFrame'].winfo_children():
+        widget.destroy()
+    sens_buttons_dict = {}
     for column in data.columns.values:
-        button1 = Button(mappunavn_dict['controlsFrame'], text=column, relief=SUNKEN)
-        button1.pack(side=LEFT)
+        sens_buttons_dict['column'] = Button(mappunavn_dict['sensorsFrame'], text=column, relief=SUNKEN)
+        sens_buttons_dict['column'].pack(side=LEFT)
 
     qcontrol(quality_subframe, depth, event_dict, pump_on, filnavn[mappunavn_dict['filur']])
 
@@ -453,7 +460,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
                 text_file.close()
                 update_qframe = True
 
-
+                copyfile('/home/johannus/.wine/drive_c/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/BinAvg(1mcustomstart)_original.psa', '/home/johannus/.wine/drive_c/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/BinAvg(1mcustomstart).psa')
 
                 with fileinput.FileInput('/home/johannus/.wine/drive_c/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/BinAvg(1mcustomstart).psa', inplace=True, backup='.bak') as file:
                     for line in file:
@@ -525,7 +532,11 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
                     text_file = open(parent_folder + '/ASCII/ASCII_Downcast/metadata/' + filnavn[mappunavn_dict['filur']].split('.')[0] + '_do_not_use_.csv', "w")
                     text_file.write('Hesin fílurin er brúktur til at markera at hettar casti ikki skal brúkast')
                     text_file.close()
-
+        elif event.keysym == 'p':
+            turdato = os.path.dirname(os.path.dirname(mappunavn)).split('/')[-1]
+            if not os.path.exists('Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/Figures/'):
+                os.mkdir('Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/Figures/')
+            fig.savefig('Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/Figures/' + filnavn[mappunavn_dict['filur']].split('.')[0] + '.pdf')
         if event_dict['selected_event'] == -1: # Fyri at ikki kunna velja eina linju ið ikki er til
             event_dict['selected_event'] = 0
         elif event_dict['selected_event'] == 5:
