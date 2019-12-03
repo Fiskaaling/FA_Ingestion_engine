@@ -460,9 +460,11 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
                 text_file.close()
                 update_qframe = True
 
-                copyfile('/home/johannus/.wine/drive_c/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/BinAvg(1mcustomstart)_original.psa', '/home/johannus/.wine/drive_c/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/BinAvg(1mcustomstart).psa')
+                winedir = '/home/johannus/.wine/drive_c/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/' + getpass.getuser() + '/'
 
-                with fileinput.FileInput('/home/johannus/.wine/drive_c/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/BinAvg(1mcustomstart).psa', inplace=True, backup='.bak') as file:
+                copyfile(winedir + 'BinAvg(1mcustomstart)_original.psa', winedir + 'BinAvg(1mcustomstart).psa')
+
+                with fileinput.FileInput(winedir + 'BinAvg(1mcustomstart).psa', inplace=True, backup='.bak') as file:
                     for line in file:
                         print(line.replace('-77', str(data.iloc[event_dict['downcast_start'], 1])), end='')
 
