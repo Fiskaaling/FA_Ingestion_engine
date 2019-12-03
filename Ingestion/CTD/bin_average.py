@@ -460,7 +460,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
                 text_file.close()
                 update_qframe = True
 
-                winedir = '/home/johannus/.wine/drive_c/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/' + getpass.getuser() + '/'
+                winedir = '/home/' + getpass.getuser() + '/.wine/drive_c/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/'
 
                 copyfile(winedir + 'BinAvg(1mcustomstart)_original.psa', winedir + 'BinAvg(1mcustomstart).psa')
 
