@@ -466,7 +466,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
 
                 with fileinput.FileInput(winedir + 'BinAvg(1mcustomstart).psa', inplace=True, backup='.bak') as file:
                     for line in file:
-                        print(line.replace('-77', str(data.iloc[event_dict['downcast_start'], 1])), end='')
+                        print(line.replace('-77', str(event_dict['downcast_start'])), end='')
 
                 turdato = os.path.dirname(os.path.dirname(mappunavn)).split('/')[-1]
                 subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
