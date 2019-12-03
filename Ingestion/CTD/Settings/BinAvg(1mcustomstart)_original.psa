@@ -17,7 +17,7 @@
   <BinSize value="1.000000" />
   <IncludeNumberScans value="1" />
   <ExcludeMarkedBad value="1" />
-  <ScansToSkip value="0" />
+  <ScansToSkip value="-77" />
   <ScansToOmit value="0" />
   <MinScansPerBin value="1" />
   <MaxScansPerBin value="2147483647" />
