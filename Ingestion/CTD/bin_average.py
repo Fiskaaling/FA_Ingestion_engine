@@ -289,13 +289,12 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
         log_print(fra)
         log_print(til)
 
-
-    for widget in mappunavn_dict['sensorsFrame'].winfo_children():
-        widget.destroy()
-    sens_buttons_dict = {}
-    for column in data.columns.values:
-        sens_buttons_dict['column'] = Button(mappunavn_dict['sensorsFrame'], text=column, relief=SUNKEN)
-        sens_buttons_dict['column'].pack(side=LEFT)
+    #for widget in mappunavn_dict['sensorsFrame'].winfo_children():
+    #    widget.destroy()
+    #sens_buttons_dict = {}
+    #for column in data.columns.values:
+    #    sens_buttons_dict['column'] = Button(mappunavn_dict['sensorsFrame'], text=column, relief=SUNKEN)
+    #    sens_buttons_dict['column'].pack(side=LEFT)
 
     qcontrol(quality_subframe, depth, event_dict, pump_on, filnavn[mappunavn_dict['filur']])
 
@@ -463,10 +462,15 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
                 winedir = '/home/' + getpass.getuser() + '/.wine/drive_c/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/'
 
                 copyfile(winedir + 'BinAvg(1mcustomstart)_original.psa', winedir + 'BinAvg(1mcustomstart).psa')
-
+                ikki_funni_linju = True
                 with fileinput.FileInput(winedir + 'BinAvg(1mcustomstart).psa', inplace=True, backup='.bak') as file:
                     for line in file:
+                        ikki_funni_linju = False
                         print(line.replace('-77', str(event_dict['downcast_start'])), end='')
+
+                if ikki_funni_linju:
+                    messagebox.showerror('Feilur við export', 'Customstart fílur ikki funnin!')
+
 
                 turdato = os.path.dirname(os.path.dirname(mappunavn)).split('/')[-1]
                 subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
