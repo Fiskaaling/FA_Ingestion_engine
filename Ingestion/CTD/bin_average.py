@@ -110,7 +110,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
     quality_subframe = Frame(Quality_frame)
     quality_subframe.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
 
-    depth = data[data.columns[0]]
+    depth = data['PrdM']
     time_fulllength = data['TimeS']
     log_print(time_fulllength)
     maxd = max(depth)
@@ -330,9 +330,9 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
             if mappunavn_dict['toggle_temp'] == 0:
                 mappunavn_dict['toggle_temp'] = 1
                 mappunavn_dict['ax2'] = ax.twinx()
-                mappunavn_dict['yplt2'] = mappunavn_dict['ax2'].plot(timeAx, data.T068C[start_index:], color='red')
-                mappunavn_dict['ax2'].set_ylabel('T068C', color='k')
-                mappunavn_dict['ax2'].set_ylim(min(data.T068C[event_dict['soak_stop']:])-0.1, max(data.T068C) + 0.1)
+                mappunavn_dict['yplt2'] = mappunavn_dict['ax2'].plot(timeAx, data.T090C[start_index:], color='red')
+                mappunavn_dict['ax2'].set_ylabel('T090C', color='k')
+                mappunavn_dict['ax2'].set_ylim(min(data.T090C[event_dict['soak_stop']:event_dict['upcast_stop']])-0.1, max(data.T090C) + 0.1)
             else:
                 mappunavn_dict['toggle_temp'] = 0
                 mappunavn_dict['yplt2'].pop(0).remove()
@@ -345,7 +345,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
                 mappunavn_dict['ax3'] = ax.twinx()
                 mappunavn_dict['yplt3'] = mappunavn_dict['ax3'].plot(timeAx, data['FlECO-AFL'][start_index:], color='green')
                 mappunavn_dict['ax3'].set_ylabel('FlECO - AFL', color='k')
-                mappunavn_dict['ax3'].set_ylim(min(data['FlECO-AFL'][event_dict['soak_stop']:]) - 0.1, max(data['FlECO-AFL'][event_dict['soak_stop']:event_dict['upcast_stop']]) + 0.1)
+                mappunavn_dict['ax3'].set_ylim(min(data['FlECO-AFL'][event_dict['soak_stop']:event_dict['upcast_stop']]) - 0.1, max(data['FlECO-AFL'][event_dict['soak_stop']:event_dict['upcast_stop']]) + 0.1)
             else:
                 mappunavn_dict['toggle_FlECO'] = 0
                 mappunavn_dict['yplt3'].pop(0).remove()
@@ -358,7 +358,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
                 mappunavn_dict['ax4'] = ax.twinx()
                 mappunavn_dict['yplt4'] = mappunavn_dict['ax4'].plot(timeAx, data['Sbeox0PS'][start_index:], color='lightblue')
                 mappunavn_dict['ax4'].set_ylabel('Sbeox0PS', color='k')
-                mappunavn_dict['ax4'].set_ylim(min(data['Sbeox0PS'][event_dict['soak_stop']:]) - 0.1, max(data['Sbeox0PS'][event_dict['soak_stop']:]) + 0.1)
+                mappunavn_dict['ax4'].set_ylim(min(data['Sbeox0PS'][event_dict['soak_stop']:event_dict['upcast_stop']]) - 0.1, max(data['Sbeox0PS'][event_dict['soak_stop']:event_dict['upcast_stop']]) + 0.1)
             else:
                 mappunavn_dict['toggle_Sbeox0PS'] = 0
                 mappunavn_dict['yplt4'].pop(0).remove()
@@ -463,7 +463,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
 
                 copyfile(winedir + 'BinAvg(1mcustomstart)_original.psa', winedir + 'BinAvg(1mcustomstart).psa')
                 ikki_funni_linju = True
-                with fileinput.FileInput(winedir + 'BinAvg(1mcustomstart).psa', inplace=True, backup='.bak') as file:
+                with fileinput.FileInput(winedir + 'BinAvg(1mcustomstart).psa', inplace=True) as file:
                     for line in file:
                         ikki_funni_linju = False
                         print(line.replace('-77', str(event_dict['downcast_start'])), end='')
