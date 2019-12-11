@@ -5,7 +5,6 @@ import pandas as pd
 import getpass # Til at fáa brúkaranavn
 import numpy as np
 import os
-from shutil import copyfile
 import fileinput
 import subprocess
 from matplotlib import pyplot as plt
@@ -129,6 +128,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
     mappunavn_dict['ax'].set_ylim(-1, maxd+1)
     mappunavn_dict['ax'].set_xlabel('Tíð [s]')
     mappunavn_dict['ax'].set_ylabel('Dýpið [m]', color='k')
+
     myvar = []
     n_midlingspunktir = int(np.ceil(midlingstid / (max(data.TimeS) / len(data))))
     dypid = data[data.columns[0]]
@@ -418,17 +418,12 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
             #Sbeox0PS
             canvas.draw()
             canvas.get_tk_widget().pack(fill=BOTH, expand=1)
-        elif event.keysym == 'Control_L':
+        elif event.keysym == 'Shift_L':
             if mappunavn_dict['toggle_ax']:
                 print('Toggle ax off')
                 mappunavn_dict['toggle_ax'] = 0
-                mappunavn_dict['x_aksi'] = data.TimeS[mappunavn_dict['start_index']:]
-                mappunavn_dict['d_plot'] = mappunavn_dict['ax'].plot(mappunavn_dict['x_aksi'], data['PrdM'][start_index:])
-                mappunavn_dict['ax'].set_xlim(0, time_fulllength[len(time_fulllength)-1])
-                mappunavn_dict['ax'].set_ylim(-1, max(data['PrdM']) + 1)
-                mappunavn_dict['ax'].set_xlabel('Tíð [s]')
-                mappunavn_dict['ax'].set_ylabel('Dýpið [m]', color='k')
-                canvas.draw()
+                log_clear()
+                processera(root, fig, canvas, Quality_frame, mappunavn_dict)
             else:
                 print('Toggle ax on')
                 mappunavn_dict['toggle_ax'] = 1
