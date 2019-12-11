@@ -24,6 +24,7 @@ from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
 from screeninfo import get_monitors
 import matplotlib.image as mpimg
 from Processing.les_og_tekna.chk_req import chk_req
+import cmocean
 
 
 class Window(Frame):
@@ -788,7 +789,6 @@ def les_og_tekna(text, fig, canvas, silent=False, v_dic = {}):
                 #grid_z0 = interpolate.interp2d(btn_x, btn_y, dypid.values, kind='cubic')
                 vmin = min(-70, min([-y for x in grid_z0 for y in x]))
                 vmin = min([-y for x in grid_z0 for y in x])
-                lv = list(frange(int(vmin/temp)*temp, float(btn_striku_hvor), float(btn_striku_hvor)))
                 lv = np.round(list(frange(vmin, 0, float(btn_striku_hvor))), 3)
                 print(lv)
                 #lv = list(frange(int(vmin/btn_striku_hvor)*btn_striku_hvor, int(btn_striku_hvor), int(btn_striku_hvor)))
@@ -811,7 +811,7 @@ def les_og_tekna(text, fig, canvas, silent=False, v_dic = {}):
                     v2 = max([y for x in grid_z0 for y in x])
                     ax.set_aspect(scalefactor * v2 / v1)
                 else:
-                    c = ax.contourf(meshgridx, meshgridy, -grid_z0, lv, transform=ccrs_projection)
+                    c = ax.contourf(meshgridx, meshgridy, -grid_z0, lv, transform=ccrs_projection, cmap=cmocean.cm.deep)
                     ax.clabel(c, inline=1, fontsize=15, fmt='%2.0f')
                     #fig.colorbar(c)
                     if vmin >= -150:
