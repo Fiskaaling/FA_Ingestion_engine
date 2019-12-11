@@ -23,7 +23,6 @@ textsize = 16
 
 
 def bin_average_frame(frame, root2):
-    #mappunavn = './Ingestion/CTD/Lokalt_Data/2019-09-18/75_All_ASCII_Out'
     mappunavn = './Ingestion/CTD/Lokalt_Data/2019-01-17/Processed/ASCII_ALL'
     mappunavn_dict = {'mappunavn': mappunavn}
     root = root2
@@ -70,13 +69,14 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
     log_b()
     midlingstid = 2 # sek
     fig.clf()
-    ax = fig.subplots()
+    mappunavn_dict['ax'] = fig.subplots()
     if os.path.exists(mappunavn):
         filnavn = os.listdir(mappunavn)
     else:
         messagebox.showerror("Feilur", "Mappan er ikki til")
         return
     filnavn.sort()
+    mappunavn_dict['toggle_ax'] = 0
     mappunavn_dict['toggle_temp'] = 0
     mappunavn_dict['toggle_FlECO'] = 0
     mappunavn_dict['toggle_Sbeox0PS'] = 0
@@ -120,10 +120,15 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
         if time > 0:
             break
     timeAx = data.TimeS[start_index:]
-    ax.plot(timeAx, depth[start_index:])
-    ax.set_ylim(-1, maxd+1)
-    ax.set_xlabel('Tíð [s]')
-    ax.set_ylabel('Dýpið [m]', color='k')
+
+    # Plottar Dýpið
+    x_aksi = timeAx
+    mappunavn_dict['start_index'] = start_index
+    mappunavn_dict['x_aksi'] = timeAx
+    mappunavn_dict['d_plot'] = mappunavn_dict['ax'].plot(x_aksi, depth[start_index:])
+    mappunavn_dict['ax'].set_ylim(-1, maxd+1)
+    mappunavn_dict['ax'].set_xlabel('Tíð [s]')
+    mappunavn_dict['ax'].set_ylabel('Dýpið [m]', color='k')
     myvar = []
     n_midlingspunktir = int(np.ceil(midlingstid / (max(data.TimeS) / len(data))))
     dypid = data[data.columns[0]]
@@ -229,12 +234,12 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
                 lastLine = line[0]
         log_print('Pump ' + str(pump_on))
         if pump_on != -1:
-            ax.plot([pump_on/16, pump_on/16], [-100, 100], ':')
+            mappunavn_dict['ax'].plot([pump_on/16, pump_on/16], [-100, 100], ':')
             log_print('Pumpan tendraði aftaná: ' + str(pump_on/16) + ' sek')
 
         if pump_off != -1:
             log_print('Pumpan sløknaði aftaná: ' + str(pump_off/16) + ' sek')
-            ax.plot([pump_off/16, pump_off/16], [-100, 100], ':')
+            mappunavn_dict['ax'].plot([pump_off/16, pump_off/16], [-100, 100], ':')
         bin_stodd = 1 # [m]
     if downcast_start != -1:
         downcast_start_d = dypid[downcast_start]
@@ -245,15 +250,15 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
 
     ba_gui.kanna_events(event_dict, log_w)
 
-    soak_line_dict = {'soak_start_line': ax.plot([time_fulllength[event_dict['soak_start']], time_fulllength[event_dict['soak_start']]], [-100, 100], 'k'), 'soak_stop_line': ax.plot([time_fulllength[event_dict['soak_stop']], time_fulllength[event_dict['soak_stop']]], [-100, 100], 'k'),
-                      'downcast_start_line': ax.plot([time_fulllength[event_dict['downcast_start']], time_fulllength[event_dict['downcast_start']]], [-100, 100], 'k'),
-                      'downcast_stop_line': ax.plot([time_fulllength[event_dict['downcast_stop']], time_fulllength[event_dict['downcast_stop']]], [-100, 100], 'k'),
-                      'upcast_stop_line': ax.plot([time_fulllength[event_dict['upcast_stop']], time_fulllength[event_dict['upcast_stop']]], [-100, 100], 'k')}
+    soak_line_dict = {'soak_start_line': mappunavn_dict['ax'].plot([x_aksi[event_dict['soak_start']], x_aksi[event_dict['soak_start']]], [-100, 100], 'k'), 'soak_stop_line': mappunavn_dict['ax'].plot([x_aksi[event_dict['soak_stop']], x_aksi[event_dict['soak_stop']]], [-100, 100], 'k'),
+                      'downcast_start_line': mappunavn_dict['ax'].plot([x_aksi[event_dict['downcast_start']], x_aksi[event_dict['downcast_start']]], [-100, 100], 'k'),
+                      'downcast_stop_line': mappunavn_dict['ax'].plot([x_aksi[event_dict['downcast_stop']], x_aksi[event_dict['downcast_stop']]], [-100, 100], 'k'),
+                      'upcast_stop_line': mappunavn_dict['ax'].plot([x_aksi[event_dict['upcast_stop']], x_aksi[event_dict['upcast_stop']]], [-100, 100], 'k')}
 
     event_dict['selected_event'] = 0
     zoomed_in_dict = {'zoomed_in':  False, 'onlyDowncast': False}
     if soak_start != -1:
-        soak_line_dict['annotation'] = ax.annotate('Soak Start',
+        soak_line_dict['annotation'] = mappunavn_dict['ax'].annotate('Soak Start',
                                                    xy=(time_fulllength[soak_start], maxd + 1),
                                                    xytext=(time_fulllength[soak_start], maxd + 2),
                                                    xycoords='data',
@@ -281,7 +286,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
                         farts.append(True)
                     else:
                         farts.append(False)
-                ax.fill_between(data.TimeS, -100, 0, where=farts, facecolor='red', alpha=0.2)
+                mappunavn_dict['ax'].fill_between(data.TimeS, -100, 0, where=farts, facecolor='red', alpha=0.2)
 
             lastflag = flag
 
@@ -301,6 +306,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
     def key(event):
         update_annotations = False
         update_qframe = False
+        x_aksi = mappunavn_dict['x_aksi']
         if zoomed_in_dict['zoomed_in']:
             move_amount = 1
         else:
@@ -318,19 +324,19 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
         elif event.keysym == 'e':
             if zoomed_in_dict['onlyDowncast']:
                 zoomed_in_dict['onlyDowncast'] = False
-                ax.set_xlim(0, time_fulllength[len(time_fulllength) - 1])
+                mappunavn_dict['ax'].set_xlim(0, time_fulllength[len(time_fulllength) - 1])
                 log_print('Downcast')
             else:
                 zoomed_in_dict['onlyDowncast'] = True
                 log_print('All')
-                ax.set_xlim(time_fulllength[event_dict['downcast_start']], time_fulllength[event_dict['downcast_stop']])
+                mappunavn_dict['ax'].set_xlim(time_fulllength[event_dict['downcast_start']], time_fulllength[event_dict['downcast_stop']])
             canvas.draw()
             canvas.get_tk_widget().pack(fill=BOTH, expand=1)
         elif event.keysym == '1':
             if mappunavn_dict['toggle_temp'] == 0:
                 mappunavn_dict['toggle_temp'] = 1
-                mappunavn_dict['ax2'] = ax.twinx()
-                mappunavn_dict['yplt2'] = mappunavn_dict['ax2'].plot(timeAx, data.T090C[start_index:], color='red')
+                mappunavn_dict['ax2'] = mappunavn_dict['ax'].twinx()
+                mappunavn_dict['yplt2'] = mappunavn_dict['ax2'].plot(x_aksi, data.T090C[start_index:], color='red')
                 mappunavn_dict['ax2'].set_ylabel('T090C', color='k')
                 mappunavn_dict['ax2'].set_ylim(min(data.T090C[event_dict['soak_stop']:event_dict['upcast_stop']])-0.1, max(data.T090C) + 0.1)
             else:
@@ -342,8 +348,8 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
         elif event.keysym == '2':
             if mappunavn_dict['toggle_FlECO'] == 0:
                 mappunavn_dict['toggle_FlECO'] = 1
-                mappunavn_dict['ax3'] = ax.twinx()
-                mappunavn_dict['yplt3'] = mappunavn_dict['ax3'].plot(timeAx, data['FlECO-AFL'][start_index:], color='green')
+                mappunavn_dict['ax3'] = mappunavn_dict['ax'].twinx()
+                mappunavn_dict['yplt3'] = mappunavn_dict['ax3'].plot(x_aksi, data['FlECO-AFL'][start_index:], color='green')
                 mappunavn_dict['ax3'].set_ylabel('FlECO - AFL', color='k')
                 mappunavn_dict['ax3'].set_ylim(min(data['FlECO-AFL'][event_dict['soak_stop']:event_dict['upcast_stop']]) - 0.1, max(data['FlECO-AFL'][event_dict['soak_stop']:event_dict['upcast_stop']]) + 0.1)
             else:
@@ -355,8 +361,8 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
         elif event.keysym == '3':
             if mappunavn_dict['toggle_Sbeox0PS'] == 0:
                 mappunavn_dict['toggle_Sbeox0PS'] = 1
-                mappunavn_dict['ax4'] = ax.twinx()
-                mappunavn_dict['yplt4'] = mappunavn_dict['ax4'].plot(timeAx, data['Sbeox0PS'][start_index:], color='lightblue')
+                mappunavn_dict['ax4'] = mappunavn_dict['ax'].twinx()
+                mappunavn_dict['yplt4'] = mappunavn_dict['ax4'].plot(x_aksi, data['Sbeox0PS'][start_index:], color='lightblue')
                 mappunavn_dict['ax4'].set_ylabel('Sbeox0PS', color='k')
                 mappunavn_dict['ax4'].set_ylim(min(data['Sbeox0PS'][event_dict['soak_stop']:event_dict['upcast_stop']]) - 0.1, max(data['Sbeox0PS'][event_dict['soak_stop']:event_dict['upcast_stop']]) + 0.1)
             else:
@@ -368,8 +374,8 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
         elif event.keysym == '4':
             if mappunavn_dict['toggle_par'] == 0:
                 mappunavn_dict['toggle_par'] = 1
-                mappunavn_dict['ax5'] = ax.twinx()
-                mappunavn_dict['yplt5'] = mappunavn_dict['ax5'].plot(timeAx, data['Par/sat/log'][start_index:], color='peru')
+                mappunavn_dict['ax5'] = mappunavn_dict['ax'].twinx()
+                mappunavn_dict['yplt5'] = mappunavn_dict['ax5'].plot(x_aksi, data['Par/sat/log'][start_index:], color='peru')
                 mappunavn_dict['ax5'].set_ylabel('Par/sat/log', color='k')
                 mappunavn_dict['ax5'].set_ylim(min(data['Par/sat/log'][event_dict['soak_stop']:event_dict['upcast_stop']]) - 0.1, max(data['Par/sat/log'][event_dict['soak_stop']:event_dict['upcast_stop']]) + 0.1)
             else:
@@ -381,8 +387,8 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
         elif event.keysym == '5':
             if mappunavn_dict['toggle_Sal00'] == 0:
                 mappunavn_dict['toggle_Sal00'] = 1
-                mappunavn_dict['ax6'] = ax.twinx()
-                mappunavn_dict['yplt6'] = mappunavn_dict['ax6'].plot(timeAx, data['Sal00'][start_index:], color='lightgreen')
+                mappunavn_dict['ax6'] = mappunavn_dict['ax'].twinx()
+                mappunavn_dict['yplt6'] = mappunavn_dict['ax6'].plot(x_aksi, data['Sal00'][start_index:], color='lightgreen')
                 mappunavn_dict['ax6'].set_ylabel('Sal00', color='k')
                 mappunavn_dict['ax6'].set_ylim(min(data['Sal00'][event_dict['soak_stop']:event_dict['upcast_stop']]) - 0.1, max(data['Sal00'][event_dict['soak_stop']:event_dict['upcast_stop']]) + 0.1)
             else:
@@ -394,8 +400,8 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
         elif event.keysym == '6':
             if mappunavn_dict['toggle_C0mS'] == 0:
                 mappunavn_dict['toggle_C0mS'] = 1
-                mappunavn_dict['ax7'] = ax.twinx()
-                mappunavn_dict['yplt7'] = mappunavn_dict['ax7'].plot(timeAx, data['C0mS/cm'][start_index:], color='gold')
+                mappunavn_dict['ax7'] = mappunavn_dict['ax'].twinx()
+                mappunavn_dict['yplt7'] = mappunavn_dict['ax7'].plot(x_aksi, data['C0mS/cm'][start_index:], color='gold')
                 mappunavn_dict['ax7'].set_ylabel('C0mS/cm', color='k')
                 mappunavn_dict['ax7'].set_ylim(min(data['C0mS/cm'][event_dict['soak_stop']:event_dict['upcast_stop']]) - 0.1, max(data['C0mS/cm'][event_dict['soak_stop']:event_dict['upcast_stop']]) + 0.1)
             else:
@@ -412,6 +418,35 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
             #Sbeox0PS
             canvas.draw()
             canvas.get_tk_widget().pack(fill=BOTH, expand=1)
+        elif event.keysym == 'Control_L':
+            if mappunavn_dict['toggle_ax']:
+                print('Toggle ax off')
+                mappunavn_dict['toggle_ax'] = 0
+                mappunavn_dict['x_aksi'] = data.TimeS[mappunavn_dict['start_index']:]
+                mappunavn_dict['d_plot'] = mappunavn_dict['ax'].plot(mappunavn_dict['x_aksi'], data['PrdM'][start_index:])
+                mappunavn_dict['ax'].set_xlim(0, time_fulllength[len(time_fulllength)-1])
+                mappunavn_dict['ax'].set_ylim(-1, max(data['PrdM']) + 1)
+                mappunavn_dict['ax'].set_xlabel('Tíð [s]')
+                mappunavn_dict['ax'].set_ylabel('Dýpið [m]', color='k')
+                canvas.draw()
+            else:
+                print('Toggle ax on')
+                mappunavn_dict['toggle_ax'] = 1
+                #mappunavn_dict['ax'].axis('off')
+                for i in range(len(mappunavn_dict['ax'].lines)):
+                    mappunavn_dict['ax'].lines.pop(0)
+                #Sbeox0PS
+                mappunavn_dict['x_aksi'] = data.DepSM[mappunavn_dict['start_index']:]
+                #mappunavn_dict['ax'].plot(data.DepSM, data.Sbeox0PS)
+                mappunavn_dict['ax'].set_ylim(min(data.DepSM[event_dict['soak_stop']:event_dict['upcast_stop']]) - 0.1, max(data.DepSM[event_dict['soak_stop']:event_dict['upcast_stop']]) + 0.1)
+                mappunavn_dict['ax'].set_xlim(min(data.DepSM[event_dict['soak_stop']:event_dict['upcast_stop']]) - 0.1, max(data.DepSM[event_dict['soak_stop']:event_dict['upcast_stop']]) + 0.1)
+                mappunavn_dict['ax'].set_xlabel('Dýpið [m]')
+                mappunavn_dict['ax'].plot(data.DepSM, data.DepSM, c='k')
+                #if 'annotation' in soak_line_dict:
+                #    print(soak_line_dict)
+                #    soak_line_dict['annotation'].remove()
+                canvas.draw()
+
 
 
         elif event.keysym == 'Return':
@@ -517,11 +552,11 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
         elif event.keysym == 'i':
             if not zoomed_in_dict['zoomed_in']:
                 zoomed_in_dict['zoomed_in'] = True
-                ba_gui.zoom_in(event_dict['selected_event'], ax, event_dict, depth)
+                ba_gui.zoom_in(event_dict['selected_event'], mappunavn_dict['ax'], event_dict, depth)
                 canvas.draw()
         elif event.keysym == 'o':
-            ax.set_xlim(0, time_fulllength[len(time_fulllength)-1])
-            ax.set_ylim(-1, maxd + 1)
+            mappunavn_dict['ax'].set_xlim(0, time_fulllength[len(time_fulllength)-1])
+            mappunavn_dict['ax'].set_ylim(-1, maxd + 1)
             zoomed_in_dict['zoomed_in'] = False
             canvas.draw()
         elif event.keysym == 'space':
@@ -563,7 +598,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
             canvas.draw()
         if update_annotations:
             soak_line_dict['annotation'].remove()
-            soak_line_dict['annotation'] = ba_gui.update_annotations(event_dict['selected_event'], ax, event_dict, maxd)
+            soak_line_dict['annotation'] = ba_gui.update_annotations(event_dict['selected_event'], mappunavn_dict['ax'], event_dict, maxd)
 
             canvas.draw()
         if update_qframe:
