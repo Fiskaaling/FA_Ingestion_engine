@@ -7,17 +7,17 @@ import numpy as np
 import os
 import fileinput
 import subprocess
-from matplotlib import pyplot as plt
 import matplotlib
 matplotlib.use('TkAgg')
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 from tkinter import messagebox
 from misc.sha2calc import get_hash
-import Ingestion.CTD.bin_average_aux.ba_gui as ba_gui
-from Ingestion.CTD.bin_average_aux.quality_control import qcontrol
+import Ingestion.CTD.aux.ba_gui as ba_gui
+from Ingestion.CTD.aux.quality_control import qcontrol
 import Ingestion.CTD.skraset_stodir
 from shutil import copyfile
+from Ingestion.CTD.aux.ctd_pump import pumpstatus
 textsize = 16
 
 
@@ -201,38 +201,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
         downcast_stop = int(metadata['downcast_stop'])
         upcast_stop = int(metadata['upcast_stop'])
 
-    if os.path.isdir(parent_folder + '/RAW/'):
-        # TODO: vit eru komin hertil
-        raw_filar = os.listdir(parent_folder + '/RAW/')
-        print(raw_filar)
-        raw_filnavn = '-1'
-        hesin_filur = filnavn[mappunavn_dict['filur']].upper()[:]
-        for raw_file in raw_filar: # Hettar finnur rætta xml fílin
-            log_print(raw_file)
-            log_print(hesin_filur)
-            if raw_file[0:7].upper() == hesin_filur[0:7]:
-                print('Alright')
-                raw_filnavn = raw_file
-        if raw_filnavn == '-1':
-            log_w('Eingin raw fílur funnin')
-            return
-        #raw_filnavn = raw_filar[filur]
-        print('Lesur raw fíl: ' + raw_filnavn)
-        with open(parent_folder + '/RAW/' + raw_filnavn, 'r') as raw_file:
-            raw_data = raw_file.read()
-        raw_data = raw_data.split('*END*')
-        raw_data = raw_data[1].split('\n')
-        pump_on = -1
-        pump_off = -1
-        lastLine = 0
-        for i, line in enumerate(raw_data):
-            if line:
-                if line[0] == '1' and lastLine == '0':
-                    pump_on = i
-                elif line[0] == '0' and lastLine == '1':
-                    pump_off = i
-                lastLine = line[0]
-        log_print('Pump ' + str(pump_on))
+        [pump_on, pump_off] = pumpstatus(mappunavn_dict['mappunavn'], filnavn[mappunavn_dict['filur']])
         if pump_on != -1:
             mappunavn_dict['ax'].plot([pump_on/16, pump_on/16], [-100, 100], ':')
             log_print('Pumpan tendraði aftaná: ' + str(pump_on/16) + ' sek')
