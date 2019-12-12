@@ -51,7 +51,7 @@ def align_ctd_frame(frame, root2):
 
 def align_ctd(root, fig, canvas, info_frame, mappunavn_dict):
     mappunavn_dict['filur'] = 0
-    #mappunavn_dict['mappunavn'] = filedialog.askdirectory(title='Vel túramappu', initialdir='./Ingestion/CTD/Lokalt_Data/')
+    mappunavn_dict['mappunavn'] = filedialog.askdirectory(title='Vel túramappu', initialdir='./Ingestion/CTD/Lokalt_Data/')
 
     if mappunavn_dict['mappunavn'] == ():
         return
