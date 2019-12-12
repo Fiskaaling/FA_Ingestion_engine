@@ -1,30 +1,31 @@
-#from mpl_toolkits.mplot3d import Axes3D
 from tkinter import *
-from tkinter import messagebox
-from tkinter import filedialog
+from tkinter import messagebox, filedialog, font
+import tkinter.ttk as ttk
+import os
+from screeninfo import get_monitors
+import pathlib
+
 import matplotlib
 matplotlib.use('TkAgg')
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.backend_bases import key_press_handler
 from matplotlib.figure import Figure
 from matplotlib import pyplot as plt
-import numpy as np
-import os
-import pandas as pd
-from scipy.interpolate import griddata
-from misc.faLog import *
-from tkinter import font
-import tkinter.ttk as ttk
+import matplotlib.ticker as mticker
+import matplotlib.image as mpimg
+
 import cartopy.crs as ccrs
 import cartopy.feature as cpf
-from geopy import distance
-import pyperclip # Kanska fjerna hettar seinni!
-import matplotlib.ticker as mticker
 from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
-from screeninfo import get_monitors
-import matplotlib.image as mpimg
-from Processing.les_og_tekna.chk_req import chk_req
+from geopy import distance
 import cmocean
+import pandas as pd
+import numpy as np
+from scipy.interpolate import griddata
+import pyperclip # Kanska fjerna hettar seinni!
+
+from Processing.les_og_tekna.chk_req import chk_req
+from misc.faLog import gerlog, log_print, log_clear, log_b, log_e, log_w
 
 
 class Window(Frame):
@@ -45,163 +46,181 @@ class Window(Frame):
     def client_exit(self):
         exit()
 
-def teknakort():
+def teknakort(gui=True):
     #  TODO hettar skal implomenterast ordiligt
     global path_to_nytt_kort
-    path_to_nytt_kort = 'Kort_Data/kort_uppsetan.upp'
-    global root
-    root = Tk()
-    root.geometry("1200x800")
+    #  path to ingestion engien root
+    path_to_FAI = pathlib.Path(__file__).parents[1]
+    path_to_nytt_kort = path_to_FAI / 'Kort_Data/kort_uppsetan.upp'
 
-    uhd = False
-    for monitor in get_monitors():
-        if '2160' in str(monitor):
-            uhd = True
+    #  projection ting
+    #  'central_longitude': -7, 'min_latitude': 61, 'max_latitude': 63,
+    #  TODO spyr hvat hettar ger
+    #ccrs_settings = {'central_longitude': 0, 'latitude_true_scale': 62, 'max_latitude': 63}
+    global ccrs_projection
+    ccrs_projection = ccrs.PlateCarree(-7)
 
-    if uhd:  # 4K bullshit, Alt er forbanna lítið
-        root.geometry("3000x1600")
-        f = font.Font(size=40)
-        root.option_add("*Font", f)
-        style = ttk.Style(root)
-        style.configure('Button', font=f)
-        style.configure('Treeview', rowheight=45)
-        style.configure('Treeview.Heading', font=f)
-        style.configure(".", font=f)
-
-
-    app = Window(root)
-
-
-    top = Toplevel()
-    top.wm_attributes('-topmost', 1)
-    top.withdraw()
-    top.protocol('WM_DELETE_WINDOW', top.withdraw)
-
-    menu_frame = Frame(app)
-    menu_frame.pack(fill=X, expand=False, anchor=N)
-    content_frame = Frame(app)
-    content_frame.pack(fill=BOTH, expand=True, anchor=N)
-
-    map_frame = Frame(content_frame)
-    map_frame.pack(fill=BOTH, expand=True, side=LEFT, anchor=N)
-
-    #fig = Figure()
     figsize = [8, 12]
     fig = Figure(figsize=figsize)
-    #fig.set_size_inches((8, 12), forward=False)
-    #fig = Figure(figsize=(2, 3), dpi=100)
     global ax
-    #ax = fig.add_subplot(111, aspect=1)
-    #ax.plot([1, 2, 1])
-    global ccrs_projection
-    ccrs_settings = {'central_longitude': 0, 'latitude_true_scale': 62, 'max_latitude': 63}#'central_longitude': -7, 'min_latitude': 61, 'max_latitude': 63,
-    #global ccrs_projection
-    ccrs_projection = ccrs.PlateCarree(-7)
-    #ax = fig.add_axes([0, 0, 1, 1], projection=ccrs_projection, aspect=1, adjustable='box')
-    #ax = fig.add_subplot(111, projection=ccrs_projection, adjustable='datalim') 01/04/19
     ax = fig.add_subplot(111, projection=ccrs_projection)
 
-    ax.add_feature(cpf.COASTLINE)
-    ax.add_feature(cpf.BORDERS, lw=0.5)
 
-    canvas = FigureCanvasTkAgg(fig, master=map_frame)
+    if gui:
+        global root
+        root = Tk()
+        root.geometry("1200x800")
 
-    canvas.draw()
-    canvas.get_tk_widget().pack(fill=BOTH, expand=1)
+        uhd = False
+        for monitor in get_monitors():
+            if '2160' in str(monitor):
+                uhd = True
 
-    list_frame = Frame(content_frame)
-    list_frame.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
-    text_list = Text(list_frame)
-    text_list.pack(fill=BOTH, expand=True)
+        if uhd:  # 4K bullshit, Alt er forbanna lítið
+            root.geometry("3000x1600")
+            f = font.Font(size=40)
+            root.option_add("*Font", f)
+            style = ttk.Style(root)
+            style.configure('Button', font=f)
+            style.configure('Treeview', rowheight=45)
+            style.configure('Treeview.Heading', font=f)
+            style.configure(".", font=f)
 
-    CommandEntry = Entry(content_frame, width=100)
-    CommandEntry.pack(side=TOP, anchor=W)
 
-    lowframe = Frame(content_frame, height=300)
-    lowframe.pack(fill=X, expand=False, side=TOP, anchor=W)
+        app = Window(root)
 
-    controls_frame = Frame(lowframe)
-    controls_frame.pack(side=LEFT, anchor=W)
 
-    log_frame = Frame(lowframe)
-    log_frame.pack(fill=X, expand=False, side=TOP, anchor=W)
-    gerlog(log_frame, root)
+        top = Toplevel()
+        top.wm_attributes('-topmost', 1)
+        top.withdraw()
+        top.protocol('WM_DELETE_WINDOW', top.withdraw)
 
-    global ctrl
-    global shift
-    shift = False
-    ctrl = False
+        menu_frame = Frame(app)
+        menu_frame.pack(fill=X, expand=False, anchor=N)
+        content_frame = Frame(app)
+        content_frame.pack(fill=BOTH, expand=True, anchor=N)
 
-    def key(event):
-        if ctrl:
-            if event.keysym == 'a':
-                print('Markera alt ')
-                text_list.tag_add(SEL, "1.0", END)
-                text_list.mark_set(INSERT, "1.0")
-                text_list.see(INSERT)
-            elif event.keysym == 'Return':
-                les_og_tekna(text_list, fig, canvas, False, v_dic)
-        elif shift:
-            if event.keysym == 'Left':
-                pan(-0.1, 0, canvas, True)
-            elif event.keysym == 'Right':
-                pan(0.1, 0, canvas, True)
-            elif event.keysym == 'Up':
-                pan(0, 0.1, canvas, True)
-            elif event.keysym == 'Down':
-                pan(0, -0.1, canvas, True)
-            elif event.keysym == 'Return':
-                innsetPan(text_list, fig, canvas, v_dic)
-        elif event.keysym == 'Return':
-            command = CommandEntry.get()
-            if command != '':
-                try:
-                    eval(command)
-                    CommandEntry.delete(0, 'end')
-                except Exception as e:
-                    log_w(e)
+        map_frame = Frame(content_frame)
+        map_frame.pack(fill=BOTH, expand=True, side=LEFT, anchor=N)
 
-    def control_key(state, event=None):
+        #  teknar startup mynidina
+        ax.add_feature(cpf.COASTLINE)
+        ax.add_feature(cpf.BORDERS, lw=0.5)
+
+        canvas = FigureCanvasTkAgg(fig, master=map_frame)
+
+        canvas.draw()
+        canvas.get_tk_widget().pack(fill=BOTH, expand=1)
+
+        list_frame = Frame(content_frame)
+        list_frame.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
+        text_list = Text(list_frame)
+        text_list.pack(fill=BOTH, expand=True)
+
+        CommandEntry = Entry(content_frame, width=100)
+        CommandEntry.pack(side=TOP, anchor=W)
+
+        lowframe = Frame(content_frame, height=300)
+        lowframe.pack(fill=X, expand=False, side=TOP, anchor=W)
+
+        controls_frame = Frame(lowframe)
+        controls_frame.pack(side=LEFT, anchor=W)
+
+        log_frame = Frame(lowframe)
+        log_frame.pack(fill=X, expand=False, side=TOP, anchor=W)
+        gerlog(log_frame, root)
+
         global ctrl
-        ctrl = state
-
-    def shift_key(state, event=None):
         global shift
-        shift = state
+        shift = False
+        ctrl = False
 
-    root.event_add('<<ShiftOn>>', '<KeyPress-Shift_L>', '<KeyPress-Shift_R>')
-    root.event_add('<<ShiftOff>>', '<KeyRelease-Shift_L>', '<KeyRelease-Shift_R>')
-    root.bind('<<ShiftOn>>', lambda e: shift_key(True))
-    root.bind('<<ShiftOff>>', lambda e: shift_key(False))
-    root.event_add('<<ControlOn>>', '<KeyPress-Control_L>', '<KeyPress-Control_R>')
-    root.event_add('<<ControlOff>>', '<KeyRelease-Control_L>', '<KeyRelease-Control_R>')
-    root.bind('<<ControlOn>>', lambda e: control_key(True))
-    root.bind('<<ControlOff>>', lambda e: control_key(False))
-    root.bind('<Key>', key)
+        def key(event):
+            if ctrl:
+                if event.keysym == 'a':
+                    log_print('Markera alt ')
+                    text_list.tag_add(SEL, "1.0", END)
+                    text_list.mark_set(INSERT, "1.0")
+                    text_list.see(INSERT)
+                elif event.keysym == 'Return':
+                    les_og_tekna(text_list, fig, canvas, False, v_dic)
+            elif shift:
+                if event.keysym == 'Left':
+                    pan(-0.1, 0, canvas, True)
+                elif event.keysym == 'Right':
+                    pan(0.1, 0, canvas, True)
+                elif event.keysym == 'Up':
+                    pan(0, 0.1, canvas, True)
+                elif event.keysym == 'Down':
+                    pan(0, -0.1, canvas, True)
+                elif event.keysym == 'Return':
+                    innsetPan(text_list, fig, canvas, v_dic)
+            elif event.keysym == 'Return':
+                command = CommandEntry.get()
+                if command != '':
+                    try:
+                        eval(command)
+                        CommandEntry.delete(0, 'end')
+                    except Exception as e:
+                        log_w(e)
 
-    load_btn = Button(menu_frame, text='Les inn uppsetan', command=lambda: innlesFil(text_list)).pack(side=LEFT)
-    save_btn = Button(menu_frame, text='Goym uppsetan', command=lambda: goymuppsetan(text_list)).pack(side=LEFT)
+        def control_key(state, event=None):
+            global ctrl
+            ctrl = state
 
-    nytt_kort = Button(menu_frame, text='Nýtt Kort', command=lambda: nyttkort(text_list, fig, canvas, root, v_dic)).pack(side=LEFT)
+        def shift_key(state, event=None):
+            global shift
+            shift = state
 
-    tekna_btn = Button(menu_frame, text='Tekna Kort', command=lambda: les_og_tekna(text_list, fig, canvas)).pack(side=LEFT)
-    teknaLinjur_btn = Button(menu_frame, text='Tekna Linjur', command=lambda: teknaLinjur(text_list, root)).pack(side=LEFT)
-    teknaPrikkar_btn = Button(menu_frame, text='Tekna Prikkar', command=lambda: teknaPrikkar(text_list, root)).pack(side=LEFT)
-    goymmynd_btn = Button(menu_frame, text='Goym Mynd', command=lambda: goymmynd(fig, canvas, figsize, v_dic)).pack(side=LEFT)
+        #  TODO eg skilji ikki alt hettar bind so eg kann ikki komintera uppá tað
+        root.event_add('<<ShiftOn>>', '<KeyPress-Shift_L>', '<KeyPress-Shift_R>')
+        root.event_add('<<ShiftOff>>', '<KeyRelease-Shift_L>', '<KeyRelease-Shift_R>')
+        root.bind('<<ShiftOn>>', lambda e: shift_key(True))
+        root.bind('<<ShiftOff>>', lambda e: shift_key(False))
+        root.event_add('<<ControlOn>>', '<KeyPress-Control_L>', '<KeyPress-Control_R>')
+        root.event_add('<<ControlOff>>', '<KeyRelease-Control_L>', '<KeyRelease-Control_R>')
+        root.bind('<<ControlOn>>', lambda e: control_key(True))
+        root.bind('<<ControlOff>>', lambda e: control_key(False))
+        root.bind('<Key>', key)
 
-    pan_upp = Button(controls_frame, text='↑', font='Helvetica', command=lambda: pan(0, 0.1, canvas, True)).pack(side=TOP)
-    controlsLR_frame = Frame(controls_frame)
-    controlsLR_frame.pack(side=TOP, anchor=W)
-    pan_vinstra = Button(controlsLR_frame, text='←', font='Helvetica', command=lambda: pan(-0.1, 0, canvas, True)).pack(side=LEFT)
-    pan_høgra = Button(controlsLR_frame, text='→', font='Helvetica', command=lambda: pan(0.1, 0, canvas, True)).pack(side=LEFT)
-    pan_niður = Button(controls_frame, text='↓', font='Helvetica', command=lambda: pan(0, -0.1, canvas, True)).pack(side=TOP)
-    Label(controls_frame, text=' ').pack(side=TOP)
-    v_dic = {}
-    zoomin_btn = Button(controls_frame, text='+', command=lambda: zoom(0.01, text_list, v_dic)).pack(side=TOP)
-    zoomout_btn = Button(controls_frame, text='-', command=lambda: zoom(-0.01, text_list, v_dic)).pack(side=TOP)
+        #  ger teir forskelligu knobbarnir
+        Button(menu_frame, text='Les inn uppsetan',
+               command=lambda: innlesFil(text_list)).pack(side=LEFT)
+        Button(menu_frame, text='Goym uppsetan',
+               command=lambda: goymuppsetan(text_list)).pack(side=LEFT)
+        Button(menu_frame, text='Nýtt Kort',
+               command=lambda: nyttkort(text_list, fig, canvas, root, v_dic)).pack(side=LEFT)
+        Button(menu_frame, text='Tekna Kort',
+               command=lambda: les_og_tekna(text_list, fig, canvas)).pack(side=LEFT)
+        Button(menu_frame, text='Tekna Linjur',
+               command=lambda: teknaLinjur(text_list, root)).pack(side=LEFT)
+        Button(menu_frame, text='Tekna Prikkar',
+               command=lambda: teknaPrikkar(text_list, root)).pack(side=LEFT)
+        Button(menu_frame, text='Goym Mynd',
+               command=lambda: goymmynd(fig, canvas, figsize, v_dic)).pack(side=LEFT)
 
+        #  tað sum skal stýra hvussu man flytur figurin á gui'ini
+        Button(controls_frame, text='↑', font='Helvetica',
+               command=lambda: pan(0, 0.1, canvas, True)).pack(side=TOP)
+        controlsLR_frame = Frame(controls_frame)
+        controlsLR_frame.pack(side=TOP, anchor=W)
+        pan_vinstra = Button(controlsLR_frame, text='←', font='Helvetica',
+                             command=lambda: pan(-0.1, 0, canvas, True)).pack(side=LEFT)
+        Button(controlsLR_frame, text='→', font='Helvetica',
+               command=lambda: pan(0.1, 0, canvas, True)).pack(side=LEFT)
+        Button(controls_frame, text='↓', font='Helvetica',
+               command=lambda: pan(0, -0.1, canvas, True)).pack(side=TOP)
+        Label(controls_frame, text=' ').pack(side=TOP)
+        Button(controls_frame, text='+',
+               command=lambda: zoom(0.01, text_list, v_dic)).pack(side=TOP)
+        Button(controls_frame, text='-',
+               command=lambda: zoom(-0.01, text_list, v_dic)).pack(side=TOP)
+        #  ein dict sum verður parsa runt
+        v_dic = {}
+
+#  Gui ting
 def innsetPan(text_list, fig, canvas, v_dic):
-    print('Innsetur nýggj pan virðir')
+    log_print('Innsetur nýggj pan virðir')
     global ax
     xlim = ax.get_xlim()
     ylim = ax.get_ylim()
@@ -228,6 +247,7 @@ def innsetPan(text_list, fig, canvas, v_dic):
     text_list.insert(INSERT, raw_text)
     les_og_tekna(text_list.get("1.0", END), fig, canvas)
 
+#  Gui ting
 def pan(x, y, canvas, ccrs_projection, relative=False):
     global ax
     xlim = ax.get_xlim()
@@ -242,21 +262,23 @@ def pan(x, y, canvas, ccrs_projection, relative=False):
         ax.set_ylim([ylim[0] + y, ylim[1] + y])
     canvas.draw()
 
+#  Gui ting
 def goymuppsetan(text):
     filnavn = filedialog.asksaveasfilename(parent=root, title='Goym uppsetan',
                                              filetypes=(('uppsetan Fílur', '*.upp'), ('Allir fílir', '*.*')))
     tekstur = text.get("1.0", END)
-    print(filnavn)
+    log_print(filnavn)
     F = open(filnavn, 'w')
     F.write(tekstur)
     F.close()
 
+#  Gui ting
 def innlesFil(text):
     if len(text.get("1.0", END)) > 1:
         if messagebox.askyesno("Ávaring", "Vilt tú yvurskriva núverani kort?", parent=root):
             filnavn = filedialog.askopenfile(parent=root, title='Les inn uppsetan',
                                              filetypes=(('uppsetan Fílur', '*.upp'), ('Allir fílir', '*.*')))
-            print(filnavn.name)
+            log_print(filnavn.name)
             F = open(filnavn.name, 'r')
             nyttkort_text = F.read()
             F.close()
@@ -265,35 +287,45 @@ def innlesFil(text):
     else:
         filnavn = filedialog.askopenfile(parent=root, title='Les inn',
                                          filetypes=(('uppsetan Fílur', '*.upp'), ('Allir fílir', '*.*')))
-        print(filnavn.name)
+        log_print(filnavn.name)
         F = open(filnavn.name, 'r')
         nyttkort_text = F.read()
         F.close()
         text.insert(INSERT, nyttkort_text)
 
+#  gui ting
 def goymmynd(fig, canvas, figsize, v_dic):
     log_b()
-    filnavn = filedialog.asksaveasfilename(parent=root, title="Goym mynd",  filetypes=(("pdf Fílur", "*.pdf"), ("png Fílur", "*.png"), ("jpg Fílur", "*.jpg")))
-    print('Goymir mynd')
+    filnavn = filedialog.asksaveasfilename(parent=root, title="Goym mynd",
+                                           filetypes=(("pdf Fílur", "*.pdf"),
+                                                      ("png Fílur", "*.png"),
+                                                      ("jpg Fílur", "*.jpg")))
+    log_print('Goymir mynd')
     #fig.savefig(filnavn, dpi=dpi, bbox_inches='tight') # 01/04 - 19
     #fig.savefig(filnavn, dpi=dpi, bbox_inches=tns.Bbox([[0, 0], [20, 20]]))
     fig.savefig(filnavn, dpi=v_dic['req']['dpi'])
 
-    print('Liðugt')
+    log_print('Liðugt')
     log_e()
 
+#  gui ting
 def teknaLinjur(text_list, root):
-    filnavn = filedialog.askopenfilename(parent=root,title = "Vel Fíl",filetypes = (("csv Fílir","*.csv"),("all files","*.*")))
+    filnavn = filedialog.askopenfilename(parent=root,title = "Vel Fíl",
+                                         filetypes = (("csv Fílir","*.csv"),("all files","*.*")))
     if len(filnavn) > 0:
         text_list.insert(INSERT, '\nlin_fil=' + filnavn)
 
+#  Gui ting
 def teknaPrikkar(text_list, root):
-    filnavn = filedialog.askopenfilename(parent=root,title = "Vel Fíl",filetypes = (("csv Fílir","*.csv"),("all files","*.*")))
+    filnavn = filedialog.askopenfilename(parent=root,title = "Vel Fíl",
+                                         filetypes = (("csv Fílir","*.csv"),
+                                                      ("all files","*.*")))
     if len(filnavn) > 0:
         text_list.insert(INSERT, '\nscatter_fil=' + filnavn)
 
+#  gui ting
 def zoom(mongd, textbox, v_dic):
-    print('zoom ' + str(mongd))
+    log_print('zoom ' + str(mongd))
     raw_text = str(textbox.get("1.0", END))
     text = raw_text.split('\n')
     for command in text:
@@ -315,12 +347,27 @@ def zoom(mongd, textbox, v_dic):
     textbox.delete(1.0, END)
     textbox.insert(INSERT, raw_text)
 
-def les_og_tekna(text, fig, canvas, silent=False, v_dic = {}):
-    # TODO Ger varabil til max dýpið
+def les_og_tekna(text, fig, canvas, silent=False, v_dic = {}, gui=True):
+    '''
+    hettar er tað sum skal tekna alt
+    :param text:    eri ikki heilt sikkur men riggar við bæði við tkinter ella bara ein int
+    :param fig:     TODO ein fig???
+    :param calvas:  eitt tkinter canvas TODO hettar skal verað optional
+    :param silent:  TODO eg veit ikki
+    :param v_dic:   ein dic sum skal stýra tingum TODO ikki heilt sikkur hvat
+    :param gui:     um vit vilja brúka eina gui ella ikki
+    '''
+
+    #  TODO Ger varabil til max dýpið
+    #  TODO hvat er hettar fyri ein variablil
     wh_mode = False
-    log_clear()
-    log_b()
+    if gui:
+        log_clear()
+        log_b()
     global ax
+
+    #  hvissi vit hava eitt tkinteer tekst so kann man gera
+    #  gui ting
     VisProgress = False
     try:
         strtext = text.get("1.0", END)
@@ -328,15 +375,25 @@ def les_og_tekna(text, fig, canvas, silent=False, v_dic = {}):
         strtext = text
     else:
         VisProgress = True
+
     strtext = strtext.split('\n')
+    
     dybdarlinjur = False
+    #  seta kordinatir
     v_dic['req'] = {'latmax': 62.4, 'lonmax': -6.2, 'latmin': 61.35, 'lonmin': -7.7}
+    #  setur dpi
+    #  TODO riggar hettar
     v_dic['req']['dpi'] = 400
+
+    #  ein standard fyri breiddaralinjur
     breiddarlinjur = np.linspace(v_dic['req']['latmin'], v_dic['req']['latmax'], 10)
+    #  ein standard fyri longdarlinjur
     longdarlinjur = np.linspace(v_dic['req']['lonmin'], v_dic['req']['lonmax'], 10)
-    filnavn = 'test'
+    #  breitur litin á landinum
     landlitur = 'lightgray'
+    #  interpolation metoda til unstructiored data
     btn_interpolation = 'nearest'
+    #  Vísur positión á csv data
     btn_track = False
     btn_gridsize = 1000
     suppress_ticks = True
@@ -372,7 +429,7 @@ def les_og_tekna(text, fig, canvas, silent=False, v_dic = {}):
             text.tag_add('lidug_linja', '0.0', str(index+1.0))
             text.tag_config('lidug_linja', foreground='black', background='lightgreen')
         if not silent:
-            print(command)
+            log_print(command)
         if "=" in command:
             toindex = command.find('=')+1
             variable = command[0:toindex-1]
@@ -385,7 +442,6 @@ def les_og_tekna(text, fig, canvas, silent=False, v_dic = {}):
                 landlitur = command[toindex::]
             elif variable == 'title':
                 ax.set_title(command[toindex::])
-                filnavn = command[toindex::]
             elif variable == 'dpi':
                 v_dic['req']['dpi'] = float(command[toindex::])
             elif variable == 'tekna_land':
@@ -395,7 +451,7 @@ def les_og_tekna(text, fig, canvas, silent=False, v_dic = {}):
                     tekna_land = True
 
             elif variable == 'dybdarlinjur':
-                if command[toindex::] != 'False' or renderengine == '3D_botn':
+                if command[toindex::] != 'False':
                     dybdarlinjur = command[toindex::]
                     with open(dybdarlinjur) as f:
                         f.readline()
@@ -404,8 +460,6 @@ def les_og_tekna(text, fig, canvas, silent=False, v_dic = {}):
                         lis = [float(y) for x in f for y in x.split()]
                     D_lon = np.array(lis[0: i * j]).reshape((j, i))  # first  i*j instances
                     D_lat = np.array(lis[i * j: i * j * 2]).reshape((j, i))  # second i*j instances
-                    #ax.scatter(D_lon, D_lat, zorder=100, color=scatter_farv, label=scatter_legend, s=scatter_std,
-                    #           marker=scatter_MarkerStyle)
                     D_dep = np.array(lis[i * j * 2: i * j * 3]).reshape((j, i))  # third  i*j instances
                     pda=[]
                     plon=[]
@@ -419,7 +473,7 @@ def les_og_tekna(text, fig, canvas, silent=False, v_dic = {}):
                                     pda.append(0)
                                 else:
                                     pda.append(D_dep[iiiio, i2o])
-                    print(len(plon))
+                    log_print(len(plon))
                     qwery = {'d': pda, 'lon':plon, 'lat':plat}
                     fart = pd.DataFrame(qwery)
                     fart.to_csv('lvdypid.f')
@@ -434,7 +488,7 @@ def les_og_tekna(text, fig, canvas, silent=False, v_dic = {}):
                     csvData_heilt = pd.read_csv(command[toindex::])
                 csvData = csvData_heilt
                 rows_to_drop = []
-                print('Tal av punktum áðrenn rudding: ' + str(len(csvData)))
+                log_print('Tal av punktum áðrenn rudding: ' + str(len(csvData)))
                 for row in range(len(csvData)-1, 0, -1):
                     if float(csvData.iloc[row, 0]) > (v_dic['req']['lonmax']+0.05):
                         rows_to_drop.append(row)
@@ -445,7 +499,7 @@ def les_og_tekna(text, fig, canvas, silent=False, v_dic = {}):
                     elif float(csvData.iloc[row, 1]) < (v_dic['req']['latmin']-0.05):
                         rows_to_drop.append(row)
                 #csvData = csvData.drop(rows_to_drop) # TODO: Útkommentera hettar
-                print('Tal av punktum aftaná rudding: ' + str(len(csvData)))
+                log_print('Tal av punktum aftaná rudding: ' + str(len(csvData)))
                 btn_lon = csvData['lon']
                 btn_lat = csvData['lat']
                 dypid = csvData['d']
@@ -454,20 +508,16 @@ def les_og_tekna(text, fig, canvas, silent=False, v_dic = {}):
 
                 meshgridy = np.linspace(v_dic['req']['latmin'], v_dic['req']['latmax'], btn_gridsize)
                 meshgridx = np.linspace(v_dic['req']['lonmin'], v_dic['req']['lonmax'], btn_gridsize)
-                print('Gridsize =' + str(btn_gridsize))
-                meshgridx, meshgridy = [meshgridx, meshgridy]
+                log_print('Gridsize =' + str(btn_gridsize))
                 meshgridx, meshgridy = np.meshgrid(meshgridx, meshgridy)
 
                 #ax.scatter(meshgridx, meshgridy, s=1)
                 if btn_track:
-                    if renderengine == '3D_botn':
-                        ax.scatter(btn_lon.values, btn_lat.values, -dypid, s=scatter_std, zorder=100)
-                    else:
-                        ax.scatter(btn_lon.values, btn_lat.values, s=scatter_std, zorder=100, c=dypid)
+                    ax.scatter(btn_lon.values, btn_lat.values, s=scatter_std, zorder=100, c=dypid)
                 #grid_x, grid_y = np.mgrid[np.linspace(latmin, latmax, num=7312), np.linspace(lonmin, lonmax, num=7312)]
                 #grid_x, grid_y = np.meshgrid(np.linspace(latmin, latmax, num=7312), np.linspace(lonmin, lonmax, num=7312))
                 #grid_z0 = griddata((btn_x, btn_y), dypid.values, (meshgridx, meshgridy), method='linear')
-                #print(grid_z0)
+                #log_print(grid_z0)
                 #plt.contour(meshgridx, meshgridy, grid_z0)
                 #ax.clabel(c, inline=1, fontsize=15, fmt='%2.0f')
             elif variable == 'btn_finn_int':
@@ -475,12 +525,12 @@ def les_og_tekna(text, fig, canvas, silent=False, v_dic = {}):
                 tekst = tekst.split(',')
                 meir_enn = float(tekst[0])
                 minni_enn = float(tekst[1])
-                print('Finnur punktir størri enn ' + str(meir_enn) + ' og minni enn ' + str(minni_enn))
+                log_print('Finnur punktir størri enn ' + str(meir_enn) + ' og minni enn ' + str(minni_enn))
                 d_out = []
                 lat_out = []
                 lon_out = []
-                print(len(dypid))
-                print(len(btn_lon))
+                log_print(len(dypid))
+                log_print(len(btn_lon))
                 for i, d in enumerate(dypid):
                     if meir_enn < d < minni_enn:
                         #d_out.append(d)
@@ -501,41 +551,27 @@ def les_og_tekna(text, fig, canvas, silent=False, v_dic = {}):
                 btn_striku_hvor= float(command[toindex::])
             elif variable == 'lin_fil':
                 if wh_mode:
-                    wh_data = pd.read_csv(command[toindex::], skiprows=16, sep='\t', index_col=0, decimal=",")
+                    wh_data = pd.read_csv(command[toindex::], skiprows=16,
+                                          sep='\t', index_col=0, decimal=",")
                     lineData = pd.DataFrame({'lon': wh_data.iloc[:, 11], 'lat': wh_data.iloc[:, 10]})
 
                 else:
                     lineData = pd.read_csv(command[toindex::])
                 avstandur = 0
-                if renderengine == '3D_botn':
-                    line_x_hj = lineData['lon'].values
-                    line_y_hj = lineData['lat'].values
-                    line_x = [y for i in range(len(line_x_hj)-1)
-                              for y in np.linspace(line_x_hj[i] , line_x_hj[i+1], btn_gridsize)]
-                    line_y = [y for i in range(len(line_x_hj) - 1)
-                              for y in np.linspace(line_y_hj[i], line_y_hj[i+1], btn_gridsize)]
-                    line_z = griddata((btn_lon.values, btn_lat.values), -dypid.values,
-                                      (line_x, line_y), method=btn_interpolation)
-                    ax.plot(line_x, line_y, line_z, color=lin_farv, linewidth=3,
-                            linestyle='solid', label=lin_legend)
-                    ax.plot(line_x, line_y, 0*line_z, color=lin_farv, linewidth=3,
-                            linestyle='solid')
-                    for i in line_x_hj:
-                        j = line_x.index(i)
-                        ax.plot([line_x[j], line_x[j]], [line_y[j], line_y[j]],[line_z[j], 0]
-                                , color=lin_farv, linewidth=3
-                                , linestyle='solid')
-                else:
-                    lonLine = lineData['lon'].values
-                    latLine = lineData['lat'].values
-                    if siglignsferd:
-                        for i in range(len(lonLine)-1):
-                            #print(distance.distance((latLine[i], lonLine[i]), (latLine[i+1], lonLine[i+1])).m)
-                            ax.text(latLine[i], lonLine[i], distance.distance((latLine[i], lonLine[i]), (latLine[i+1], lonLine[i+1])).m, zorder=1000000, fontsize=100)
-                            avstandur += distance.distance((latLine[i], lonLine[i]), (latLine[i+1], lonLine[i+1])).m
-                        print(str(avstandur) + ' m')
-                        print(str(avstandur/siglignsferd/60) + ' min')
-                    ax.plot(lineData['lon'].values, lineData['lat'].values, lin_farv, linewidth=0.1, label=lin_legend)
+                lonLine = lineData['lon'].values
+                latLine = lineData['lat'].values
+                if siglignsferd:
+                    for i in range(len(lonLine)-1):
+                        ax.text(latLine[i], lonLine[i],
+                                distance.distance((latLine[i], lonLine[i]),
+                                                  (latLine[i+1], lonLine[i+1])).m,
+                                zorder=1000000, fontsize=100)
+                        avstandur += distance.distance((latLine[i], lonLine[i]),
+                                                       (latLine[i+1], lonLine[i+1])).m
+                    log_print(str(avstandur) + ' m')
+                    log_print(str(avstandur/siglignsferd/60) + ' min')
+                ax.plot(lineData['lon'].values, lineData['lat'].values,
+                        lin_farv, linewidth=0.1, label=lin_legend)
             elif variable == 'scatter_std':
                 scatter_std = float(command[toindex::])
             elif variable == 'scatter_fil':
@@ -550,37 +586,24 @@ def les_og_tekna(text, fig, canvas, silent=False, v_dic = {}):
                         Samla = False
                     if columns[i] == 'd':
                         z_sca_a_yvirfladu = False
-                if renderengine == '3D_botn':
-                    if z_sca_a_yvirfladu:
-                        line_z = 0*line_x
-                    else:
-                        line_z = -scatterData['d'].values
-                    if Samla:
-                        ax.scatter(line_x, line_y, line_z, zorder=100
-                                   , color=scatter_farv, label=scatter_legend, s=scatter_std)
-                    else:
-                        lables = scatterData['legend'].values
-                        for i in range(len(line_x)):
-                            ax.scatter(line_x[i], line_y[i], line_z[i]
-                                       , zorder=100, label=lables[i], s=scatter_std)
-                            print('Funni legend :' + lables[i])
-                        show_legend = True
+                if scatter_tekst:
+                    lables = scatterData['legend'].values
+                    for i in range(len(line_x)):
+                        ax.scatter(line_x[i], line_y[i], zorder=100, c=scatter_farv, s=scatter_std)
+                        ax.text(line_x[i], line_y[i], lables[i],
+                                horizontalalignment='left', zorder=1000000)
                 else:
-                    if scatter_tekst:
+                    if Samla:
+                        ax.scatter(line_x, line_y, zorder=100, color=scatter_farv,
+                                   label=scatter_legend, s=scatter_std, marker=scatter_MarkerStyle)
+
+                    else:
                         lables = scatterData['legend'].values
                         for i in range(len(line_x)):
-                            ax.scatter(line_x[i], line_y[i], zorder=100, c=scatter_farv, s=scatter_std)
-                            ax.text(line_x[i], line_y[i], lables[i], horizontalalignment='left', zorder=1000000)
-                    else:
-                        if Samla:
-                            ax.scatter(line_x, line_y, zorder=100, color=scatter_farv, label=scatter_legend, s=scatter_std, marker=scatter_MarkerStyle)
-
-                        else:
-                            lables = scatterData['legend'].values
-                            for i in range(len(line_x)):
-                                ax.scatter(line_x[i], line_y[i], zorder=100, label=lables[i], s=scatter_std, marker=scatter_MarkerStyle)
-                                print('Funni legend :' + str(lables[i]))
-                            show_legend = True
+                            ax.scatter(line_x[i], line_y[i], zorder=100, label=lables[i],
+                                       s=scatter_std, marker=scatter_MarkerStyle)
+                            log_print('Funni legend :' + str(lables[i]))
+                        show_legend = True
             elif variable == 'linjuSlag':
                 if command[toindex::] == 'eingin':
                     linjuSlag = 'None'
@@ -593,17 +616,16 @@ def les_og_tekna(text, fig, canvas, silent=False, v_dic = {}):
             elif variable == 'siglignsferd':
                 siglignsferd = float(command[toindex::])
             elif variable == 'breiddarlinjur':
-                if not renderengine == '3D_botn':
-                    breiddarlinjur = np.linspace(v_dic['req']['latmin'], v_dic['req']['latmax'], int(command[toindex::]))
-                    #gl = ax.gridlines(ccrs_projection, linestyle=linjuSlag, ylocs=breiddarlinjur, xlocs=longdarlinjur, color='lightgray', draw_labels=True, zorder=100)
-                    #gl.xlabels_top = False # TODO Ger hettar orduligt, eg havi útkommentera hettar tí okkurt riggar ikki
-                    #gl.ylabels_left = False
+                breiddarlinjur = np.linspace(v_dic['req']['latmin'], v_dic['req']['latmax'],
+                                             int(command[toindex::]))
             elif variable == 'longdarlinjur':
-                if not renderengine == '3D_botn':
-                    longdarlinjur = np.linspace(v_dic['req']['lonmin'], v_dic['req']['lonmax'], int(command[toindex::]))
-                    gl = ax.gridlines(ccrs_projection, linestyle=linjuSlag, ylocs=breiddarlinjur, xlocs=longdarlinjur, color='lightgray', draw_labels=True, zorder=100)
-                    gl.xlabels_top = False
-                    gl.ylabels_left = False
+                longdarlinjur = np.linspace(v_dic['req']['lonmin'], v_dic['req']['lonmax'],
+                                            int(command[toindex::]))
+                gl = ax.gridlines(ccrs_projection, linestyle=linjuSlag, ylocs=breiddarlinjur,
+                                  xlocs=longdarlinjur, color='lightgray', draw_labels=True,
+                                  zorder=100)
+                gl.xlabels_top = False
+                gl.ylabels_left = False
             elif variable == 'suppress_ticks':
                 if command[toindex::] == 'True':
                     suppress_ticks = True
@@ -620,7 +642,7 @@ def les_og_tekna(text, fig, canvas, silent=False, v_dic = {}):
                 #               fillcolor1='whitesmoke', fillcolor2='gray', zorder=10000)
             elif variable == 'savefig':
                 if show_legend:
-                    print('Showing Legend')
+                    log_print('Showing Legend')
                     leg = ax.legend(loc='best', ncol=ncol)
                     leg.set_zorder(3000)
                 fig.savefig(command[toindex::], dpi=int(v_dic['req']['dpi']), bbox_inches='tight')
@@ -646,7 +668,7 @@ def les_og_tekna(text, fig, canvas, silent=False, v_dic = {}):
                 u_yvir = []
                 v_yvir = []
                 for arrow_index in range(len(u)):
-                    print(np.sqrt(v[arrow_index] ** 2 + u[arrow_index] ** 2))
+                    log_print(np.sqrt(v[arrow_index] ** 2 + u[arrow_index] ** 2))
                     if np.sqrt(v_org[arrow_index] ** 2 + u_org[arrow_index] ** 2) > quiverf_threshold:
                         lon_yvir.append(pos_lon[arrow_index])
                         lat_yvir.append(pos_lat[arrow_index])
@@ -683,7 +705,7 @@ def les_og_tekna(text, fig, canvas, silent=False, v_dic = {}):
                 lin_legend = command[toindex::]
                 show_legend = True
             elif variable == 'circle_fil':
-                print('Teknar rundingar')
+                log_print('Teknar rundingar')
                 scatterData = pd.read_csv(command[toindex::])
                 line_x = scatterData['lon'].values
                 line_y = scatterData['lat'].values
@@ -700,7 +722,7 @@ def les_og_tekna(text, fig, canvas, silent=False, v_dic = {}):
                     for i in range(len(line_x)):
                         ax.scatter(line_x[i], line_y[i], s=circle_stodd, facecolor='none', edgecolor='black')
                         #circle = plt.Circle((line_x, line_y), circle_stodd, fill=False, label=lables[i], zorder=100)
-                        print('Funni legend :' + lables[i])
+                        log_print('Funni legend :' + lables[i])
                     show_legend = True
             elif variable == 'circle_stodd':
                 circle_stodd = float(command[toindex::])
@@ -729,8 +751,8 @@ def les_og_tekna(text, fig, canvas, silent=False, v_dic = {}):
                 temp = command[toindex::].split()
                 tekstx = np.float(temp[0])
                 teksty = np.float(temp[1])
-                print(str(np.float(temp[0])) + ',' + str(np.float(temp[1])))
-                print(str(tekstx) + ',' + str(teksty))
+                log_print(str(np.float(temp[0])) + ',' + str(np.float(temp[1])))
+                log_print(str(tekstx) + ',' + str(teksty))
             elif variable == 'scatter':
                 pos = command[toindex::].split(',')
                 lat = float(pos[0])
@@ -768,75 +790,41 @@ def les_og_tekna(text, fig, canvas, silent=False, v_dic = {}):
             elif command == 'break':
                 break
             elif command == 'Tekna kort':
-                if renderengine == '3D_botn':
-                    #m = Basemap(projection='merc', resolution=None,
-                    #            llcrnrlat=latmin, urcrnrlat=v_dic['req']['latmax'],
-                    #            llcrnrlon=lonmin, urcrnrlon=lonmax, ax=ax, suppress_ticks=suppress_ticks)
-                    ax = fig.add_subplot(111, projection='3d')
-                else:
-                    if tekna_land:
-                        for island in os.listdir('Kort_Data/Coasts'):
-                            lo, aa, la = np.genfromtxt('Kort_Data/Coasts/' + island, delimiter=' ').T
-                            ax.plot(lo, la, 'k', linewidth=1, transform=ccrs_projection)
-                            ax.fill(lo, la, landlitur, zorder=10, transform=ccrs_projection)
-                            #xpt, ypt = m(lo, la)
-                            #plt.plot(xpt, ypt, 'k', linewidth=1)
-                            #ax.fill(xpt, ypt, landlitur, zorder=10)
-                    ax.set_extent([v_dic['req']['lonmin'], v_dic['req']['lonmax'], v_dic['req']['latmin'], v_dic['req']['latmax']], ccrs_projection)
+                if tekna_land:
+                    for island in os.listdir('Kort_Data/Coasts'):
+                        lo, aa, la = np.genfromtxt('Kort_Data/Coasts/' + island, delimiter=' ').T
+                        ax.plot(lo, la, 'k', linewidth=1, transform=ccrs_projection)
+                        ax.fill(lo, la, landlitur, zorder=10, transform=ccrs_projection)
+                ax.set_extent([v_dic['req']['lonmin'], v_dic['req']['lonmax'],
+                               v_dic['req']['latmin'], v_dic['req']['latmax']], ccrs_projection)
 
             elif command == 'btn_contourf':
                 grid_z0 = griddata((btn_lon.values, btn_lat.values), dypid.values, (meshgridx, meshgridy), method=btn_interpolation)
-                #grid_z0 = interpolate.interp2d(btn_x, btn_y, dypid.values, kind='cubic')
                 vmin = min(-70, min([-y for x in grid_z0 for y in x]))
                 vmin = min([-y for x in grid_z0 for y in x])
                 lv = np.round(list(frange(vmin, 0, float(btn_striku_hvor))), 3)
-                print(lv)
-                #lv = list(frange(int(vmin/btn_striku_hvor)*btn_striku_hvor, int(btn_striku_hvor), int(btn_striku_hvor)))
-                if renderengine == '3D_botn':
-                    cmap = plt.cm.viridis
-                    for i in range(250, 256):
-                        cmap.colors[i] = [0, 1, 0]
-                    ax.plot_surface(meshgridx, meshgridy, -grid_z0, alpha=.85, rcount=50, ccount=50, vmax=0,
-                                    cmap=cmap, zorder=21000)
-                    ax.set_axis_off()
-                    '''
-                    print(max(meshgridx[0]))
-                    print(meshgridx[0,0])
-                    print(max(meshgridy[:,0]))
-                    print(meshgridx[0, 0])
-                    print(max([y for x in grid_z0 for y in x]))
-                    '''
-                    scalefactor = float(scatter_farv)                   #Plz fiza meg
-                    v1 = max(max(meshgridx[0]), max(meshgridy[:, 0]))
-                    v2 = max([y for x in grid_z0 for y in x])
-                    ax.set_aspect(scalefactor * v2 / v1)
+                log_print(lv)
+                c = ax.contourf(meshgridx, meshgridy, -grid_z0, lv,
+                                transform=ccrs_projection, cmap=cmocean.cm.deep)
+                ax.clabel(c, inline=1, fontsize=15, fmt='%2.0f')
+                if vmin >= -150:
+                    confti=list(range(int(vmin/10)*10, int(10), int(10)))
                 else:
-                    c = ax.contourf(meshgridx, meshgridy, -grid_z0, lv, transform=ccrs_projection, cmap=cmocean.cm.deep)
-                    ax.clabel(c, inline=1, fontsize=15, fmt='%2.0f')
-                    #fig.colorbar(c)
-                    if vmin >= -150:
-                        confti=list(range(int(vmin/10)*10, int(10), int(10)))
-                    else:
-                        confti = list(range(int(vmin / 20) * 20, int(20), int(20)))
-                    #fig.colorbar(c, orientation='horizontal', ax=ax, ticks=confti, pad=0.02)
-                    fig.colorbar(c, ax=ax, pad=0.02)
+                    confti = list(range(int(vmin / 20) * 20, int(20), int(20)))
+                #fig.colorbar(c, orientation='horizontal', ax=ax, ticks=confti, pad=0.02)
+                fig.colorbar(c, ax=ax, pad=0.02)
             elif command == 'btn_contour':
-                print('Number of points: ' + str(btn_lon.values) + ' ' + str(btn_lat.values) + ' ' + str(dypid.values))
+                log_print('Number of points: ' + str(btn_lon.values) + ' ' + str(btn_lat.values) + ' ' + str(dypid.values))
                 grid_z0 = griddata((btn_lon.values, btn_lat.values), dypid.values, (meshgridx, meshgridy), method=btn_interpolation)
                 vmin = min(-70, min([-y for x in grid_z0 for y in x]))
                 temp = btn_striku_hvor
                 lv = list(frange(int(vmin/temp)*temp, float(btn_striku_hvor), float(btn_striku_hvor)))
                 lv = np.round(list(frange(vmin, 0, float(btn_striku_hvor))), 3)
-                print(lv)
-                #grid_z0 = interpolate.interp2d(btn_x, btn_y, dypid.values, kind='cubic')
-                if renderengine == '3D_botn':
-                    ax.contour3D(meshgridx, meshgridy, -1 * grid_z0, levels=lv,
-                                 colors='k',vmax=0 , linestyles='solid')
-                else:
-                    c = ax.contour(meshgridx, meshgridy, -grid_z0, lv, transform=ccrs_projection, colors='gray', linestyles='solid', linewidths=0.3)
-                    if clabel:
-                        #ax.clabel(c, inline=1, fontsize=fontsize, fmt='%2.0f', manual=False)
-                        ax.clabel(c, inline=1, fontsize=fontsize, fmt='%2.0f', manual=True)
+                log_print(lv)
+                c = ax.contour(meshgridx, meshgridy, -grid_z0, lv, transform=ccrs_projection, colors='gray', linestyles='solid', linewidths=0.3)
+                if clabel:
+                    #ax.clabel(c, inline=1, fontsize=fontsize, fmt='%2.0f', manual=False)
+                    ax.clabel(c, inline=1, fontsize=fontsize, fmt='%2.0f', manual=True)
             elif command == 's3':
                 s3 = float(command[toindex::])
             elif command == 'ncol':
@@ -847,22 +835,11 @@ def les_og_tekna(text, fig, canvas, silent=False, v_dic = {}):
             canvas.draw()
             canvas.get_tk_widget().pack(fill=BOTH, expand=1)
     if show_legend:
-        print('Showing Legend')
+        log_print('Showing Legend')
         leg = ax.legend(loc='best', ncol=ncol)
         leg.set_zorder(3000)
-    if renderengine == '3D_botn':
-        s1 = v_dic['req']['latmax']
-        s2 = v_dic['req']['latmax']
-        sm = max(s1,s2)
-        s1 = s1/sm
-        s2 = s2/sm
-        def short_proj():
-            return np.dot(Axes3D.get_proj(ax), np.diag([s1, s2, 1, 1]))
-
-        ax.get_proj = short_proj
-        print('hello')
     if VisProgress:
-        print(text.tag_names())
+        log_print(text.tag_names())
         tags = text.tag_names()
         for tag in tags:
             text.tag_delete(tag)
@@ -874,7 +851,7 @@ def les_og_tekna(text, fig, canvas, silent=False, v_dic = {}):
     global ispressed
     ispressed = False
 
-
+    #  gui ting
     def onclick(event):
         global ispressed, zoom_x_fra, zoom_y_fra
         global a
@@ -883,7 +860,7 @@ def les_og_tekna(text, fig, canvas, silent=False, v_dic = {}):
         ispressed = True
         zoom_x_fra, zoom_y_fra = event.xdata, event.ydata
         try:
-            print('%f, %f' % (event.xdata, event.ydata))
+            log_print('%f, %f' % (event.xdata, event.ydata))
         except TypeError:
             pass
         else:
@@ -891,12 +868,13 @@ def les_og_tekna(text, fig, canvas, silent=False, v_dic = {}):
             pyperclip.copy(string)
 
 
+    #  gui ting
     def onmove(event):
         global ispressed, zoom_x_fra, zoom_y_fra, ccrs_projection
         if ispressed:
             pan(zoom_x_fra-event.xdata, zoom_y_fra-event.ydata, canvas, ccrs_projection)
 
-
+    #  gui ting
     def release(event):
         global ispressed
         ispressed = False
@@ -909,7 +887,7 @@ def les_og_tekna(text, fig, canvas, silent=False, v_dic = {}):
 
 def nyttkort(text, fig, canvas, root, v_dic):
     global path_to_nytt_kort
-    print(path_to_nytt_kort)
+    log_print(path_to_nytt_kort)
     F = open(path_to_nytt_kort, 'r')
     nyttkort_text = F.read()
     F.close()
@@ -920,7 +898,7 @@ def nyttkort(text, fig, canvas, root, v_dic):
     else:
         text.insert(INSERT, nyttkort_text)
     les_og_tekna(text, fig, canvas, False, v_dic)
-    print(path_to_nytt_kort)
+    log_print(path_to_nytt_kort)
 
 
 def frange(x, y, jump):

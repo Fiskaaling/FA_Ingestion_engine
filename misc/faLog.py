@@ -24,6 +24,7 @@ def log_print(text, nl=True):
     root.update()
 
 
+#  TODO fjerna meg plz :D
 def print(text, nl=True):
     log_print(text, nl)
 
