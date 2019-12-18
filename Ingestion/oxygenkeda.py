@@ -15,6 +15,7 @@ from scipy.interpolate import griddata
 from scipy.interpolate import RectBivariateSpline
 from matplotlib.ticker import MaxNLocator
 import pylab
+import cmocean
 
 
 def init(ingestion_listbox):
@@ -157,7 +158,7 @@ def rbr_rokna():
             timestamp = datetime.utcfromtimestamp(tmp)
             str_timestamp.append(timestamp.strftime('%Y-%m-%d_%H:%M:%S.%f'))
         nyttfilnavn = filnavn[i]
-        nyttfilnavn = os.path.dirname(filnavn[i]) + '/rbr/' + nyttfilnavn[len(os.path.dirname(filnavn[i])):len(
+        nyttfilnavn = os.path.dirname(filnavn[i]) + '/rbr' + nyttfilnavn[len(os.path.dirname(filnavn[i])):len(
             filnavn[i])] + '_rbr.csv'
         print('Goymur fíl ' + nyttfilnavn)
         filur_at_goyma = pd.DataFrame({'time': str_timestamp, 'signal': temprature})
@@ -410,7 +411,7 @@ def rokna_og_tekna_contour(canvas, d_fra, d_til, c_fra, c_til, clin, clintal):
             stoptid = flat_timestamp[j]
         if flat_timestamp[j] < starttid:
             starttid = flat_timestamp[j]
-    n = 1000
+    n = 5000
     #X, Y = np.meshgrid(flat_timestamp, dypir)
     #f = griddata((flat_timestamp, dypir), flat_signal, (X, Y), method='linear', rescale=False)
     #f = interpolate.interp2d((flat_timestamp, dypir), flat_signal, (X, Y), kind='linear')
@@ -426,30 +427,31 @@ def rokna_og_tekna_contour(canvas, d_fra, d_til, c_fra, c_til, clin, clintal):
     flat_timestamp = np.array(flat_timestamp)
     dypir = np.array(dypir)
     f = griddata((flat_timestamp, dypir), flat_signal, (X, Y), method='linear', rescale=False)
-
+    ax.set_ylabel('Dýpi [m]')
     levels_exists = False
     if 'levels' in globals():
         levels_exists = True
 
     global levels
-
+    crange = np.arange(c_fra, c_til)
     if levels_exists:
-        c = ax.contourf(X, Y, f, levels=levels, cmap='jet', extend='both')
+        c = ax.contourf(X, Y, f, levels=levels, cmap=cmocean.cm.thermal, extend='both')
     else:
         levels = np.linspace(c_fra, c_til, 200)
-        c = ax.contourf(X, Y, f, levels=levels, cmap='jet', extend='both')
-        fig.colorbar(c)
+        c = ax.contourf(X, Y, f, levels=levels, cmap=cmocean.cm.thermal, extend='both')
+        cbar = fig.colorbar(c, ticks=crange)
+        cbar.set_label('Hiti [°C]', rotation=270)
 
     if clin:
         crange = np.arange(c_fra, c_til)
         step = 1
-        if 100 in crange:
-            crange = [70, 90, 110]
-            print('Setur Crange til ox virðir')
-        else:
-            while len(crange) > clintal:
-                crange = np.arange(c_fra, c_til, step)
-                step += 1
+        #if 100 in crange:
+        #    crange = [70, 90, 110]
+        #    print('Setur Crange til ox virðir')
+        #else:
+        #    while len(crange) > clintal:
+        #        crange = np.arange(c_fra, c_til, step)
+        #        step += 1
         cc = ax.contour(X, Y, f, levels=crange, colors='k')
         ax.clabel(cc, inline=1, fontsize=15, fmt='%2.0f')
 
@@ -484,7 +486,7 @@ def vel_dypir():
 
 def goymmynd(fig):
     log_b()
-    filnavn = filedialog.asksaveasfilename(parent=root, title="Goym mynd",  filetypes=(("png Fílur", "*.png"), ("jpg Fílur", "*.jpg")))
+    filnavn = filedialog.asksaveasfilename(parent=root, title="Goym mynd",  filetypes=(("pdf Fílur", "*.pdf"), ("png Fílur", "*.png"), ("jpg Fílur", "*.jpg")))
     print('Goymir mynd')
     fig.savefig(filnavn, dpi=600, bbox_inches='tight')
     print('Liðugt')
@@ -541,7 +543,7 @@ def eksportera(v):
     if v.get()==2:
         o2 = data['AirSaturation']
     elif v.get()==1:
-        o2 = data['Temperature']
+        o2 = data['Temperature(Deg.C)']
     savefilnavn = filedialog.asksaveasfilename(title='Goym fíl', filetypes=(("csv Fílir", "*.csv"), ("all files", "*.*")))
     data_tosave = pd.DataFrame({'time': timestamp, 'signal': o2})
     data_tosave.to_csv(savefilnavn, index=False)
