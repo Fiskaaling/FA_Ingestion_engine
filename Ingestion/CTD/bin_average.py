@@ -136,7 +136,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
 
     myvar = []
     n_midlingspunktir = int(np.ceil(midlingstid / (max(data.TimeS) / len(data))))
-    dypid = data[data.columns[0]]
+    dypid = data['PrdM']
     for i in range(len(data[data.columns[0]]) - 2):
         myvar.append(np.var(dypid[i:i + n_midlingspunktir]))
 
@@ -150,7 +150,9 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
 
     soaktime = -1
     soak_depth = -1
-
+    pump_on = -1
+    pump_off = -1
+    var_greinsa = 0.01 # Fyrr 0.01
     if not metadata:
         soak_start = -1
         soak_stop = -1
@@ -158,32 +160,34 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
         downcast_stop = -1
         upcast_stop = -1
         for i, d in enumerate(depth):  # Hettar er kodan ið finnur nær tey ymsku tingini henda
+            print(current_stat)
+            print(d)
+            print(np.var(dypid[i:i + n_midlingspunktir]))
             if current_stat == "PreSoak":  # Bíða 5 sek áðrenn byrja verður at leita eftir hvar soak byrjar
-                log_print(time_fulllength[i])
                 if time_fulllength[i] > 5:
                     current_stat = "soak_start"
             if current_stat == "soak_start":
-                if d < 5:
+                if d < 3:
                     continue
                 else:
-                    if np.var(dypid[i:i + n_midlingspunktir]) < 0.01:
+                    if np.var(dypid[i:i + n_midlingspunktir]) < var_greinsa:
                         soak_start = i
                         current_stat = "soak_stop"
                     #    log_print('Farts '+ str(i))
             elif current_stat == "soak_stop":
-                if np.var(dypid[i:i + n_midlingspunktir]) > 0.01:
+                if np.var(dypid[i:i + n_midlingspunktir]) > var_greinsa:
                     soak_stop = i + n_midlingspunktir
                     soaktime = time_fulllength[soak_stop] - time_fulllength[soak_start]
                     soak_depth = np.round(np.mean(dypid[soak_start:soak_stop]), 3)
                     current_stat = "downcast_prepare"
             elif current_stat == "downcast_prepare":
-                if d > 5:
+                if d > 3:
                     continue
                 else:
-                    if d < 2 and np.var(dypid[i:i + n_midlingspunktir]) < 0.01:
+                    if d < 2 and np.var(dypid[i:i + n_midlingspunktir]) < var_greinsa:
                         current_stat = "downcast_start"
             elif current_stat == "downcast_start":
-                if np.var(dypid[i:i + n_midlingspunktir]) > 0.01:
+                if np.var(dypid[i:i + n_midlingspunktir]) > var_greinsa:
                     downcast_start = i + n_midlingspunktir
                     current_stat = "downcast_stop"
             elif current_stat == "downcast_stop":
@@ -194,7 +198,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
                     downcast_stop = i
                     current_stat = "upcast_stop"
             elif current_stat == "upcast_stop":
-                if np.var(dypid[i:i + n_midlingspunktir]) > 0.01:
+                if np.var(dypid[i:i + n_midlingspunktir]) > var_greinsa:
                     upcast_stop = i
             else:
                 pass
@@ -206,19 +210,22 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
         downcast_stop = int(metadata['downcast_stop'])
         upcast_stop = int(metadata['upcast_stop'])
 
-        [pump_on, pump_off] = pumpstatus(mappunavn_dict['mappunavn'], filnavn[mappunavn_dict['filur']])
-        if pump_on != -1:
-            mappunavn_dict['ax'].plot([pump_on / 16, pump_on / 16], [-100, 100], ':')
-            log_print('Pumpan tendraði aftaná: ' + str(pump_on / 16) + ' sek')
 
-        if pump_off != -1:
-            log_print('Pumpan sløknaði aftaná: ' + str(pump_off / 16) + ' sek')
-            mappunavn_dict['ax'].plot([pump_off / 16, pump_off / 16], [-100, 100], ':')
+
         bin_stodd = 1  # [m]
     if downcast_start != -1:
         downcast_start_d = dypid[downcast_start]
     if downcast_stop != -1:
         downcast_stop_d = dypid[downcast_stop]
+
+    [pump_on, pump_off] = pumpstatus(mappunavn_dict['mappunavn'], filnavn[mappunavn_dict['filur']])
+    if pump_on != -1:
+        mappunavn_dict['ax'].plot([pump_on / 16, pump_on / 16], [-100, 100], ':')
+        log_print('Pumpan tendraði aftaná: ' + str(pump_on / 16) + ' sek')
+
+    if pump_off != -1:
+        log_print('Pumpan sløknaði aftaná: ' + str(pump_off / 16) + ' sek')
+        mappunavn_dict['ax'].plot([pump_off / 16, pump_off / 16], [-100, 100], ':')
 
     event_dict = {'time_fulllength': time_fulllength, 'soak_start': soak_start, 'soak_stop': soak_stop, 'downcast_start': downcast_start, 'downcast_stop': downcast_stop, 'upcast_stop': upcast_stop}
 
