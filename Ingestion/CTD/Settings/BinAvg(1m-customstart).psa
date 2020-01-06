@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Bin_Average >
+  <Version value="7.26.7.118" />
+  <ServerName value="Bin Average" />
+  <InputDir value="Z:\home\johannus\Documents\Projektir\CTD\cru1902\6 - Window Filter" />
+  <InputFileArray size="4" GrowBy="-1" >
+    <ArrayItem index="0" value="1902000.cnv" />
+    <ArrayItem index="1" value="1902001.cnv" />
+    <ArrayItem index="2" value="1902002.cnv" />
+    <ArrayItem index="3" value="1902003.cnv" />
+  </InputFileArray>
+  <OutputDir value="Z:\home\johannus\Documents\Projektir\CTD\cru1902\7 - Bin Average" />
+  <NameAppend value="" />
+  <OutputFile value="" />
+  <LastProcessed value="0" />
+  <BinType value="2" />
+  <BinSize value="1.000000" />
+  <IncludeNumberScans value="1" />
+  <ExcludeMarkedBad value="1" />
+  <ScansToSkip value="1484" />
+  <ScansToOmit value="0" />
+  <MinScansPerBin value="1" />
+  <MaxScansPerBin value="2147483647" />
+  <CastToProcess value="1" high="2" low="0" initialValue="0" />
+  <IncludeSurfaceBin value="0" />
+  <SurfaceBinMinVal value="0.000000" />
+  <SurfaceBinMaxVal value="0.000000" />
+  <SurfaceBinVal value="0.000000" />
+</Bin_Average>
+
