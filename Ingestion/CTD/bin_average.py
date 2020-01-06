@@ -467,9 +467,9 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
 
                 winedir = '/home/' + getpass.getuser() + '/.wine/drive_c/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/'
 
-                copyfile(winedir + 'BinAvg(1mcustomstart)_original.psa', winedir + 'BinAvg(1mcustomstart).psa')
+                copyfile(winedir + 'BinAvg(1mcustomstart)_original.psa', winedir + 'BinAvg(1m-customstart).psa')
                 ikki_funni_linju = True
-                with fileinput.FileInput(winedir + 'BinAvg(1mcustomstart).psa', inplace=True) as file:
+                with fileinput.FileInput(winedir + 'BinAvg(1m-customstart).psa', inplace=True) as file:
                     for line in file:
                         ikki_funni_linju = False
                         print(line.replace('-77', str(event_dict['downcast_start'])), end='')
