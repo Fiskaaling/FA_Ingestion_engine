@@ -160,9 +160,6 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
         downcast_stop = -1
         upcast_stop = -1
         for i, d in enumerate(depth):  # Hettar er kodan ið finnur nær tey ymsku tingini henda
-            print(current_stat)
-            print(d)
-            print(np.var(dypid[i:i + n_midlingspunktir]))
             if current_stat == "PreSoak":  # Bíða 5 sek áðrenn byrja verður at leita eftir hvar soak byrjar
                 if time_fulllength[i] > 5:
                     current_stat = "soak_start"
@@ -209,8 +206,6 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
         downcast_start = int(metadata['downcast_start'])
         downcast_stop = int(metadata['downcast_stop'])
         upcast_stop = int(metadata['upcast_stop'])
-
-
 
         bin_stodd = 1  # [m]
     if downcast_start != -1:
