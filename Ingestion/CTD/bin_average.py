@@ -153,6 +153,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
     pump_on = -1
     pump_off = -1
     var_greinsa = 0.01 # Fyrr 0.01
+    [pump_on, pump_off] = pumpstatus(mappunavn_dict['mappunavn'], filnavn[mappunavn_dict['filur']])
     if not metadata:
         soak_start = -1
         soak_stop = -1
@@ -163,37 +164,55 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
             if current_stat == "PreSoak":  # Bíða 5 sek áðrenn byrja verður at leita eftir hvar soak byrjar
                 if time_fulllength[i] > 5:
                     current_stat = "soak_start"
+
             if current_stat == "soak_start":
+                # bíða til eftir 3m at kanna
                 if d < 3:
                     continue
+                # set rímilig virði um einki soak er
+                elif d > 15:
+                    soak_start = int(i / 2)
+                    soak_stop = pump_on
+                    current_stat = "downcast_prepare"
+                # finn hvar dypið stabiliserar seg og set 'soak start'
                 else:
                     if np.var(dypid[i:i + n_midlingspunktir]) < var_greinsa:
                         soak_start = i
                         current_stat = "soak_stop"
-                    #    log_print('Farts '+ str(i))
+
             elif current_stat == "soak_stop":
+                # finn hvar dypið byrjar at broytast og set 'soak stop'
                 if np.var(dypid[i:i + n_midlingspunktir]) > var_greinsa:
                     soak_stop = i + n_midlingspunktir
                     soaktime = time_fulllength[soak_stop] - time_fulllength[soak_start]
                     soak_depth = np.round(np.mean(dypid[soak_start:soak_stop]), 3)
                     current_stat = "downcast_prepare"
+
             elif current_stat == "downcast_prepare":
+                if d > 15:
+                    current_stat = "downcast_start"
                 if d > 3:
                     continue
                 else:
+                    # finn hvar dypið stabiliserar seg og kanna downcast start
                     if d < 2 and np.var(dypid[i:i + n_midlingspunktir]) < var_greinsa:
                         current_stat = "downcast_start"
+
             elif current_stat == "downcast_start":
-                if np.var(dypid[i:i + n_midlingspunktir]) > var_greinsa:
+                # um einki soak, set 'downcast start' til pump on
+                if d > 15:
+                    downcast_start = pump_on + 50
+                    current_stat = "downcast_stop"
+                # finn hvar dypið byrjar at broytast og set 'downcast start'
+                elif np.var(dypid[i:i + n_midlingspunktir]) > var_greinsa:
                     downcast_start = i + n_midlingspunktir
                     current_stat = "downcast_stop"
+
             elif current_stat == "downcast_stop":
-                # if np.var(dypid[i:i+n_midlingspunktir]) < 0.01 and d > 5:
-                #    downcast_stop = i
-                #    current_stat = "upcast_start"
                 if d == maxd:
                     downcast_stop = i
                     current_stat = "upcast_stop"
+
             elif current_stat == "upcast_stop":
                 if np.var(dypid[i:i + n_midlingspunktir]) > var_greinsa:
                     upcast_stop = i
@@ -213,7 +232,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
     if downcast_stop != -1:
         downcast_stop_d = dypid[downcast_stop]
 
-    [pump_on, pump_off] = pumpstatus(mappunavn_dict['mappunavn'], filnavn[mappunavn_dict['filur']])
+
     if pump_on != -1:
         mappunavn_dict['ax'].plot([pump_on / 16, pump_on / 16], [-100, 100], ':')
         log_print('Pumpan tendraði aftaná: ' + str(pump_on / 16) + ' sek')
