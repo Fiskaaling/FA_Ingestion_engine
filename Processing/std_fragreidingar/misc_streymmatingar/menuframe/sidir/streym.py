@@ -341,7 +341,7 @@ def speedbins_minmax(bins, dato, df, max_bin, dypir, minmax=True, mal='FO', dest
 
     axs2[0].set_ylabel('Vatnstøða\ndýpi (m)')
     axs2[0].tick_params(axis='x', which='major', pad=0)
-    axs2[0].set_xlim(dato[tid1[0]], dato[tid1[1]])
+    axs2[0].set_xlim(dato[tid1[0]], dato[tid1[1]-1])
 
     axs3[0].set_ylabel('Vatnstøða\ndýpi (m)')
     axs3[0].tick_params(axis='x', which='major', pad=0)
@@ -386,7 +386,7 @@ def speedbins_minmax(bins, dato, df, max_bin, dypir, minmax=True, mal='FO', dest
 
         axs2[i].set_ylabel(prelabel + '\n' + 'Streymferð (mm/s)')
         axs2[i].tick_params(axis='x', which='major', pad=0)
-        axs2[i].set_xlim(dato[tid1[0]], dato[tid1[1]])
+        axs2[i].set_xlim(dato[tid1[0]], dato[tid1[1]-1])
         axs2[i].set_ylim(bottom=0)
 
         axs3[i].set_ylabel(prelabel + '\n' + 'Streymferð (mm/s)')
