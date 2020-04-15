@@ -341,7 +341,7 @@ def speedbins_minmax(bins, dato, df, max_bin, dypir, minmax=True, mal='FO', dest
 
     axs2[0].set_ylabel('Vatnstøða\ndýpi (m)')
     axs2[0].tick_params(axis='x', which='major', pad=0)
-    axs2[0].set_xlim(dato[tid1[0]], dato[tid1[1]-1])
+    axs2[0].set_xlim(dato[tid1[0]], dato[tid1[1]])
 
     axs3[0].set_ylabel('Vatnstøða\ndýpi (m)')
     axs3[0].tick_params(axis='x', which='major', pad=0)
@@ -386,7 +386,7 @@ def speedbins_minmax(bins, dato, df, max_bin, dypir, minmax=True, mal='FO', dest
 
         axs2[i].set_ylabel(prelabel + '\n' + 'Streymferð (mm/s)')
         axs2[i].tick_params(axis='x', which='major', pad=0)
-        axs2[i].set_xlim(dato[tid1[0]], dato[tid1[1]-1])
+        axs2[i].set_xlim(dato[tid1[0]], dato[tid1[1]])
         axs2[i].set_ylim(bottom=0)
 
         axs3[i].set_ylabel(prelabel + '\n' + 'Streymferð (mm/s)')
@@ -711,8 +711,8 @@ def tekna_dist_rose(bins, data, N, umax, dypir, mal='FO', dest='LaTeX/', dpi=200
     Es = []
     Ns = []
     for (i, item) in enumerate(bins):
-        Es.append(data['u' + str(item)].dropna().values)
-        Ns.append(data['v' + str(item)].dropna().values)
+        Es.append(data['u' + str(item)].dropna().values/10)
+        Ns.append(data['v' + str(item)].dropna().values/10)
         umax2 = []
         for x in Es[i]:
             umax2.append(abs(x))
@@ -746,14 +746,20 @@ def tekna_dist_rose(bins, data, N, umax, dypir, mal='FO', dest='LaTeX/', dpi=200
                 prelabel += '10'
             else:
                 prelabel += '%2.0f' % -dypir[bins[i] - 1]
-            prelabel += 'm dýpi'
+            prelabel += ' m dýpi'
 
-        plotrose(axs[i, 0], N, myumax[i], lv=lvF2, F=F2[i],
+        plotrose(axs[i, 0], N, myumax[i], lv=lvF2, F=F2[i], eind='cm/s',
              axcolor=axcolor, axline=axline, alpha=alpha)
-        plotrose(axs[i, 1], N, umax, lv=lvF, F=F[i],
+        plotrose(axs[i, 1], N, umax, lv=lvF, F=F[i], eind='cm/s',
              axcolor=axcolor, axline=axline, alpha=alpha)
-        axs[i, 0].set_ylabel(prelabel + '\n' + axs[i, 0].get_ylabel())
-        axs[i, 1].set_ylabel('')
+        axs[i, 0].set_ylabel(prelabel + '\n' + axs[i, 0].get_ylabel(), fontsize=font)
+        axs[i, 1].set_ylabel('', fontsize=font)
+        axs[i, 0].set_xticklabels(['%2.0f' % abs(x) for x in axs[i, 0].get_xticks()])
+        axs[i, 1].set_xticklabels(['%2.0f' % abs(x) for x in axs[i, 1].get_xticks()])
+        axs[i, 0].set_yticklabels(['%2.0f' % abs(x) for x in axs[i, 0].get_yticks()])
+        axs[i, 1].set_yticklabels(['%2.0f' % abs(x) for x in axs[i, 1].get_yticks()])
+        axs[i, 0].tick_params(axis='both', which='major', labelsize=font)
+        axs[i, 1].tick_params(axis='both', which='major', labelsize=font)
     if mal == 'EN':
         if bins[0] == '10m':
             caption = 'Distribution of velocity vectors: ' \
@@ -783,8 +789,9 @@ def tekna_dist_rose(bins, data, N, umax, dypir, mal='FO', dest='LaTeX/', dpi=200
                     'streymferðina í tann rætningin, sum kemur oftast fyri.'
 
     plt.gca().set_aspect('equal', adjustable='box')
-    plt.subplots_adjust(left=0.05, bottom=0.05, right=0.95, top=0.95, wspace=0.0, hspace=0.5)
+    plt.subplots_adjust(left=0.2, bottom=0.1, right=1, top=0.95, wspace=0.0, hspace=0.55)
     fig.savefig(dest + 'myndir/' + navn)
+    plt.close(fig)
     return '\n\\FloatBarrier\n\\newpage\n\\section{%s}\n\\begin{figure}[h!]\n' \
             '\\includegraphics[scale=1]{myndir/%s}\n\\caption{%s}\n\\label{rose}\n' \
             '\\end{figure}\n\\newpage\n' % (section, navn, caption)
@@ -829,8 +836,8 @@ def progressive_vector(bins, dato, uvdf, dypir, mal='FO', dest='LaTeX/', dpi=200
 
     def fmt(n, midfun=tempfun):
         def fun(x, pos):
-            if pos in [0, n]:
-                return mdate.num2date(x).strftime('%d %b-%y\n   %H:%M')
+            #if pos in [0, n]:
+            #    return mdate.num2date(x).strftime('%d %b-%y\n   %H:%M')
             return midfun(x)
         return fun
 
@@ -945,7 +952,7 @@ def progressive_vector(bins, dato, uvdf, dypir, mal='FO', dest='LaTeX/', dpi=200
     elif total_dagar > 6 * 31:
         cmresolution = 'Mánar'
         def cm_tick_label(x):
-            return mdate.num2date(x).strftime('%B')
+            return mdate.num2date(x).strftime('%b')
 
         temp = interval[0]
         if temp.day > 25:
@@ -1179,7 +1186,7 @@ def progressive_vector(bins, dato, uvdf, dypir, mal='FO', dest='LaTeX/', dpi=200
                 prelabel += '10'
             else:
                 prelabel += '%2.0f' % -dypir[temp-1]
-            prelabel += 'm'
+            prelabel += ' m'
 
         punktir = plots[i]
         xmin = np.min(punktir[0])
@@ -1208,14 +1215,20 @@ def progressive_vector(bins, dato, uvdf, dypir, mal='FO', dest='LaTeX/', dpi=200
     cb = fig.colorbar(line, ax=axs,
                       format=mpl.ticker.FuncFormatter(fmt(len(bounds), cm_tick_label)))
     cb.set_ticks(bounds)
+    axs.axhline(0, color='k', ls='--', lw=.5)
+    axs.axvline(0, color='k', ls='--', lw=.5)
+    axs.set_xticklabels(['%3.0f' % abs(x) for x in axs.get_xticks()])
+    axs.set_yticklabels(['%3.0f' % abs(x) for x in axs.get_yticks()])
     axs.legend()
     axs.set_xlim(xmin, xmax)
     axs.set_ylim(ymin, ymax)
-    plt.subplots_adjust(left=0.1, bottom=0.075, right=0.95, top=0.95, wspace=0.0, hspace=0.2)
-    axs.set_xlabel('Avstandur (km)')
-    axs.set_ylabel('Avstandur (km)')
+    axs.tick_params(axis='both', which='major', labelsize=font)
+    plt.subplots_adjust(left=0.2, bottom=0.1, right=0.88, top=0.98, wspace=0.0, hspace=0.1)
+    axs.set_xlabel('Avstandur (km)', fontsize=font)
+    axs.set_ylabel('Avstandur (km)', fontsize=font)
     plt.axis('equal')
     fig.savefig(dest + 'myndir/%s' % navn, dpi=dpi)
+    plt.close(fig)
 
     if mal == 'EN':
         if bins[0] == '10m':
