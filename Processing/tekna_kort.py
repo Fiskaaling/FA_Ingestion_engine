@@ -140,18 +140,12 @@ def teknakort():
                 text_list.mark_set(INSERT, "1.0")
                 text_list.see(INSERT)
             elif event.keysym == 'Return':
+                markpos = text_list.index(INSERT)
+                print(markpos)
+                text_list.delete(INSERT)
                 les_og_tekna(text_list, fig, canvas, False, v_dic)
-        elif shift:
-            if event.keysym == 'Left':
-                pan(-0.1, 0, canvas, True)
-            elif event.keysym == 'Right':
-                pan(0.1, 0, canvas, True)
-            elif event.keysym == 'Up':
-                pan(0, 0.1, canvas, True)
-            elif event.keysym == 'Down':
-                pan(0, -0.1, canvas, True)
-            elif event.keysym == 'Return':
-                innsetPan(text_list, fig, canvas, v_dic)
+
+                #innsetPan(text_list, fig, canvas, v_dic)
         elif event.keysym == 'Return':
             command = CommandEntry.get()
             if command != '':
@@ -774,7 +768,11 @@ def les_og_tekna(text, fig, canvas, silent=False, v_dic={}):
                 if '#' not in variable and command != '':
                     log_w('Ókend stýriboð ' + variable)
         else:
-
+            if command == 'remove_quiver':
+                if 'q' in locals():
+                    q.remove()
+                if 'q2' in locals():
+                    q2.remove()
             if command == 'clf':
                 fig.clf()
                 # ax = fig.add_subplot(111)
