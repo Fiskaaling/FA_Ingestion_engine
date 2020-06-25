@@ -3,6 +3,7 @@ import Ingestion.CTD.Process_data
 import Ingestion.CTD.bin_average
 import Ingestion.CTD.tidarseria_linja
 import Ingestion.CTD.skraset_stodir
+import Ingestion.CTD.align_ctd
 #import Ingestion.CTD.MultipleAxisProfile
 
 def init(ingestion_listbox):
@@ -13,6 +14,7 @@ def init(ingestion_listbox):
     ingestion_listbox.insert(ctd, 0, text="Bin Average")
     ingestion_listbox.insert(ctd, 0, text="Processera rádata")
     ingestion_listbox.insert(ctd, 0, text="Plot Multiple Axis Profile")
+    ingestion_listbox.insert(ctd, 0, text="Align CTD")
 
 
 def check_click(item, RightFrame, root):
@@ -27,6 +29,8 @@ def check_click(item, RightFrame, root):
         Ingestion.CTD.bin_average.bin_average_frame(RightFrame, root)
     elif item == 'Skráset støðir':
         Ingestion.CTD.skraset_stodir.skraset_stodir(RightFrame, root)
+    elif item == 'Align CTD':
+        Ingestion.CTD.align_ctd.align_ctd_frame(RightFrame, root)
     elif item == 'Plot Multiple Axis Profile':
         pass
         #Ingestion.CTD.MultipleAxisProfile.plot_axis_root(RightFrame, root)

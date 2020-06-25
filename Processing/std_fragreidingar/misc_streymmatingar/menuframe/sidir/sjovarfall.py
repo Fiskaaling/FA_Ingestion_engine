@@ -62,11 +62,12 @@ def sjovarfallmax(uvdata, date, dypir, max_bin, lat=62, navn='intro_max.pdf',
 
 
 def intro_bar(datadf, max_bin, dypir, navn='intro_bar.pdf', dest='LaTeX/',
-              caption=None, max_sj=False,
+              caption=None, max_sj=False, verbose=True,
               dpi=200, font=7, figwidth=6, figheight=7.1,
               uvdata=None, date=None, linja=False):
     '''
     Hettar vísur hvussu harður streymurin er í teimun forskelligu dýpinum
+
     :param datadf:      magdir data
     :param max_bin:     eitt tal sum sigur hvat tað sísta bin sum eg skal higgja eftir
     :param dypir:       ein listi sum sigur hvussu djúpt alt er
@@ -89,7 +90,8 @@ def intro_bar(datadf, max_bin, dypir, navn='intro_bar.pdf', dest='LaTeX/',
     bars = [[] for _ in stod]
     bars_sj = [[] for _ in stod]
     for i in range(1, max_bin + 1):
-        temp = [x for x in datadf['mag' + str(i)].values if not np.isnan(x)]
+        #  skriva dataði um til cm/s
+        temp = [x for x in (datadf['mag' + str(i)].values / 10) if not np.isnan(x)]
         temp = np.sort(temp)
         longd = len(temp)
         for j, brok in enumerate(stod):
@@ -105,10 +107,12 @@ def intro_bar(datadf, max_bin, dypir, navn='intro_bar.pdf', dest='LaTeX/',
     if max_sj and uvdata is not None and date is not None:
         tin = np.array(date)
         for i in range(1, max_bin + 1):
-            u = np.array(datadf['mag' + str(i)] * np.cos(np.deg2rad(datadf['dir' + str(i)] - 90)))
-            v = np.array(datadf['mag' + str(i)] * np.cos(np.deg2rad(datadf['dir' + str(i)])))
-            coef = utide.solve(tin, u, v, lat=62)
-            tide = utide.reconstruct(tin, coef)
+            u = np.array((datadf['mag' + str(i)]/10)\
+                         * np.cos(np.deg2rad(datadf['dir' + str(i)] - 90)))
+            v = np.array((datadf['mag' + str(i)]/10)\
+                         * np.cos(np.deg2rad(datadf['dir' + str(i)])))
+            coef = utide.solve(tin, u, v, lat=62, verbose=verbose)
+            tide = utide.reconstruct(tin, coef, verbose=verbose)
             temp = [np.sqrt(x**2+y**2) for x, y in zip(tide['u'], tide['v'])]
             temp = [x for x in temp if not np.isnan(x)]
             temp = np.sort(temp)
@@ -130,20 +134,35 @@ def intro_bar(datadf, max_bin, dypir, navn='intro_bar.pdf', dest='LaTeX/',
     index = np.arange(max_bin)
     plots = []
     vidd = .33
-    plots.append(axs.bar([x-vidd/2 for x in index], bars[0], vidd, label=str(stod[0])+'%', edgecolor='k'))
-    for i in range(1, len(stod)):
+    plots.append(axs.bar([x-vidd/2 for x in index], bars[0],
+                         vidd, label=str(stod[0])+'%', edgecolor='k'))
+    for i in range(1, len(stod)-1):
         plots.append(axs.bar([x-vidd/2 for x in index], [x - y for x, y in zip(bars[i], bars[i-1])],
                                      vidd, bottom=bars[i-1], label=str(stod[i])+'%', edgecolor='k'))
+    i += 1
+    plots.append(axs.bar([x-vidd/2 for x in index], [x - y for x, y in zip(bars[i], bars[i-1])],
+                         vidd, bottom=bars[i-1], label=str(stod[i])+'%', edgecolor='k', alpha=.5))
+
 
     plt.gca().set_prop_cycle(None)
     plots.append(axs.bar([x + vidd/2 for x in index], bars_sj[0], vidd, edgecolor='k', hatch='//'))
-    for i in range(1, len(stod)):
-        plots.append(axs.bar([x + vidd/2 for x in index], [x - y for x, y in zip(bars_sj[i], bars_sj[i-1])],
-                                     vidd, bottom=bars_sj[i-1], edgecolor='k', hatch='//'))
-    axs.xaxis.set_ticks(index)
-    axs.set_xticklabels([int(-x) for x in dypir])
-    axs.set_ylabel('Streymferð (mm/s)')
-    axs.set_xlabel('Dýpi (m)')
+    for i in range(1, len(stod)-1):
+        plots.append(axs.bar([x + vidd/2 for x in index],
+                             [x - y for x, y in zip(bars_sj[i], bars_sj[i-1])],
+                             vidd, bottom=bars_sj[i-1], edgecolor='k', hatch='//'))
+    i += 1
+    plots.append(axs.bar([x + vidd/2 for x in index],
+                         [x - y for x, y in zip(bars_sj[i], bars_sj[i-1])], vidd,
+                         bottom=bars_sj[i-1], edgecolor='k', hatch='//', alpha=.5))
+    if len(index) < 20:
+        axs.xaxis.set_ticks(index)
+        axs.set_xticklabels([int(-x) for x in dypir])
+    else:
+        axs.xaxis.set_ticks([index[x] for x in range(0, len(index), 2)])
+        axs.set_xticklabels([int(-x) for x in dypir[::2]])
+
+    axs.set_ylabel('Streymferð (cm/s)', fontsize=font)
+    axs.set_xlabel('Dýpi (m)', fontsize=font)
     temp = bars[-1]
     temp = np.sort(temp)
     mymax = min(2 * temp[int(.5*len(temp))], 1.2*temp[-1])
@@ -157,8 +176,10 @@ def intro_bar(datadf, max_bin, dypir, navn='intro_bar.pdf', dest='LaTeX/',
         axs.set_ylim(0, mymax)
 
     axs.legend(ncol=int(np.ceil(len(stod)/2)))
-    fig.subplots_adjust(left=0.1, bottom=0.15, right=0.99, top=0.99, wspace=0.0, hspace=0.2)
+    axs.tick_params(axis='both', which='major', labelsize=font)
+    fig.subplots_adjust(left=0.08, bottom=0.1, right=0.99, top=0.99, wspace=0.0, hspace=0.2)
     fig.savefig(dest + 'myndir/%s' % navn, dpi=dpi)
+    plt.close(fig)
 
     if caption is None:
         caption = 'Býti av streymferð niður gjøgnum dýpi. Dýpi er á x-ásini, '

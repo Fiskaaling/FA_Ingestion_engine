@@ -1,12 +1,11 @@
-from tkinter import *
-from tkinter import filedialog
-from misc.faLog import *
-import pandas as pd
-import numpy as np
-import platform
 import os
-from shutil import copyfile
+import platform
 import subprocess
+from shutil import copyfile
+from tkinter import filedialog
+
+from misc.faLog import *
+
 
 def process_CTD_Data(frame, root2):
     global root
@@ -26,12 +25,13 @@ def process_CTD_Data(frame, root2):
 
     Label(frame, text='Túrnummar:').pack(side=TOP, anchor=W)
 
-    turnummar = Entry(frame, width = 10)
+    turnummar = Entry(frame, width=10)
     turnummar.pack(side=TOP, anchor=W)
 
     log_frame = Frame(frame, height=300, borderwidth=1, highlightbackground="green", highlightcolor="green", highlightthickness=1)
     log_frame.pack(fill=X, expand=False, side=BOTTOM, anchor=W)
     gerlog(log_frame, root)
+
 
 def velFil():
     global mappunavn
@@ -66,7 +66,7 @@ def processera(mappunavn, turnummar):
         # TODO: Um man velur mappu har castini ikki eru í hvør sínari mappu, processera tað allíkavæl
         filnavnorginal = os.listdir(mappunavn + '/' + cast)
         filnavnorginal = filnavnorginal[0]
-        filnavn = str(turnummar) + '{:03d}'.format(i+1)
+        filnavn = str(turnummar) + '{:03d}'.format(i + 1)
         # TODO: Flyt ístaðin fyri at kopiera
         copyfile(mappunavn + '/' + cast + '/' + filnavnorginal, './Ingestion/CTD/Lokalt_Data/' + turdato + '/RAW/' + filnavn + '.xml')
         print(cast)
@@ -99,7 +99,7 @@ def processera(mappunavn, turnummar):
                              "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/7_Window_Filter.txt",
                              str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/5_Derive/' + filnavn),
                              str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/6_Window_Filter'), '#m'])
-            subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe', # Eyka - Til alt data
+            subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',  # Eyka - Til alt data
                              "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/9_All_ASCII_Out.txt",
                              str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/6_Window_Filter/' + filnavn),
                              str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/ASCII_ALL'), '#m'])

@@ -1,16 +1,20 @@
 from tkinter import filedialog
 from misc.faLog import *
+import Ingestion.Botnkort.samla
 import pandas as pd
 
 def init(ingestion_listbox):
     streymmatingar_stationert = ingestion_listbox.insert("", 0, text="Botnkort")
     ingestion_listbox.insert(streymmatingar_stationert, "end", text='Til CSV')
+    ingestion_listbox.insert(streymmatingar_stationert, "end", text='Samla til ein fíl')
 
 
 def check_click(item, RightFrame, root):
     toReturn = 1
     if item == 'Til CSV':
         tilcsv(RightFrame, root)
+    elif item == 'Samla til ein fíl':
+        Ingestion.Botnkort.samla.samla(RightFrame, root)
     else:
         toReturn = 0
     return toReturn
@@ -40,7 +44,7 @@ def tilCSV():
         print(data.iloc[:, 1])
         print(data.columns.values)
         punktirAtGoyma = pd.DataFrame({'lon': data.iloc[:, 0], 'lat': data.iloc[:, 1], 'd': data.iloc[:, 2]})
-        punktirAtGoyma.to_csv(filnavn[0]+'.csv', index=False)
+        punktirAtGoyma.to_csv(filnavn[i]+'.csv', index=False)
     print('ok')
 
 def velFilir(typa='std'):

@@ -1,23 +1,25 @@
 # -*- coding: utf-8 -*-
 from tkinter import *
 from tkinter import font
-import Processing.tekna_kort
 import tkinter.ttk as ttk
-import Ingestion.streymmatari
+import subprocess
+import sys
+
+import FA_DB_Interface.init
 import Ingestion.LV
 import Ingestion.LV_Aldumátingar
-import Strfbotni.strbotni
 import Ingestion.oxygenkeda
-import Ingestion.RDI.fra_botni
+import Ingestion.streymmatari
+from Ingestion.Aanderaa import init as AADI
 import Ingestion.Botnkort.tilCsv
 import Ingestion.CTD.init
-import vatnstoduanalysa.vatnstoduanalysa
+import Ingestion.RDI.fra_botni
 import Ingestion.seaguard.seaguard as seaguard
-import FA_DB_Interface.init
+import Processing.tekna_kort
 import Processing.std_fragreidingar.init as std_fragreidingar
-import subprocess
-from Ingestion.Aanderaa import init as AADI
-import sys
+import Strfbotni.strbotni
+import vatnstoduanalysa.vatnstoduanalysa
+
 
 class Window(Frame):
     def __init__(self, master=None):
@@ -44,6 +46,7 @@ def OnDoubleClick(event, tree, clo):
     else:
         item = tree.identify('item', event.x, event.y)
         item = tree.item(item, "text")
+
     if item == 'Tekna Kort':
         Processing.tekna_kort.teknakort()
     elif item == 'Rokna quiver data':
@@ -70,7 +73,6 @@ def OnDoubleClick(event, tree, clo):
         minimize += std_fragreidingar.check_click(item, RightFrame, root)
         minimize += AADI.check_click(item, RightFrame, root)
 
-
     if minimize:
         mintree()
 
@@ -82,7 +84,6 @@ def mintree():
     Ingestion_frame.config(width=100)
     Ingestion_frame.pack(expand=False)
 
-
 def visTree(expandButton):
     expandButton.pack_forget()
     condens.pack(side=RIGHT, fill=Y)
@@ -91,8 +92,9 @@ def visTree(expandButton):
     del expandButton
 
 
-
-# Teknar main gui
+#########################################################################################
+#                           TEKNA MAIN GUI
+#########################################################################################
 root = Tk()
 root.geometry("1200x800")
 

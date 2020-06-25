@@ -1,4 +1,5 @@
 from tkinter import *
+from time import sleep
 from tkinter import filedialog
 from misc.faLog import *
 import pandas as pd
@@ -15,6 +16,7 @@ from scipy.interpolate import griddata
 from scipy.interpolate import RectBivariateSpline
 from matplotlib.ticker import MaxNLocator
 import pylab
+import cmocean
 
 
 def init(ingestion_listbox):
@@ -147,7 +149,7 @@ def rbr_rokna():
         os.mkdir(os.path.dirname(filnavn[0])+'/rbr')
     for i in range(len(filnavn)):
         print('Lesur fíl' + filnavn[i])
-        data = pd.read_csv(filnavn[i])
+        data = pd.read_csv(filnavn[i], encoding='latin1')
         print(data.columns.values)
         unixtime = data['tstamp']
         temprature = data['channel02']
@@ -157,7 +159,7 @@ def rbr_rokna():
             timestamp = datetime.utcfromtimestamp(tmp)
             str_timestamp.append(timestamp.strftime('%Y-%m-%d_%H:%M:%S.%f'))
         nyttfilnavn = filnavn[i]
-        nyttfilnavn = os.path.dirname(filnavn[i]) + '/rbr/' + nyttfilnavn[len(os.path.dirname(filnavn[i])):len(
+        nyttfilnavn = os.path.dirname(filnavn[i]) + '/rbr' + nyttfilnavn[len(os.path.dirname(filnavn[i])):len(
             filnavn[i])] + '_rbr.csv'
         print('Goymur fíl ' + nyttfilnavn)
         filur_at_goyma = pd.DataFrame({'time': str_timestamp, 'signal': temprature})
@@ -186,17 +188,20 @@ def strikumynd(frame, root2):
     menuFrame = Frame(frame)
     menuFrame.pack(side=TOP, fill=X, expand=False, anchor=N)
 
-    log_frame = Frame(frame, height=300)
+    log_frame = Frame(frame, height=200)
     log_frame.pack(fill=X, expand=False, side=TOP, anchor=W)
     gerlog(log_frame, root)
     plot_frame = Frame(frame)
     plot_frame.pack(fill=BOTH, expand=True, side=BOTTOM, anchor=W)
     global fig
     global ax
-    fig = Figure(figsize=(8, 12), dpi=300)
+    fig = Figure(figsize=(8, 12), dpi=100)
     canvas = FigureCanvasTkAgg(fig, master=plot_frame)
     fig.clf()
     ax = fig.add_subplot(111)
+    global filnavn
+    filnavn = ['~/Documents/HVN_Temprature_18/alt/strikumynd/spd.csv', '~/Documents/HVN_Temprature_18/alt/strikumynd/5mT.csv', '~/Documents/HVN_Temprature_18/alt/strikumynd/63mT.csv', '~/Documents/HVN_Temprature_18/alt/strikumynd/85mO.csv',
+               '~/Documents/HVN_Temprature_18/alt/strikumynd/85mT.csv']
 
     Button(menuFrame, text='Vel datafílir', command=lambda: velFilir()).pack(side=LEFT)
     Button(menuFrame, text='Tekna', command=lambda: tekna_strikumynd(canvas, float(fra_entry.get()),
@@ -208,7 +213,6 @@ def strikumynd(frame, root2):
     til_entry = Entry(menuFrame, width=3)
     til_entry.pack(side=LEFT)
     til_entry.insert(0, '100')
-
     Button(menuFrame, text='Goym mynd', command=lambda: goymmynd(fig)).pack(side=RIGHT)
     Button(menuFrame, text='CLF', command=lambda: clear_figur(canvas)).pack(side=RIGHT)
 
@@ -222,6 +226,11 @@ def tekna_strikumynd(canvas, d_til, d_fra):
     signal = []
     timestamp = []
     print('Lesur datafílir')
+    ax2 = ax.twinx()
+    ax2.spines['right'].set_position(('axes', 1.05))
+    ax3 = ax.twinx()
+    leg = []  # for legend
+    labels = []
     for i in range(len(filnavn)):
         print(filnavn[i])
         data = pd.read_csv(filnavn[i])
@@ -240,17 +249,44 @@ def tekna_strikumynd(canvas, d_til, d_fra):
                     md_timestamp.append(md.date2num(datetime.strptime(timestamp[j], '%d.%m.%y_%H:%M:%S')))
                 except:
                     print('Veit ikki hvat eg skal gera vit hendan timestampin ' + timestamp[j])
+
         label = filnavn[i]
         print(label)
         label = label[len(os.path.dirname(filnavn[i]))+1::]
         print(label)
-        label = label[:-4]
-        print(label)
-        ax.plot(md_timestamp, md_signal, label=label)
+        if 'T' in label:
+            label = 'Temp ' + label[:-5]
+            ax.set_ylim(3, 12)
+            leg = leg + ax.plot(md_timestamp, md_signal, label=label)
 
-    ax.set_ylim(d_til, d_fra)
-    ax.xaxis.set_major_locator(MaxNLocator(10))
+        elif 'spd' in label:
+            label = 'Streymferð'
+            p3 = ax3.plot(md_timestamp, md_signal, c='red', alpha=0.2, linewidth=1)
+            leg = leg + ax3.plot(np.convolve(md_timestamp, np.ones((64,))/64, mode='valid'), np.convolve(md_signal, np.ones((64,))/64, mode='valid'), c='darkred', label=label)
+            ax3.set_ylim(0, 40)
+            ax3.set_yticks(np.arange(0, 25, 5))
+            ax3.yaxis.label.set_color('red')
+            ax3.tick_params(axis='y', colors='red')
+        else:
+            # oxy
+            label = 'Oxygen ' + label[:-5]
+            ax2.plot(md_timestamp, md_signal, label=label, c='gray', alpha=0.2, linewidth=1)
+            leg = leg + ax2.plot(np.convolve(md_timestamp, np.ones((128,)) / 128, mode='valid'), np.convolve(md_signal, np.ones((128,)) / 128, mode='valid'), c='darkgray', label=label)
+            ax2.set_ylim(40, 110)
+            ax2.set_yticks(np.arange(40, 110, 10))
+            ax2.yaxis.label.set_color('darkgray')
+            ax2.tick_params(axis='y', colors='gray')
+        labels.append(label)
+        print(label)
+        canvas.draw()
+        canvas.get_tk_widget().pack(fill=BOTH, expand=1)
+
+
+
+    #ax.xaxis.set_major_locator(MaxNLocator(10))
+    ax.xaxis.set_major_locator(md.MonthLocator())
     ax.yaxis.set_major_locator(MaxNLocator(10))
+    ax.grid(True)
     xt = ax.get_xticks()
     text_timestamps = []
     for i in range(len(xt)):
@@ -259,10 +295,17 @@ def tekna_strikumynd(canvas, d_til, d_fra):
 
     ax.set_xticklabels(text_timestamps)
     ax.set_ylabel('Hiti [C]')
-    ax.legend()
+    ax2.set_ylabel('Oxygen metningur [%]')
+    ax3.set_ylabel('Streymferð [cm/s]')
+    #ax.legend()
+
+    print(leg)
+    print(labels)
+
+    l1 = ax.legend(leg, labels, loc='upper center', ncol=7, fancybox=True, shadow=True);
+    #fig.savefig('tmp.png', figsize=(8, 12), dpi=600)
     canvas.draw()
     canvas.get_tk_widget().pack(fill=BOTH, expand=1)
-    fig.savefig('tmp.png', figsize=(8, 12), dpi=300)
     log_e()
 
 ########################################################################################################################
@@ -297,16 +340,16 @@ def termistorkeda_contourplot(frame, root2):
     Label(menuFrame, text='til').pack(side=LEFT)
     til_entry = Entry(menuFrame, width=3)
     til_entry.pack(side=LEFT)
-    til_entry.insert(0, '100')
+    til_entry.insert(0, '86')
 
     Label(menuFrame, text='Litir frá:').pack(side=LEFT)
     lfra_entry = Entry(menuFrame, width=3)
     lfra_entry.pack(side=LEFT)
-    lfra_entry.insert(0, '0')
+    lfra_entry.insert(0, '-1')
     Label(menuFrame, text='til').pack(side=LEFT)
     ltil_entry = Entry(menuFrame, width=3)
     ltil_entry.pack(side=LEFT)
-    ltil_entry.insert(0, '100')
+    ltil_entry.insert(0, '-1')
 
     clin = IntVar()
     Checkbutton(menuFrame, text="Linjur", variable=clin).pack(side=LEFT)
@@ -341,138 +384,223 @@ def clear_figur(canvas):
         del levels
 
 
-def rokna_og_tekna_contour(canvas, d_fra, d_til, c_fra, c_til, clin, clintal):
+def rokna_og_tekna_contour(canvas, d_fra, d_til, c_fra_input, c_til_input, clin, clintal):
     log_b()
     global ax
     global fig
     global dfilnavn
-    dypirfil = pd.read_csv(dfilnavn)
     global filnavn
-    signal = []
-    timestamp = []
-    print('Lesur datafílir')
-    for i in range(len(filnavn)):
-        print(filnavn[i])
-        data = pd.read_csv(filnavn[i])
-        signal.append(data['signal'].values)
-        timestamp.append(data['time'])
-    print('Roknar um til datetime')
-    flat_timestamp = []
-    flat_signal = []
-    starttid = 100000000000
-    stoptid = 0
-    dypir = []
-    dypir_sernr = dypirfil['serial']
-    dypir_virdir = dypirfil['d']
-    stostadypid = 1
-    for i in range(len(dypir_virdir)):
-        if float(dypir_virdir[i]) > stostadypid:
-            stostadypid = dypir_virdir[i]
-    print(np.linspace(0, stostadypid, 10))
-    ctr = 0
-    for i in range(len(filnavn)):
-        print('Fílur' + str(i))
-        # Finn dýpi á fíli
-        hettardypid = -99.9
-        print(len(dypirfil))
-        for j in range(len(dypirfil)):
-            if str(dypir_sernr[j]) in filnavn[i]:
-                print('funnið dypir á fíli ' + str(dypir_sernr[j]))
-                hettardypid = -dypir_virdir[j]
-        for j in range(len(timestamp[i])):
-            try:
-                tmp = timestamp[i][j]
-                if len(tmp) > 24:  # nasty máti at hontera millisekund við nógvur sifrum
-                    tmp = tmp[:len(tmp) - 3]
-                flat_timestamp.append(md.date2num(datetime.strptime(tmp, '%Y-%m-%d_%H:%M:%S.%f')))  # Vanlig ox format
-                tmp = str(signal[i][j])
-                tmp = tmp.replace(',', '.')
-                flat_signal.append(float(tmp))
-                dypir.append(hettardypid)
-                ctr += 1
-            except:
-                try:
-                    flat_timestamp.append(md.date2num(datetime.strptime(timestamp[i][j], '%d.%m.%y_%H:%M:%S'))) # Raw seaguard data
-                    tmp = str(signal[i][j])
-                    tmp = tmp.replace(',', '.')
-                    flat_signal.append(float(tmp))
-                    dypir.append(hettardypid)
-                    ctr += 1
-                except:
-                    print('Hjálp ' + timestamp[i][j])
+    er_ox = False
+    if 'dfilnavn' not in globals():
+        dfilnavn = "/home/johannus/Documents/HVN_ox_18/alt/alt.csv"
+    if dfilnavn.split('/')[-1] == 'alt.csv': # Um alt skal gerast í einum høggji
+        sets = pd.read_csv(dfilnavn)
+        print(sets)
+        for row_index, row in sets.iterrows(): # Fyri hvørt sett
+            startTime = md.date2num(datetime.strptime(row.startDate, "%Y-%m-%dT%H:%M:%SZ"))
+            stopTime = md.date2num(datetime.strptime(row.stopDate, "%Y-%m-%dT%H:%M:%SZ"))
+            setFiles = os.listdir(dfilnavn.split(dfilnavn.split('/')[-1])[0] + row.mappunavn + '/')
+            print(setFiles)
+            filnavn = []
+            for file in setFiles:
+                if file == 'zdyb.csv':
+                    dypirfil = pd.read_csv(dfilnavn.split(dfilnavn.split('/')[-1])[0] + row.mappunavn + '/' + file)
+                    print('funnið dýpið fíĺ')
+                elif file == 'zkalib.csv':
+                    print('funnið kalib fíl')
+                else:
+                    filnavn.append(dfilnavn.split(dfilnavn.split('/')[-1])[0] + row.mappunavn + '/' + file)
+
+            signal = []
+            timestamp = []
+            print('Lesur datafílir')
+            for i in range(len(filnavn)):
+                print('Lesur:' + filnavn[i])
+                if not 'zdyb' in filnavn[i]: # Fyrr var hettar : if 'kalib' in filnavn[i] or 'sg' in filnavn[i]
                     print(filnavn[i])
+                    data = pd.read_csv(filnavn[i])
+                    signal.append(data['signal'].values)
+                    timestamp.append(data['time'])
+                else:
+                    print('Feilur! ikki kalib í fílnavn')
 
-    tmp = pd.DataFrame(flat_timestamp)
-    tmp.to_csv('farts.csv')
-    print('Finnur endapunkt í tíðsaksanum')
-    for j in range(len(flat_timestamp)):
-        if flat_timestamp[j] > stoptid:
-            stoptid = flat_timestamp[j]
-        if flat_timestamp[j] < starttid:
-            starttid = flat_timestamp[j]
-    n = 1000
-    #X, Y = np.meshgrid(flat_timestamp, dypir)
-    #f = griddata((flat_timestamp, dypir), flat_signal, (X, Y), method='linear', rescale=False)
-    #f = interpolate.interp2d((flat_timestamp, dypir), flat_signal, (X, Y), kind='linear')
+            tempSet = signal[1]
+            plotAvg = []
+            for value in tempSet[1:100]:
+                plotAvg.append(float(value))
+            if np.mean(plotAvg) > 30:
+                er_ox = True
+                print("Oxygen Plot")
+            else:
+                print("Tempratur Plot")
 
-    flat_signal = flat_signal[0::100]
-    flat_timestamp = flat_timestamp[0::100]
-    dypir = dypir[0::100]
-    print('Ger meshgrid')
-    X, Y = np.meshgrid(np.linspace(starttid, stoptid, n), np.linspace(d_fra, -d_til, len(flat_timestamp)))
-    #X, Y = np.mgrid[starttid-10:stoptid+10:100j, -stostadypid-10:d_fra+10]
-    print('Interpolerar')
-    flat_signal = np.array(flat_signal)
-    flat_timestamp = np.array(flat_timestamp)
-    dypir = np.array(dypir)
-    f = griddata((flat_timestamp, dypir), flat_signal, (X, Y), method='linear', rescale=False)
+            print('Roknar um til datetime')
+            flat_timestamp = []
+            flat_signal = []
+            starttid = 100000000000
+            stoptid = 0
+            dypir = []
+            print(dypirfil)
+            dypir_sernr = dypirfil['serial']
+            dypir_virdir = dypirfil['d']
+            stostadypid = 1
+            for i in range(len(dypir_virdir)):  # Finnur størsta dýpið
+                if float(dypir_virdir[i]) > stostadypid:
+                    stostadypid = dypir_virdir[i]
+            print(np.linspace(0, stostadypid, 10))
+            ctr = 0
+            for i in range(len(filnavn)): # Fyri hvønn fíl
+                print('Fílur' + str(i))
+                # Finn dýpi á fíli
+                hettardypid = -99.9
+                print(len(dypirfil))
+                for j in range(len(dypirfil)):
+                    if str(dypir_sernr[j]) in filnavn[i]:
+                        print('funnið dypir á fíli ' + str(dypir_sernr[j]))
+                        hettardypid = -dypir_virdir[j]
+                flat_timestamp_tmp = []
+                flat_signal_tmp = []
+                dypir_tmp = []
+                for j in range(len(timestamp[i])):
+                    try:
+                        tmpDatetime = timestamp[i][j]
+                        if len(tmpDatetime) > 24:  # nasty máti at hontera millisekund við nógvur sifrum
+                            tmpDatetime = tmpDatetime[:len(tmpDatetime) - 3]
+                        flat_timestamp_tmp.append(md.date2num(datetime.strptime(tmpDatetime, '%Y-%m-%d_%H:%M:%S.%f')))  # Vanlig ox format
+                        tmpSignal = str(signal[i][j])
+                        tmpSignal = tmpSignal.replace(',', '.')
+                        flat_signal_tmp.append(float(tmpSignal))
+                        dypir_tmp.append(hettardypid)
+                        ctr += 1
+                    #except: # Lorta máti at lesa seaguard data inn, einaferð fari eg at fiksa hettar
+                    except Exception as e:
+                        try:
+                            flat_timestamp_tmp.append(md.date2num(datetime.strptime(timestamp[i][j], '%d.%m.%y_%H:%M:%S')))  # Raw seaguard data
+                            tmp = str(signal[i][j])
+                            tmp = tmp.replace(',', '.')
+                            flat_signal_tmp.append(float(tmp))
+                            dypir_tmp.append(hettardypid)
+                            ctr += 1
+                        except:
+                            print('Fuck: ' + str(e))
+                            print('Hjálp ' + timestamp[i][j] + ' ' + tmp)
+                            print(filnavn[i])
+                startIndex = 0
+                stopIndex = 0
+                for i, ts in enumerate(flat_timestamp_tmp):
+                    if ts > startTime:
+                        startIndex = i
+                        print('Start index er: ' + str(startIndex))
+                        break
+                for i, ts in enumerate(flat_timestamp_tmp):
+                    stopIndex = i
+                    if ts > stopTime:
+                        print('Stop index er: ' + str(stopIndex))
+                        break
+                print(startTime)
+                print(stopTime)
+                flat_timestamp.extend(flat_timestamp_tmp[startIndex:stopIndex])
+                flat_signal.extend(flat_signal_tmp[startIndex:stopIndex])
+                dypir.extend(dypir_tmp[startIndex:stopIndex])
+            tmp = pd.DataFrame(flat_timestamp)
+            tmp.to_csv('farts.csv')
+            print('Finnur endapunkt í tíðsaksanum')
+            for j in range(len(flat_timestamp)):
+                if flat_timestamp[j] > stoptid:
+                    stoptid = flat_timestamp[j]
+                if flat_timestamp[j] < starttid:
+                    starttid = flat_timestamp[j]
+            n = 2000
+            # X, Y = np.meshgrid(flat_timestamp, dypir)
+            # f = griddata((flat_timestamp, dypir), flat_signal, (X, Y), method='linear', rescale=False)
+            # f = interpolate.interp2d((flat_timestamp, dypir), flat_signal, (X, Y), kind='linear')
 
-    levels_exists = False
-    if 'levels' in globals():
-        levels_exists = True
+            flat_signal = flat_signal[0::50]
+            flat_timestamp = flat_timestamp[0::50]
+            dypir = dypir[0::50]
+            print('Ger meshgrid')
 
-    global levels
 
-    if levels_exists:
-        c = ax.contourf(X, Y, f, levels=levels, cmap='jet', extend='both')
-    else:
-        levels = np.linspace(c_fra, c_til, 200)
-        c = ax.contourf(X, Y, f, levels=levels, cmap='jet', extend='both')
-        fig.colorbar(c)
+            X, Y = np.meshgrid(np.linspace(starttid, stoptid, n), np.linspace(d_fra, -d_til, len(flat_timestamp)))
+            # X, Y = np.mgrid[starttid-10:stoptid+10:100j, -stostadypid-10:d_fra+10]
+            print('Interpolerar')
+            flat_signal = np.array(flat_signal)
+            flat_timestamp = np.array(flat_timestamp)
+            dypir = np.array(dypir)
+            f = griddata((flat_timestamp, dypir), flat_signal, (X, Y), method='linear', rescale=False)
+            ax.set_ylabel('Dýpi [m]')
 
-    if clin:
-        crange = np.arange(c_fra, c_til)
-        step = 1
-        if 100 in crange:
-            crange = [70, 90, 110]
-            print('Setur Crange til ox virðir')
-        else:
-            while len(crange) > clintal:
-                crange = np.arange(c_fra, c_til, step)
-                step += 1
-        cc = ax.contour(X, Y, f, levels=crange, colors='k')
-        ax.clabel(cc, inline=1, fontsize=15, fmt='%2.0f')
+            if er_ox:
+                colormap = 'plasma'
+                if c_fra_input != '-1':
+                    c_fra = 60
+                else:
+                    c_fra = c_fra_input
+                if c_til_input != '-1':
+                    c_til = 130
+                else:
+                    c_til = c_til_input
+                crange = np.arange(c_fra, c_til, 5)
+            else:
+                colormap = cmocean.cm.thermal
+                if c_fra_input != '-1':
+                    c_fra = 6
+                else:
+                    c_fra =c_fra_input
+                if c_til_input != '-1':
+                    c_til = 11
+                else:
+                    c_til = c_til_input
+                crange = np.arange(c_fra, c_til, 0.5)
+            levels_exists = False
 
-    ax.set_ylim(-d_til, -d_fra)
+            if 'levels' in globals():
+                levels_exists = True
+            global levels
 
-    ax.xaxis.set_major_locator(MaxNLocator(10))
-    xt = ax.get_xticks()
-    text_timestamps = []
-    for i in range(len(xt)):
-        tmp = md.num2date(float(xt[i]))
-        text_timestamps.append(tmp.strftime("%d %b"))
-    try:
-        ax.set_xticks(text_timestamps)
-    except:
-        print('nooo')
-    try:
-        ax.set_xticklabels(text_timestamps)
-    except:
-        print('bapokafs')
-    ax.scatter(flat_timestamp, dypir, alpha=.2, s=.5, c='black')
-    canvas.draw()
-    canvas.get_tk_widget().pack(fill=BOTH, expand=1)
-    fig.savefig('tmp.png', figsize=(8, 12), dpi=300)
+            if levels_exists:
+                c = ax.contourf(X, Y, f, levels=levels, cmap=colormap, extend='both')
+            else:
+                levels = np.linspace(c_fra, c_til, 200)
+                c = ax.contourf(X, Y, f, levels=levels, cmap=colormap, extend='both')
+                cbar = fig.colorbar(c, ticks=crange, pad=0.01)
+                if er_ox:
+                    cbar.set_label('Oxygen Metningur [%]', rotation=270)
+                else:
+                    cbar.set_label('Hiti [°C]', rotation=270)
+
+            if er_ox:
+                crange = [70, 90, 110]
+            else:
+                crange = np.arange(c_fra, c_til)
+                step = 1
+                while len(crange) > clintal:
+                    crange = np.arange(c_fra, c_til, step)
+                    step += 1
+            cc = ax.contour(X, Y, f, levels=crange, colors='k')
+            ax.clabel(cc, inline=1, fontsize=15, fmt='%2.0f')
+
+            ax.set_ylim(-d_til, -d_fra)
+
+            #ax.xaxis.set_major_locator(MaxNLocator(10))
+            ax.xaxis.set_major_locator(md.MonthLocator())
+            xt = ax.get_xticks()
+            text_timestamps = []
+            for i in range(len(xt)):
+                tmp = md.num2date(float(xt[i]))
+                text_timestamps.append(tmp.strftime("%d %b"))
+            try:
+                ax.set_xticks(text_timestamps)
+            except:
+                print('nooo')
+            try:
+                ax.set_xticklabels(text_timestamps)
+            except:
+                print('bapokafs')
+            ax.scatter(flat_timestamp, dypir, alpha=0.2, s=.5, c='black')
+            print(dypir.size)
+            canvas.draw()
+            canvas.get_tk_widget().pack(fill=BOTH, expand=1)
     log_e()
 
 
@@ -484,7 +612,7 @@ def vel_dypir():
 
 def goymmynd(fig):
     log_b()
-    filnavn = filedialog.asksaveasfilename(parent=root, title="Goym mynd",  filetypes=(("png Fílur", "*.png"), ("jpg Fílur", "*.jpg")))
+    filnavn = filedialog.asksaveasfilename(parent=root, title="Goym mynd",  filetypes=(("pdf Fílur", "*.pdf"), ("png Fílur", "*.png"), ("jpg Fílur", "*.jpg")))
     print('Goymir mynd')
     fig.savefig(filnavn, dpi=600, bbox_inches='tight')
     print('Liðugt')
@@ -519,6 +647,8 @@ def seaguard_data(frame, root2):
     o2metn.pack(side=TOP, anchor=W)
     o2cong = Radiobutton(frame, text='Oxygen upploysiligheit', variable=v, value=3)
     o2cong.pack(side=TOP, anchor=W)
+    absSpeed = Radiobutton(frame, text='Streyferð (ABS)', variable=v, value=4)
+    absSpeed.pack(side=TOP, anchor=W)
 
 
 
@@ -539,9 +669,17 @@ def eksportera(v):
     print(timestamp[0])
     print(v.get())
     if v.get()==2:
-        o2 = data['AirSaturation']
+        try:
+            o2 = data['AirSaturation(%)']
+        except:
+            o2 = data['AirSaturation']
     elif v.get()==1:
-        o2 = data['Temperature']
+        o2 = data['Temperature(Deg.C)']
+    elif v.get()==4:
+        try:
+            o2 = data['Abs Speed(cm/s)']
+        except:
+            o2 = data['Abs Speed']
     savefilnavn = filedialog.asksaveasfilename(title='Goym fíl', filetypes=(("csv Fílir", "*.csv"), ("all files", "*.*")))
     data_tosave = pd.DataFrame({'time': timestamp, 'signal': o2})
     data_tosave.to_csv(savefilnavn, index=False)
@@ -668,8 +806,7 @@ def velFilir(typa='std'):
     global filnavn
     print('Vel fíl ' + typa)
     if typa == 'std':
-        filnavn = filedialog.askopenfilenames(title='Vel fílir', filetypes=(("txt Fílir", "*.txt"),
-                                                                            ("csv Fílir", "*.csv"),
+        filnavn = filedialog.askopenfilenames(title='Vel fílir', filetypes=(("csv Fílir", "*.csv"),
                                                                             ("all files", "*.*")))
     else:
         filnavn = filedialog.askopenfilenames(title='Vel ' + typa + ' fílir', filetypes=((typa + " Fílir", "*" + typa),
@@ -708,7 +845,8 @@ def rokna(q):
                 if i % q == 0:
                     decimated_time.append(date[i])
         else:
-            fil_data = pd.read_csv(filnavn[fil_index], encoding='latin', skiprows=25, sep='\s+')
+            fil_data = pd.read_csv(filnavn[fil_index], encoding='latin', skiprows=22, sep='\s+')
+            print(fil_data.columns.values)
             raw_data = fil_data['Time']
             date = fil_data['Date']
             time = fil_data['&']
