@@ -199,6 +199,9 @@ def strikumynd(frame, root2):
     canvas = FigureCanvasTkAgg(fig, master=plot_frame)
     fig.clf()
     ax = fig.add_subplot(111)
+    global filnavn
+    filnavn = ['~/Documents/HVN_Temprature_18/alt/strikumynd/spd.csv', '~/Documents/HVN_Temprature_18/alt/strikumynd/5mT.csv', '~/Documents/HVN_Temprature_18/alt/strikumynd/63mT.csv', '~/Documents/HVN_Temprature_18/alt/strikumynd/85mO.csv',
+               '~/Documents/HVN_Temprature_18/alt/strikumynd/85mT.csv']
 
     Button(menuFrame, text='Vel datafílir', command=lambda: velFilir()).pack(side=LEFT)
     Button(menuFrame, text='Tekna', command=lambda: tekna_strikumynd(canvas, float(fra_entry.get()),
@@ -210,7 +213,6 @@ def strikumynd(frame, root2):
     til_entry = Entry(menuFrame, width=3)
     til_entry.pack(side=LEFT)
     til_entry.insert(0, '100')
-
     Button(menuFrame, text='Goym mynd', command=lambda: goymmynd(fig)).pack(side=RIGHT)
     Button(menuFrame, text='CLF', command=lambda: clear_figur(canvas)).pack(side=RIGHT)
 
@@ -225,7 +227,10 @@ def tekna_strikumynd(canvas, d_til, d_fra):
     timestamp = []
     print('Lesur datafílir')
     ax2 = ax.twinx()
+    ax2.spines['right'].set_position(('axes', 1.05))
     ax3 = ax.twinx()
+    leg = []  # for legend
+    labels = []
     for i in range(len(filnavn)):
         print(filnavn[i])
         data = pd.read_csv(filnavn[i])
@@ -244,35 +249,44 @@ def tekna_strikumynd(canvas, d_til, d_fra):
                     md_timestamp.append(md.date2num(datetime.strptime(timestamp[j], '%d.%m.%y_%H:%M:%S')))
                 except:
                     print('Veit ikki hvat eg skal gera vit hendan timestampin ' + timestamp[j])
+
         label = filnavn[i]
         print(label)
         label = label[len(os.path.dirname(filnavn[i]))+1::]
         print(label)
         if 'T' in label:
-            label = label[:-5]
-            ax.set_ylim(6, 11)
-            ax.plot(md_timestamp, md_signal, label=label)
+            label = 'Temp ' + label[:-5]
+            ax.set_ylim(3, 12)
+            leg = leg + ax.plot(md_timestamp, md_signal, label=label)
+
         elif 'spd' in label:
-            p3 = ax3.plot(md_timestamp, md_signal, label=label, c='red', alpha=0.5)
-            ax3.set_ylim(-20, 20)
-            ax3.set_yticks(np.arange(0, 20, 5))
+            label = 'Streymferð'
+            p3 = ax3.plot(md_timestamp, md_signal, c='red', alpha=0.2, linewidth=1)
+            leg = leg + ax3.plot(np.convolve(md_timestamp, np.ones((64,))/64, mode='valid'), np.convolve(md_signal, np.ones((64,))/64, mode='valid'), c='darkred', label=label)
+            ax3.set_ylim(0, 40)
+            ax3.set_yticks(np.arange(0, 25, 5))
             ax3.yaxis.label.set_color('red')
             ax3.tick_params(axis='y', colors='red')
         else:
-            label = label[:-5]
-            ax2.plot(md_timestamp, md_signal, label=label, c='gray', alpha = 0.5)
-            ax2.set_ylim(50, 180)
-            ax2.set_yticks(np.arange(50, 120, 10))
-            ax2.yaxis.label.set_color('gray')
+            # oxy
+            label = 'Oxygen ' + label[:-5]
+            ax2.plot(md_timestamp, md_signal, label=label, c='gray', alpha=0.2, linewidth=1)
+            leg = leg + ax2.plot(np.convolve(md_timestamp, np.ones((128,)) / 128, mode='valid'), np.convolve(md_signal, np.ones((128,)) / 128, mode='valid'), c='darkgray', label=label)
+            ax2.set_ylim(40, 110)
+            ax2.set_yticks(np.arange(40, 110, 10))
+            ax2.yaxis.label.set_color('darkgray')
             ax2.tick_params(axis='y', colors='gray')
+        labels.append(label)
         print(label)
         canvas.draw()
         canvas.get_tk_widget().pack(fill=BOTH, expand=1)
 
 
 
-    ax.xaxis.set_major_locator(MaxNLocator(10))
+    #ax.xaxis.set_major_locator(MaxNLocator(10))
+    ax.xaxis.set_major_locator(md.MonthLocator())
     ax.yaxis.set_major_locator(MaxNLocator(10))
+    ax.grid(True)
     xt = ax.get_xticks()
     text_timestamps = []
     for i in range(len(xt)):
@@ -281,11 +295,15 @@ def tekna_strikumynd(canvas, d_til, d_fra):
 
     ax.set_xticklabels(text_timestamps)
     ax.set_ylabel('Hiti [C]')
-    ax2.set_ylabel('Oxygen metningur [%]                                     ')
-    ax3.set_ylabel('                                Streymferð [cm/s]')
-    ax.legend()
+    ax2.set_ylabel('Oxygen metningur [%]')
+    ax3.set_ylabel('Streymferð [cm/s]')
+    #ax.legend()
 
-    fig.savefig('tmp.png', figsize=(8, 12), dpi=600)
+    print(leg)
+    print(labels)
+
+    l1 = ax.legend(leg, labels, loc='upper center', ncol=7, fancybox=True, shadow=True);
+    #fig.savefig('tmp.png', figsize=(8, 12), dpi=600)
     canvas.draw()
     canvas.get_tk_widget().pack(fill=BOTH, expand=1)
     log_e()
@@ -564,7 +582,8 @@ def rokna_og_tekna_contour(canvas, d_fra, d_til, c_fra_input, c_til_input, clin,
 
             ax.set_ylim(-d_til, -d_fra)
 
-            ax.xaxis.set_major_locator(MaxNLocator(10))
+            #ax.xaxis.set_major_locator(MaxNLocator(10))
+            ax.xaxis.set_major_locator(md.MonthLocator())
             xt = ax.get_xticks()
             text_timestamps = []
             for i in range(len(xt)):
@@ -650,11 +669,17 @@ def eksportera(v):
     print(timestamp[0])
     print(v.get())
     if v.get()==2:
-        o2 = data['AirSaturation(%)']
+        try:
+            o2 = data['AirSaturation(%)']
+        except:
+            o2 = data['AirSaturation']
     elif v.get()==1:
         o2 = data['Temperature(Deg.C)']
     elif v.get()==4:
-        o2 = data['Abs Speed(cm/s)']
+        try:
+            o2 = data['Abs Speed(cm/s)']
+        except:
+            o2 = data['Abs Speed']
     savefilnavn = filedialog.asksaveasfilename(title='Goym fíl', filetypes=(("csv Fílir", "*.csv"), ("all files", "*.*")))
     data_tosave = pd.DataFrame({'time': timestamp, 'signal': o2})
     data_tosave.to_csv(savefilnavn, index=False)

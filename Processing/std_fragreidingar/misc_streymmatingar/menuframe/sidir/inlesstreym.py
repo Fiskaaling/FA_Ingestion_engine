@@ -40,8 +40,6 @@ def inles(path_to_data, dictionary=False):
 
     #  metadata ting
     metadf = pd.read_csv(path_to_data + 'meta.csv', index_col='key')['value']
-    Bin_Size = float(metadf['bin_size'])
-    firstbinrange = float(metadf['firstbinrange'])
     max_bin = int(metadf['maxbin'])
     dypid = float(metadf['median_dypid'])
 
@@ -82,6 +80,7 @@ def inles(path_to_data, dictionary=False):
     tiggju_v = []
     tiggju_mag = []
     tiggju_dir = []
+    riggar_10_m = True
     for i, item in enumerate(tiggju_m):
         #  ger hettar seint fyri first
         #  finn ein vector har vit hava dypi allastani
@@ -91,6 +90,9 @@ def inles(path_to_data, dictionary=False):
         j = np.searchsorted(tempdypir, -10)
 
         #  finn s og t
+        if tempdypir[-1] < -10:
+            riggar_10_m = False
+            break
         s = (-10 - tempdypir[j]) / (tempdypir[j-1] - tempdypir[j])
 
         #  rokna og set inn í tiggju_u og tiggju_v
@@ -105,11 +107,12 @@ def inles(path_to_data, dictionary=False):
         #  rokna og set inn í tiggju_mag og tiggju_dir
         tiggju_mag.append(np.sqrt(tempu**2+tempv**2))
         tiggju_dir.append(np.rad2deg(np.arctan2(tempu, tempv)))
-    #  set col inní DataFrame
-    uvdatadf.insert(loc=0, column='u10m', value=tiggju_u)
-    uvdatadf.insert(loc=0, column='v10m', value=tiggju_v)
-    datadf.insert(loc=0, column='mag10m', value=tiggju_mag)
-    datadf.insert(loc=0, column='dir10m', value=tiggju_dir)
+    if riggar_10_m:
+        #  set col inní DataFrame
+        uvdatadf.insert(loc=0, column='u10m', value=tiggju_u)
+        uvdatadf.insert(loc=0, column='v10m', value=tiggju_v)
+        datadf.insert(loc=0, column='mag10m', value=tiggju_mag)
+        datadf.insert(loc=0, column='dir10m', value=tiggju_dir)
     ##################################################
     #                  enda 10 m data                #
     ##################################################
@@ -122,15 +125,22 @@ def inles(path_to_data, dictionary=False):
     dypir = [dypir[i] for i in range(len(dypir)-len(droppa_meg))]
 
     #  tak ting úr datadf
-    datadf.drop([ '%s%s' % (typa, int(tal)) for typa in ['mag', 'dir', 'w'] for tal in droppa_meg],
-                axis=1, inplace=True)
+    if 'w1' in datadf.keys():
+        datadf.drop([ '%s%s' % (typa, int(tal)) for typa in ['mag', 'dir', 'w']
+                     for tal in droppa_meg], axis=1, inplace=True)
+    else:
+        datadf.drop([ '%s%s' % (typa, int(tal)) for typa in ['mag', 'dir']
+                     for tal in droppa_meg], axis=1, inplace=True)
     #  tak ting úr uvdatadf
-    uvdatadf.drop([ '%s%s' % (typa, int(tal)) for typa in ['u', 'v', 'w'] for tal in droppa_meg],
-                  axis=1, inplace=True)
+    if 'w1' in uvdatadf.keys():
+        uvdatadf.drop([ '%s%s' % (typa, int(tal)) for typa in ['u', 'v', 'w']
+                       for tal in droppa_meg], axis=1, inplace=True)
+    else:
+        uvdatadf.drop([ '%s%s' % (typa, int(tal)) for typa in ['u', 'v']
+                       for tal in droppa_meg], axis=1, inplace=True)
 
     if dictionary:
-        return {'data':date, 'dypir':dypir, 'max_bin':max_bin,
-                'datadf':datadf, 'uvdatadf':uvdatadf
-               }
+        return {'date':date, 'dypir':dypir, 'max_bin':max_bin, 'dypid': dypid,
+                'datadf':datadf, 'uvdatadf':uvdatadf, 'metadf': metadf }
     return date, dypir, max_bin, datadf, uvdatadf
 
