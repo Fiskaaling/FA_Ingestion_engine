@@ -111,11 +111,15 @@ app = Window(root)
 menu_frame = Frame(app)
 menu_frame.pack(side=TOP, anchor=N)
 velMappuBtn = Button(menu_frame, text='Vel Fíl', command=lambda: velFil())
-velMappuBtn.pack(side=TOP)
+velMappuBtn.pack(side=LEFT)
+
+Label(menu_frame, text='Cursor position: ').pack(side=LEFT)
+cLabel = Label(menu_frame, text='0')
+cLabel.pack(side=LEFT)
+
 
 splittaFilarBtn = Button(menu_frame, text='Splitta Fílir', command=lambda: splitta_fil())
-splittaFilarBtn.pack(side=TOP, anchor=E)
-
+splittaFilarBtn.pack(side=RIGHT, anchor=E)
 fig = Figure(figsize=(12, 8), dpi=100)
 figS = Figure(figsize=(8, 8), dpi=100)
 singlePlot_frame = Frame(app, borderwidth=1, width=50, highlightbackground="green", highlightcolor="green", highlightthickness=1)
@@ -162,12 +166,11 @@ ax.set_xlim([visible_min, visible_max])
 okValues = []
 
 
-def drawS(figS, dataign, yNumbers, max_index, cursor, answer):
+def drawS(figS, dataign, yNumbers, bl_index, cursor, answer):
     figS.clf()
     axS = figS.add_subplot(111)
     axS.plot(dataign.iloc[:, cursor], yNumbers * -1)
-    print(max_index[cursor])
-    axS.axhline(y=-max_index[cursor], c='k')
+    axS.axhline(y=-bl_index, c='k')
     axS.axhline(y=-float(answer), c='red')
     canvasSingle.draw()
 
@@ -202,10 +205,17 @@ def key(event):
         cursor = 0
     if event.keysym == 'Right':
         cursor = cursor + 1
-        drawS(figS, dataign, yNumbers, max_index, cursor, answer)
+        drawS(figS, dataign, yNumbers, max_index[cursor], cursor, answer)
     if event.keysym == 'Left':
         cursor = cursor - 1
-        drawS(figS, dataign, yNumbers, max_index, cursor, answer)
+        drawS(figS, dataign, yNumbers, max_index[cursor], cursor, answer)
+    if event.keysym == 'Up':
+        max_ping_index += 1
+        save_changes = True
+        drawS(figS, dataign, yNumbers, max_ping_index, cursor, answer)
+        axS.plot(thisPing, yNumbers * -1)
+        # axS.axhline(y=-max_ping_index, c='k')
+        axS.axhline(y=-float(answer), c='red')
     if event.keysym == 's':
         toSave = pd.DataFrame(max_index)
         toSave.to_csv(filename[:-4] + 'maxi.csv')
@@ -233,7 +243,7 @@ def key(event):
         scatters.remove()
         scatters = ax.scatter(cursor, 100, c='white')
 
-        drawS(figS, dataign, yNumbers, max_index, cursor, answer)
+        drawS(figS, dataign, yNumbers, max_index[cursor], cursor, answer)
 
         visible_min = cursor - 500
         if visible_min < 0:
