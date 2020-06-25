@@ -43,7 +43,7 @@ def calculate_initial_compass_bearing(pointA, pointB):
 
     return compass_bearing
 
-tal = 36
+tal = 31
 filename = "/home/johannus/Documents/Projektir/skur-ar-m-ta-ir-fr-b-ti/Export/" + str(tal)
 
 nav = pd.read_csv(filename + "_nav.txt", skiprows=[0,1,2,3,4,5,6,7,8,9,10,11,13,14,15], delim_whitespace=True, index_col=0, decimal=",")
@@ -87,6 +87,7 @@ recorder_waterlevel = 0.5
 levels = np.linspace(-100, 100, 256)
 clevels = range(-100, 100, 25)
 filtur = [1] * 5
+z2 = []
 for j in range(2, 25):
     for i in range(len(u.iloc[skip_first:])):
         if not np.isnan(v[str(1)].iloc[skip_first + i]):
@@ -97,7 +98,8 @@ for j in range(2, 25):
             u_tmp = u[str(j)].iloc[skip_first + i]
             v_tmp = v[str(j)].iloc[skip_first + i]
             c_tmp = np.complex(u_tmp, v_tmp)
-            z.append(np.imag(c_tmp * np.exp(np.complex(0,1)*np.deg2rad(direction+90))))
+            z.append(np.real(c_tmp * np.exp(np.complex(0,1)*np.deg2rad(direction))))
+            z2.append(u_tmp)
 
 
 #znew = np.append(z[0:len(filtur)-1], znew)
@@ -114,7 +116,7 @@ meshgridx = np.linspace(min(x), max(x), resX)
 meshgridx, meshgridy = [meshgridx, meshgridy]
 meshgridx, meshgridy = np.meshgrid(meshgridx, meshgridy)
 grid_z0 = griddata((x, y), z, (meshgridx, meshgridy), method='linear')
-plt.contourf(meshgridx, meshgridy, -grid_z0, levels=levels, cmap='seismic', extend='both')
+plt.contourf(meshgridx, meshgridy, grid_z0, levels=levels, cmap='seismic', extend='both')
 
 
 #plt.scatter(x, y, c='k', marker=".")

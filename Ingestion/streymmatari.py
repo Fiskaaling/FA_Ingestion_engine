@@ -245,8 +245,6 @@ def roknaQuiver(frame, root2):
     roknaBtn.pack(side=TOP, anchor=W)
 
     Label(frame, text='').pack(side=TOP, anchor=W)
-    teknaKortBtn = Button(frame, text='Tekna Kort')
-    teknaKortBtn.pack(side=TOP, anchor=W)
 
     log_frame = Frame(frame, height=300, borderwidth=1, highlightbackground="green", highlightcolor="green", highlightthickness=1)
     log_frame.pack(fill=X, expand=False, side=BOTTOM, anchor=W)
@@ -259,44 +257,62 @@ def velMappu():
 
 
 def rokna(fra, til, punktPerPil, bins, skip):
+    print('Start!')
     log_b()
     n_trips = len(range(fra, til+1))
-    for trip_index in range(0, n_trips):
-        print('Lesur fíl :' + str(trip_index) + '_nav.txt')
-        df_nav = pd.read_csv(mappunavn + '/' + str(trip_index) + '_nav.txt', skiprows=16, sep='\t', index_col=0,
+    trips = range(fra, til+1)
+    for trip in trips:
+        skip_first = skip[trip-fra]
+        print('Lesur fíl :' + str(trip) + '_nav.txt')
+        df_nav = pd.read_csv(mappunavn + '/' + str(trip) + '_nav.txt', skiprows=[0,1,2,3,4,5,6,7,8,9,10,11,13,14,15], delim_whitespace=True, index_col=0,
                              decimal=",")
-        df_u = pd.read_csv(mappunavn + '/' + str(trip_index) + '_u.txt', skiprows=16, sep='\t', index_col=0, decimal=",")
-        df_v = pd.read_csv(mappunavn + '/' + str(trip_index) + '_v.txt', skiprows=16, sep='\t', index_col=0, decimal=",")
+        df_u = pd.read_csv(mappunavn + '/' + str(trip) + '_u.txt', skiprows=11, delim_whitespace=True, index_col=0, decimal=",")
+        df_v = pd.read_csv(mappunavn + '/' + str(trip) + '_v.txt', skiprows=11, delim_whitespace=True, index_col=0, decimal=",")
+
+        if os.path.exists(mappunavn + '/' + str(trip) + '_etc.csv'):
+            etc = pd.read_csv(mappunavn + '/' + str(trip) + '_etc.csv', delimiter=',')
+            skip_first = 0
+            skip_last = 0
+            for row in etc.iterrows():
+                print('Row1: ' + str(row[1][0]))
+                if row[1][0] == 'skip_first':
+                    print('???')
+                    skip_first = row[1][1]
+                elif row[1][0] == 'skip_last':
+                    skip_last = row[1][1]
+
         n_ensembles = len(df_u.iloc[:, 1])
-        n_arrows = int(np.floor((n_ensembles - skip[trip_index]) / punktPerPil))
+        n_arrows = int(np.floor(((n_ensembles - skip_first)-(n_ensembles-skip_last)) / punktPerPil))
         print('tal av pílum:' + str(n_arrows))
         mean_u = np.zeros((n_trips, n_arrows))
         mean_v = np.zeros((n_trips, n_arrows))
         lon = []
         lat = []
+        print(df_nav)
         for arrow_index in range(n_arrows):
-            lon.append(df_nav.iloc[skip[trip_index] + arrow_index * punktPerPil, 11])
-            lat.append(df_nav.iloc[skip[trip_index] + arrow_index * punktPerPil, 10])
+            lon.append(df_nav['FLon'].iloc[skip_first + arrow_index * punktPerPil])
+            lat.append(df_nav['FLat'].iloc[skip_first + arrow_index * punktPerPil])
+            #lon.append(df_nav.iloc[skip[trip-fra] + arrow_index * punktPerPil, 11])
+            #lat.append(df_nav.iloc[skip[trip-fra] + arrow_index * punktPerPil, 10])
             tmp_u = 0
             tmp_v = 0
             divideby = 0
             for bin_index in range(len(bins)):
                 for ensemble_index in range(punktPerPil):
-                    if not np.isnan(df_u.iloc[skip[trip_index] + ensemble_index + punktPerPil * arrow_index,
+                    if not np.isnan(df_u.iloc[skip[trip-fra] + ensemble_index + punktPerPil * arrow_index,
                                               bins[bin_index]]):
                         divideby += 1
-                        tmp_u += df_u.iloc[skip[trip_index] + ensemble_index + punktPerPil * arrow_index, bins[bin_index]]
-                        tmp_v += df_v.iloc[
-                            skip[trip_index] + ensemble_index + punktPerPil * arrow_index, bins[bin_index]]
+                        tmp_u += df_u[str(bins[bin_index])].iloc[skip_first + ensemble_index + punktPerPil * arrow_index]
+                        tmp_v += df_v[str(bins[bin_index])].iloc[skip_first + ensemble_index + punktPerPil * arrow_index]
             if divideby != 0:
-                mean_u[trip_index, arrow_index] = tmp_u / divideby
-                mean_v[trip_index, arrow_index] = tmp_v / divideby
+                mean_u[trip-fra, arrow_index] = tmp_u / divideby
+                mean_v[trip-fra, arrow_index] = tmp_v / divideby
         print(len(lat))
         print(len(lon))
-        print(len(mean_v[trip_index,:]))
-        print(len(mean_u[trip_index, :]))
-        turur = pd.DataFrame({'lat': lat, 'lon': lon, 'u': mean_u[trip_index, :], 'v': mean_v[trip_index]})
-        turur.to_csv(str(trip_index+1) + '.csv', index=False)
+        print(len(mean_v[trip-fra, :]))
+        print(len(mean_u[trip-fra, :]))
+        turur = pd.DataFrame({'lat': lat, 'lon': lon, 'u': mean_u[trip-fra, :], 'v': mean_v[trip-fra]})
+        turur.to_csv(str(trip) + '.csv', index=False)
     log_e()
 
 def init(ingestion_listbox):
