@@ -356,6 +356,7 @@ def les_og_tekna(text, fig, canvas, silent=False, v_dic={}):
     show_legend = False
     quiverf_threshold = 1
     quiver_color = "Black"
+    quiver_label = ""
     circle_stodd = 0.05
     renderengine = 'Standard Kort'
     s3 = 1  # z scale
@@ -368,6 +369,7 @@ def les_og_tekna(text, fig, canvas, silent=False, v_dic={}):
     siglignsferd = 0  # Um ikki null verður tíðin tað tekur at sigla eftir lin_fil rokna
     tekna_land = True
     textsize = 5
+    qkey_counter = 0
     global ccrs_projection
     ccrs_projection = ccrs.PlateCarree(-7)
     for index, command in enumerate(strtext):
@@ -633,7 +635,7 @@ def les_og_tekna(text, fig, canvas, silent=False, v_dic={}):
                 Qdata = pd.read_csv(command[toindex::])
                 lon = Qdata['lon']
                 lat = Qdata['lat']
-                q = ax.quiver(lon.values, lat.values, Qdata['u'] * qskala, Qdata['v'] * qskala, scale=10, width=0.003, headwidth=5, zorder=100, color=quiver_color, transform=ccrs_projection)
+                q = ax.quiver(lon.values, lat.values, Qdata['u'] * qskala, Qdata['v'] * qskala, label=quiver_label, scale=10, width=0.003, headwidth=5, zorder=100, color=quiver_color, transform=ccrs_projection)
             elif variable == 'quiverf':
                 Qdata = pd.read_csv(command[toindex::])
                 pos_lon = Qdata['lon']
@@ -681,10 +683,11 @@ def les_og_tekna(text, fig, canvas, silent=False, v_dic={}):
                 qskala = float(command[toindex::])
             elif variable == 'qkey':
                 if 'x_undir' in locals():
-                    ax.quiverkey(q, 0.9, 0.9, float(command[toindex::]) * qskala, label=command[toindex::] + ' m/s',
+                    ax.quiverkey(q, 0.9, 0.9, float(command[toindex::]) * qskala, label=command[toindex::] + ' cm/s',
                                  labelpos='W')
                 else:
-                    ax.quiverkey(q, 0.8, 0.95, float(command[toindex::] * qskala), label=command[toindex::] + ' m/s', labelpos='W')
+                    ax.quiverkey(q, 0.80, 0.95 - qkey_counter*0.02, float(command[toindex::]) * qskala*1000, label=command[toindex::] + ' m/s', labelpos='W')
+                    qkey_counter += 1
             elif variable == 'lin_farv' or variable == 'linfarv':
                 lin_farv = command[toindex::]
             elif variable == 'lin_legend':
@@ -756,7 +759,7 @@ def les_og_tekna(text, fig, canvas, silent=False, v_dic={}):
                 path_to_nytt_kort = command[toindex::]
             elif variable == 'lesmynd':
                 img = mpimg.imread(command[toindex::])
-                imgplot = ax.imshow(img, aspect='equal', extent=(-7.66666666, -6.3333333, 62.4166666, 61.4166666), transform=ccrs_projection)
+                imgplot = ax.imshow(img, aspect='equal', extent=(-7.7, -6.25, 62.4, 61.4), transform=ccrs_projection)
                 ax.set_aspect(1 / np.cos(np.deg2rad(((v_dic['req']['latmax'] + v_dic['req']['latmax']) / 2))))
             elif variable == 'textsize':
                 textsize = float(command[toindex::])
@@ -764,6 +767,8 @@ def les_og_tekna(text, fig, canvas, silent=False, v_dic={}):
                 lin_std = float(command[toindex::])
             elif variable == 'quiver_color':
                 quiver_color = command[toindex::]
+            elif variable == 'quiver_label':
+                quiver_label = command[toindex::]
             else:
                 if '#' not in variable and command != '':
                     log_w('Ókend stýriboð ' + variable)
