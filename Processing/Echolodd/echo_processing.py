@@ -41,7 +41,7 @@ def finnmax(data, under):
         maxi.append(maxci)
     return maxi
 
-def finnmaxRanger(data, lastOk, search_range=100):
+def finnmaxRanger(data, lastOk, search_range=100, under=600):
     maxi = []
     ok_nextRound = lastOk
 
@@ -51,6 +51,8 @@ def finnmaxRanger(data, lastOk, search_range=100):
         maxc = -1000
         maxci = -1000
         for j, col in enumerate(thisrow):
+            if j > under:
+                continue
             if col > maxc:
                 maxc = col
                 maxci = j
@@ -62,7 +64,13 @@ def finnmaxRanger(data, lastOk, search_range=100):
                 if col > maxc:
                     maxc = col
                     maxciR = j
-            maxi.append(maxciR+ok_nextRound-search_range)
+            if (maxciR+ok_nextRound-search_range)>under:
+                messagebox.showinfo("Fuck", "Helviti, eg kiksaði. Hygg væl eftir áðrenn tú fert víðari")
+                maxi.append(maxci)
+                ok_nextRound = maxci
+            else:
+                maxi.append(maxciR+ok_nextRound-search_range)
+            print(maxciR+ok_nextRound-search_range)
             ok_nextRound= maxciR+ok_nextRound-search_range
         else:
             maxi.append(maxci)
@@ -283,7 +291,7 @@ def key(event):
         lines = ax.plot(max_index, c='lime')
     if event.keysym == '3':
         visible_max = cursor + 500
-        max_index[cursor:visible_max] = finnmaxRanger(dataign.iloc[:, cursor:visible_max], max_index[cursor], search_range=10)
+        max_index[cursor:visible_max] = finnmaxRanger(dataign.iloc[:, cursor:visible_max], max_index[cursor], search_range=20, under=float(answer))
         l = lines[0]
         l.remove()
         lines = ax.plot(max_index, c='lime')
