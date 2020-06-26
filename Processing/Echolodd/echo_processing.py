@@ -3,7 +3,7 @@ import numpy as np
 from tkinter import *
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
-from tkinter import simpledialog
+from tkinter import simpledialog, messagebox
 from tkinter import filedialog
 import platform
 
@@ -41,6 +41,34 @@ def finnmax(data, under):
         maxi.append(maxci)
     return maxi
 
+def finnmaxRanger(data, lastOk, search_range=100):
+    maxi = []
+    ok_nextRound = lastOk
+
+    maxi = []
+    for i in range(len(data.iloc[1, :])):
+        thisrow = data.iloc[:, i]
+        maxc = -1000
+        maxci = -1000
+        for j, col in enumerate(thisrow):
+            if col > maxc:
+                maxc = col
+                maxci = j
+        if abs(maxci-ok_nextRound) > search_range:
+            print('Uha, hopp')
+            maxc = -1000
+            maxciR = -1000
+            for j, col in enumerate(thisrow.iloc[ok_nextRound-search_range:ok_nextRound+search_range]):
+                if col > maxc:
+                    maxc = col
+                    maxciR = j
+            maxi.append(maxciR+ok_nextRound-search_range)
+            ok_nextRound= maxciR+ok_nextRound-search_range
+        else:
+            maxi.append(maxci)
+            ok_nextRound = maxci
+    return maxi
+
 
 def finnNextLargeDiff(data, limit=100):
     diff_data = np.diff(data)
@@ -73,6 +101,8 @@ def velFil():
     global max_index
     global lines
     global yNumbers
+    global cursor
+    cursor = 0
     max_index = finnmax(dataign, 800)
     yNumbers = np.arange(len(dataign.iloc[:, 1]))
     lines = ax.plot(max_index)
@@ -148,7 +178,7 @@ canvas.get_tk_widget().pack(fill=BOTH, expand=1)
 canvasSingle.draw()
 canvasSingle.get_tk_widget().pack(fill=BOTH, expand=1)
 print('done')
-cursor = 0
+
 scatters = ax.scatter(0, 100, c='white')
 #yNumbers = np.arange(len(dataign.iloc[:, 1]))
 global yNumbers
@@ -218,7 +248,32 @@ def key(event):
         axS.axhline(y=-float(answer), c='red')
     if event.keysym == 's':
         toSave = pd.DataFrame(max_index)
+        print('Goymur....')
         toSave.to_csv(filename[:-4] + 'maxi.csv')
+        print('Liðugt, ver so glað ása')
+        bad_joke = np.floor(np.random.random()*10)
+        joke = "text"
+        if bad_joke == 0:
+            joke = "How do you spell Canda? C,eh,N,eh,D,eh"
+        elif bad_joke == 1:
+            joke = "I saw a French rifle on eBay today It's never been fired but I heard it was dropped once."
+        elif bad_joke == 2:
+            joke = "A Mexican fireman had twin boys He named them Jose and Hose B"
+        elif bad_joke == 3:
+            joke = "My ex-wife still misses me... But her aim is gettin better."
+        elif bad_joke == 4:
+            joke = "If you have a parrot and you don't teach it to say,\"Help, they've turned me into a parrot.\" you are wasting everybody's time."
+        elif bad_joke == 5:
+            joke = " What do you call a fish with a tie? soFISHticated"
+        elif bad_joke == 6:
+            joke = " What do sea monsters eat? Fish and ships."
+        elif bad_joke == 7:
+            joke = " What party game do fish like to play? Salmon Says."
+        elif bad_joke == 8:
+            joke = " How does an octopus go to war? Well-armed!"
+        elif bad_joke == 9:
+            joke = " What do you call a big fish who makes you an offer you can't refuse? The Codfather!"
+        messagebox.showinfo("Goymt", joke)
     if event.keysym == 'KP_Decimal' or event.keysym == 'comma':
         answer = simpledialog.askstring("Input", "Botnurin er undur?", parent=app)
         visible_max = cursor + 500
@@ -226,6 +281,13 @@ def key(event):
         l = lines[0]
         l.remove()
         lines = ax.plot(max_index, c='lime')
+    if event.keysym == '3':
+        visible_max = cursor + 500
+        max_index[cursor:visible_max] = finnmaxRanger(dataign.iloc[:, cursor:visible_max], max_index[cursor], search_range=10)
+        l = lines[0]
+        l.remove()
+        lines = ax.plot(max_index, c='lime')
+
     elif event.keysym == 'Tab':
         if save_changes:
             print('Do something')
