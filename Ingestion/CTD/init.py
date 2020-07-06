@@ -4,6 +4,7 @@ import Ingestion.CTD.bin_average
 import Ingestion.CTD.tidarseria_linja
 import Ingestion.CTD.skraset_stodir
 import Ingestion.CTD.align_ctd
+from Ingestion.CTD import cruise_overview
 #import Ingestion.CTD.MultipleAxisProfile
 
 def init(ingestion_listbox):
@@ -31,9 +32,12 @@ def check_click(item, RightFrame, root):
         Ingestion.CTD.skraset_stodir.skraset_stodir(RightFrame, root)
     elif item == 'Align CTD':
         Ingestion.CTD.align_ctd.align_ctd_frame(RightFrame, root)
+    elif item == 'Túr yvirlit':
+        cruise_overview.cruise_overview_frame(RightFrame, root)
     elif item == 'Plot Multiple Axis Profile':
         pass
         #Ingestion.CTD.MultipleAxisProfile.plot_axis_root(RightFrame, root)
     else:
         toReturn = 0
     return toReturn
+
