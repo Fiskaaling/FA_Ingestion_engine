@@ -100,7 +100,7 @@ def velFil():
     data = data.iloc[::-1]  # Eg haldi at hettar flippar
     print("Done")
     ignore_last = 50
-    ignore_first = 400
+    ignore_first = 300
     dataign = data.iloc[ignore_first:-ignore_last, :]
     dataign = pd.DataFrame(np.array(dataign))
     global fig
@@ -149,23 +149,64 @@ def splitta_fil():
 def export_stuff():
     print('Hello, World!')
     filename = filedialog.askopenfiles(title='Vel fílir at klistra saman til at síðani eksportera', filetypes=(("csv Fílir", "*.csv"), ("all files", "*.*")))
+    #filename = ['~/Documents/data/Echolodd/D20200220-T0857511_0.csv', '~/Documents/data/Echolodd/D20200220-T0857511_1.csv']
+    #filename = ['~/Documents/data/Echolodd/D20200220-T0857511_0.csv']
     timeFilename = filename[0].name.split('_')[0]
+    #timeFilename = filename[0].split('_')[0]
     timeFilename = timeFilename[:-1] + '-T.csv'
     print(timeFilename)
     timeData = pd.read_csv(timeFilename)
     stuff_to_export = pd.DataFrame(columns=['Tíð', 'Dýpi', 'Sv'])
-    ping_counter = 0
+
+
+    SpeedOfSound = 1500     # m/s
+    SampleTime = 0.000025   # s
+    distancePerSample = SpeedOfSound*SampleTime/2
+
     for fileIndex, file in enumerate(filename):
+        print('Nú rokni eg uppá fíl ' + file.name)
         disMaxi = pd.read_csv(file.name[:-4] + 'maxi.csv')
+        #disMaxi = pd.read_csv(file[:-4] + 'maxi.csv')
         disData = pd.read_csv(file.name)
-        for exportPing in disData:
-            disTid = str(timeData.iloc[ping_counter]).split('\\t')[1].split('\n')[0]
-            print(disTid)
-            rows = []
-            for ping in range(len(disData.iloc[1, :])):
-                pass
-                #rows.append([disTid, ])
-            ping_counter += 1
+        #disData = pd.read_csv(file)
+        ignore_last = 50
+        processed = disData.copy()
+
+
+        for i in range(len(disData.iloc[1, :])):
+            tmp = disData.iloc[disMaxi.iloc[i, 1]:-ignore_last, i]
+            tmp = np.append(tmp, list(np.ones([disMaxi.iloc[i, 1] + ignore_last]) * -200))
+            processed.iloc[:, i] = tmp
+
+        disData = processed
+
+        for exportPingIndex in range(int(len(disData.iloc[1, :])/75)):
+            # Hettar loop'ið inkrementerar hvørjar 5 minuttir
+            # Fyri hvørja tíð í intervalinum rokna miðal SV
+            for exportDepthIndex in range(int(len(disData.iloc[:, 1])/6)):
+                meanSvSubDepthTimeList = []
+                for subTimeStep in range(75):
+                    meanSvSubDepth = 0
+                    divideby = 0
+                    for subDepth in range(6):# Fyri hvørjar 20 cm
+                        #print('Depth Index: ' + str(exportDepthIndex*7+subDepth))
+                        #print('Time Index: ' + str(exportPingIndex*75+subTimeStep))
+                        if not np.isnan(disData.iloc[exportDepthIndex*6+subDepth, exportPingIndex*75+subTimeStep]):
+                            meanSvSubDepth += 10**(disData.iloc[exportDepthIndex*6+subDepth, exportPingIndex*75+subTimeStep]/10) #Ger til linscale og rokna miðal
+                            divideby += 1
+                    if divideby and not np.isnan(meanSvSubDepth):
+                        meanSvSubDepthTimeList.append(meanSvSubDepth/divideby)
+                    else:
+                        meanSvSubDepthTimeList.append(-201)
+                meanSvSubDepthTime = 10 * np.log10(np.mean(meanSvSubDepthTimeList))
+                if not np.isnan(meanSvSubDepthTime):
+                    if meanSvSubDepthTime != -200.0:
+                        # Set inn eina nýggja linju í tingi
+                        disTid = str(timeData.iloc[exportPingIndex*75]).split('\\t')[1].split('\n')[0]
+                        #print('Innsett dýpið: ' + str((exportDepthIndex*6*distancePerSample)))
+                        stuff_to_export = stuff_to_export.append({'Tíð': disTid.split('.')[0], 'Dýpi': np.round(exportDepthIndex*6*distancePerSample, 3), 'Sv': np.round(meanSvSubDepthTime,3)}, ignore_index=True)
+    stuff_to_export.to_csv(filename[0].split('_')[0]+'_Export.csv', index=False)
+
 
 
 
@@ -291,7 +332,7 @@ def key(event):
         print('Goymur....')
         toSave.to_csv(filename[:-4] + 'maxi.csv')
         print('Liðugt, ver so glað ása')
-        bad_joke = np.floor(np.random.random()*10)
+        bad_joke = np.floor(np.random.random()*16)
         joke = "text"
         if bad_joke == 0:
             joke = "How do you spell Canda? C,eh,N,eh,D,eh"
@@ -313,6 +354,18 @@ def key(event):
             joke = " How does an octopus go to war? Well-armed!"
         elif bad_joke == 9:
             joke = " What do you call a big fish who makes you an offer you can't refuse? The Codfather!"
+        elif bad_joke == 10:
+            joke = "What’s a pirate’s favorite letter? \n R? \n No. It be the C!"
+        elif bad_joke == 11:
+            joke = "Have you heard any good pirate jokes? Well, neither have ayyyye"
+        elif bad_joke == 12:
+            joke = "Why does it take pirates so long to learn the alphabet? Because they can spend years at C."
+        elif bad_joke == 13:
+            joke = "How do pirates prefer to communicate? A: Aye to aye!"
+        elif bad_joke == 14:
+            joke = " Why did nobody want to play cards with the pirate? Because he was standing on the deck."
+        elif bad_joke == 15:
+            joke = "Why is pirating so addictive? They say once ye lose yer first hand, ye get hooked!"
         messagebox.showinfo("Goymt", joke)
     if event.keysym == 'KP_Decimal' or event.keysym == 'comma':
         answer = simpledialog.askstring("Input", "Botnurin er undur?", parent=app)
@@ -408,5 +461,6 @@ def key(event):
 
     canvas.draw()
     #canvas.get_tk_widget().pack(fill=BOTH, expand=1)
+#export_stuff()
 root.bind('<Key>', key)
 root.mainloop()
