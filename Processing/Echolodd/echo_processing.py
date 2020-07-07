@@ -16,7 +16,7 @@ class Window(Frame):
         self.init_window()
 
     def init_window(self):
-        self.master.title("Fiskaaling Ingestion Engine")
+        self.master.title("Echosounder Export Machine 6000s+")
         self.pack(fill=BOTH, expand=1)
         main_frame = Frame(self, borderwidth=1)
         main_frame.pack(fill=BOTH, expand=False, side=TOP)
@@ -66,10 +66,15 @@ def finnmaxRanger(data, lastOk, search_range=100, under=600):
                     maxciR = j
             if (maxciR+ok_nextRound-search_range)>under:
                 messagebox.showinfo("Fuck", "Helviti, eg kiksaði. Hygg væl eftir áðrenn tú fert víðari")
+                if maxci < 0:
+                    maxci = 0
                 maxi.append(maxci)
                 ok_nextRound = maxci
             else:
-                maxi.append(maxciR+ok_nextRound-search_range)
+                if maxciR+ok_nextRound-search_range < 0:
+                    maxi.append(0)
+                else:
+                    maxi.append(maxciR+ok_nextRound-search_range)
             print(maxciR+ok_nextRound-search_range)
             ok_nextRound= maxciR+ok_nextRound-search_range
         else:
@@ -141,6 +146,31 @@ def splitta_fil():
     print(len(data.iloc[1,:]))
 
 
+def export_stuff():
+    print('Hello, World!')
+    filename = filedialog.askopenfiles(title='Vel fílir at klistra saman til at síðani eksportera', filetypes=(("csv Fílir", "*.csv"), ("all files", "*.*")))
+    timeFilename = filename[0].name.split('_')[0]
+    timeFilename = timeFilename[:-1] + '-T.csv'
+    print(timeFilename)
+    timeData = pd.read_csv(timeFilename)
+    stuff_to_export = pd.DataFrame(columns=['Tíð', 'Dýpi', 'Sv'])
+    ping_counter = 0
+    for fileIndex, file in enumerate(filename):
+        disMaxi = pd.read_csv(file.name[:-4] + 'maxi.csv')
+        disData = pd.read_csv(file.name)
+        for exportPing in disData:
+            disTid = str(timeData.iloc[ping_counter]).split('\\t')[1].split('\n')[0]
+            print(disTid)
+            rows = []
+            for ping in range(len(disData.iloc[1, :])):
+                pass
+                #rows.append([disTid, ])
+            ping_counter += 1
+
+
+
+
+    print('ding dong done!')
 
 root = Tk()
 root.geometry("1200x800")
@@ -155,6 +185,8 @@ Label(menu_frame, text='Cursor position: ').pack(side=LEFT)
 cLabel = Label(menu_frame, text='0')
 cLabel.pack(side=LEFT)
 
+exportStuffBtn = Button(menu_frame, text='Eksportera ting', command=lambda: export_stuff())
+exportStuffBtn.pack(side=RIGHT)
 
 splittaFilarBtn = Button(menu_frame, text='Splitta Fílir', command=lambda: splitta_fil())
 splittaFilarBtn.pack(side=RIGHT, anchor=E)
