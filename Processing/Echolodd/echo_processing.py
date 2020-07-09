@@ -175,7 +175,8 @@ def export_stuff():
 
         for i in range(len(disData.iloc[1, :])):
             tmp = disData.iloc[disMaxi.iloc[i, 1]:-ignore_last, i]
-            tmp = np.append(tmp, list(np.ones([disMaxi.iloc[i, 1] + ignore_last]) * -200))
+            variabulTilAsu = 300 # Her Ása!! Broyt hetta! So burdi tað rigga
+            tmp = np.append(tmp, list(np.ones([disMaxi.iloc[i, 1] + ignore_last]) * -variabulTilAsu))
             processed.iloc[:, i] = tmp
 
         disData = processed
@@ -204,7 +205,7 @@ def export_stuff():
                         # Set inn eina nýggja linju í tingi
                         disTid = str(timeData.iloc[exportPingIndex*75]).split('\\t')[1].split('\n')[0]
                         #print('Innsett dýpið: ' + str((exportDepthIndex*6*distancePerSample)))
-                        stuff_to_export = stuff_to_export.append({'time': disTid.split('.')[0], 'depth': np.round(exportDepthIndex*11*distancePerSample, 3), 'Sv': np.round(meanSvSubDepthTime,3)}, ignore_index=True)
+                        stuff_to_export = stuff_to_export.append({'time': disTid.split('.')[0], 'depth': np.round(exportDepthIndex*11*distancePerSample, 3), 'Sv': np.round(meanSvSubDepthTime, 3)}, ignore_index=True)
     stuff_to_export.to_csv(filename[0].name.split('_')[0]+'_Export.csv', index=False)
     print('ding dong done!')
 
