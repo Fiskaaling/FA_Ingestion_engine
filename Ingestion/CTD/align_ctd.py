@@ -12,12 +12,18 @@ import pandas as pd
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 from Ingestion.CTD.aux.ctd_pump import pumpstatus
+import Ingestion.CTD.cruise_overview
 from misc.faLog import gerlog, log_print, log_w
 
 
-def align_ctd_frame(frame, root2):
-    mappunavn = './Ingestion/CTD/Lokalt_Data/2019-01-17/Processed/2_Filter'
+def align_ctd_frame(frame, root2, selectNewFolder=True, mappunavn='./Ingestion/CTD/Lokalt_Data/2019-01-17/Processed/2_Filter', filIndex=0):
+    print('Filindex: ' + str(filIndex))
+    if mappunavn != './Ingestion/CTD/Lokalt_Data/2019-01-17/Processed/2_Filter':
+        selectNewFolder = False
     mappunavn_dict = {'mappunavn': mappunavn}
+    mappunavn_dict['filur'] = filIndex
+    mappunavn_dict['frame'] = frame
+    mappunavn_dict['root2'] = root2
     root = root2
     for widget in frame.winfo_children():
         widget.destroy()
@@ -41,17 +47,18 @@ def align_ctd_frame(frame, root2):
     log_frame.pack(fill=X, expand=False, side=BOTTOM, anchor=W)
     gerlog(log_frame, root)
 
-    processBtn = Button(mappunavn_dict['controlsFrame'], text='Vel túr', command=lambda: align_ctd(root, fig, canvas, info_frame, mappunavn_dict))
+    processBtn = Button(mappunavn_dict['controlsFrame'], text='Vel túr', command=lambda: align_ctd(root, fig, canvas, info_frame, selectNewFolder, mappunavn_dict))
     processBtn.pack(side=LEFT, anchor=W)
     mappunavn_dict['ox_advance'] = 3
     mappunavn_dict['ox_stepsize'] = 1
 
-    align_ctd(root, fig, canvas, info_frame, mappunavn_dict)
+    align_ctd(root, fig, canvas, info_frame, selectNewFolder, mappunavn_dict)
 
 
-def align_ctd(root, fig, canvas, info_frame, mappunavn_dict):
-    mappunavn_dict['filur'] = 0
-    mappunavn_dict['mappunavn'] = filedialog.askdirectory(title='Vel túramappu', initialdir='./Ingestion/CTD/Lokalt_Data/')
+def align_ctd(root, fig, canvas, info_frame, selectNewFolder, mappunavn_dict):
+
+    if selectNewFolder:
+        mappunavn_dict['mappunavn'] = filedialog.askdirectory(title='Vel túramappu', initialdir='./Ingestion/CTD/Lokalt_Data/')
 
     if mappunavn_dict['mappunavn'] == ():
         return
@@ -77,6 +84,26 @@ def align_ctd(root, fig, canvas, info_frame, mappunavn_dict):
             if mappunavn_dict['filur'] != 0:
                 mappunavn_dict['filur'] -= 1
                 call_refresh_infoframe = True
+        elif event.keysym == 'BackSpace':
+            Ingestion.CTD.cruise_overview.cruise_overview_frame(mappunavn_dict['frame'], mappunavn_dict['root2'], mappunavn_dict['filur'])
+        elif event.keysym == 'Return':
+            if os.path.exists(mappunavn_dict['mappunavn'].split('Processed')[0] + 'turMetadata.csv'):
+                metadatas = pd.read_csv(mappunavn_dict['mappunavn'].split('Processed')[0] + 'turMetadata.csv', index_col=False)
+            else:
+                metadatas = pd.DataFrame(columns=['key', 'value'])
+
+            cast_metadata_keys = metadatas.key
+            cast_metadata_values = metadatas.value
+            cast_metadata = {}
+            for i, key in enumerate(cast_metadata_keys):
+                cast_metadata[key] = cast_metadata_values[i]
+
+            metadatas = metadatas.append({'key':'alignCTD'+list_of_casts[mappunavn_dict['filur']], 'value': mappunavn_dict['ox_advance']}, ignore_index=True)
+            print(metadatas)
+            metadatas.to_csv(mappunavn_dict['mappunavn'].split('Processed')[0] + 'turMetadata.csv', index=False)
+
+
+            print('done')
         elif event.keysym == 'KP_Add':
             mappunavn_dict['ox_advance'] += 1 * mappunavn_dict['ox_stepsize']
             mappunavn_dict['ax'].set_title('Ox Advance:' + str(mappunavn_dict['ox_advance']))
@@ -113,7 +140,12 @@ def align_ctd(root, fig, canvas, info_frame, mappunavn_dict):
 
             tempdir = tempfile.mkdtemp('tempOx')
 
-            turdato = os.path.dirname(os.path.dirname(mappunavn_dict['mappunavn'])).split('/')[-1]
+            #turdato = os.path.dirname(os.path.dirname(mappunavn_dict['mappunavn'])).split('Lokalt_Data/')[-1]
+            turdato=mappunavn_dict['mappunavn'].split('Processed')[0].split('Lokalt_Data')[1].replace('/', '')
+
+            print(turdato)
+            print(mappunavn_dict['mappunavn'])
+            print(os.path.dirname(mappunavn_dict['mappunavn']))
             subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
                              "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/3_Align_CTD_(custom).txt",
                              str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/2_Filter/' + list_of_casts[mappunavn_dict['filur']].split('.')[0]),
@@ -137,6 +169,8 @@ def align_ctd(root, fig, canvas, info_frame, mappunavn_dict):
             os.removedirs(tempdir)
 
             # Finn nær pumpa tendrar og sløknar
+            print(mappunavn_dict['mappunavn'])
+            print(mappunavn_dict['list_of_casts'][mappunavn_dict['filur']])
             [pump_on, pump_off] = pumpstatus(mappunavn_dict['mappunavn'], mappunavn_dict['list_of_casts'][mappunavn_dict['filur']])
 
             midlingstid = 2  # sek
@@ -193,6 +227,8 @@ def refresh_infoframe(info_frame, list_of_casts, mappunavn_dict):
     mappunavn_dict['ox_ad_entry'].insert(0, str(mappunavn_dict['ox_advance']))
     mappunavn_dict['ox_ad_entry'].pack(side=TOP, anchor=W)
     for i, filename in enumerate(list_of_casts):
+        print(i)
+        print(mappunavn_dict['filur'])
         if mappunavn_dict['filur'] == i:
             Label(info_frame, text=filename[:-4], font=("Courier", 16, 'underline')).pack(side=TOP, anchor=W)
         else:
