@@ -180,19 +180,19 @@ def export_stuff():
 
         disData = processed
 
-        for exportPingIndex in range(int(len(disData.iloc[1, :])/75)):
+        for exportPingIndex in range(int(len(disData.iloc[1, :]-213)/75)):
             # Hettar loop'ið inkrementerar hvørjar 5 minuttir
             # Fyri hvørja tíð í intervalinum rokna miðal SV
-            for exportDepthIndex in range(int(len(disData.iloc[:, 1])/6)):
+            for exportDepthIndex in range(int(len(disData.iloc[:, 1])/11)):
                 meanSvSubDepthTimeList = []
                 for subTimeStep in range(75):
                     meanSvSubDepth = 0
                     divideby = 0
-                    for subDepth in range(6):# Fyri hvørjar 20 cm
+                    for subDepth in range(11):# Fyri hvørjar 20 cm
                         #print('Depth Index: ' + str(exportDepthIndex*7+subDepth))
                         #print('Time Index: ' + str(exportPingIndex*75+subTimeStep))
-                        if not np.isnan(disData.iloc[exportDepthIndex*6+subDepth, exportPingIndex*75+subTimeStep]):
-                            meanSvSubDepth += 10**(disData.iloc[exportDepthIndex*6+subDepth, exportPingIndex*75+subTimeStep]/10) #Ger til linscale og rokna miðal
+                        if not np.isnan(disData.iloc[exportDepthIndex*11+subDepth, exportPingIndex*75+subTimeStep]):
+                            meanSvSubDepth += 10**(disData.iloc[exportDepthIndex*11+subDepth, exportPingIndex*75+subTimeStep]/10) #Ger til linscale og rokna miðal
                             divideby += 1
                     if divideby and not np.isnan(meanSvSubDepth):
                         meanSvSubDepthTimeList.append(meanSvSubDepth/divideby)
@@ -204,13 +204,8 @@ def export_stuff():
                         # Set inn eina nýggja linju í tingi
                         disTid = str(timeData.iloc[exportPingIndex*75]).split('\\t')[1].split('\n')[0]
                         #print('Innsett dýpið: ' + str((exportDepthIndex*6*distancePerSample)))
-                        stuff_to_export = stuff_to_export.append({'Tíð': disTid.split('.')[0], 'Dýpi': np.round(exportDepthIndex*6*distancePerSample, 3), 'Sv': np.round(meanSvSubDepthTime,3)}, ignore_index=True)
-    stuff_to_export.to_csv(filename[0].split('_')[0]+'_Export.csv', index=False)
-
-
-
-
-
+                        stuff_to_export = stuff_to_export.append({'time': disTid.split('.')[0], 'depth': np.round(exportDepthIndex*11*distancePerSample, 3), 'Sv': np.round(meanSvSubDepthTime,3)}, ignore_index=True)
+    stuff_to_export.to_csv(filename[0].name.split('_')[0]+'_Export.csv', index=False)
     print('ding dong done!')
 
 root = Tk()
