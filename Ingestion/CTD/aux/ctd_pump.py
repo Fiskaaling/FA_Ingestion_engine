@@ -1,8 +1,10 @@
 import os
 from misc.faLog import log_w, log_print
 
+
 def pumpstatus(mappa, filur):
-    parent_folder = os.path.dirname(os.path.dirname(mappa))
+    #parent_folder = os.path.dirname(os.path.dirname(mappa))
+    parent_folder = mappa.split('Processed')[0]
     if os.path.isdir(parent_folder + '/RAW/'):
         raw_filar = os.listdir(parent_folder + '/RAW/')
         raw_filnavn = '-1'
@@ -13,6 +15,7 @@ def pumpstatus(mappa, filur):
                 raw_filnavn = raw_file
         if raw_filnavn == '-1':
             log_w('Eingin raw fílur funnin')
+            raise FileNotFoundError('Eingin raw fílur funnin')
             return
         # raw_filnavn = raw_filar[filur]
         print('Lesur raw fíl: ' + raw_filnavn)
@@ -31,5 +34,6 @@ def pumpstatus(mappa, filur):
                     pump_off = i
                 lastLine = line[0]
         log_print('Pump ' + str(pump_on))
-
         return [pump_on, pump_off]
+    else:
+        raise FileNotFoundError('Eingin raw fílur funnin')

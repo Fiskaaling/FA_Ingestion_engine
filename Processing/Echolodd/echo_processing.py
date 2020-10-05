@@ -3,7 +3,7 @@ import numpy as np
 from tkinter import *
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
-from tkinter import simpledialog
+from tkinter import simpledialog, messagebox
 from tkinter import filedialog
 import platform
 
@@ -16,7 +16,7 @@ class Window(Frame):
         self.init_window()
 
     def init_window(self):
-        self.master.title("Fiskaaling Ingestion Engine")
+        self.master.title("Echosounder Export Machine 6000s+")
         self.pack(fill=BOTH, expand=1)
         main_frame = Frame(self, borderwidth=1)
         main_frame.pack(fill=BOTH, expand=False, side=TOP)
@@ -41,6 +41,47 @@ def finnmax(data, under):
         maxi.append(maxci)
     return maxi
 
+def finnmaxRanger(data, lastOk, search_range=100, under=600):
+    maxi = []
+    ok_nextRound = lastOk
+
+    maxi = []
+    for i in range(len(data.iloc[1, :])):
+        thisrow = data.iloc[:, i]
+        maxc = -1000
+        maxci = -1000
+        for j, col in enumerate(thisrow):
+            if j > under:
+                continue
+            if col > maxc:
+                maxc = col
+                maxci = j
+        if abs(maxci-ok_nextRound) > search_range:
+            print('Uha, hopp')
+            maxc = -1000
+            maxciR = -1000
+            for j, col in enumerate(thisrow.iloc[ok_nextRound-search_range:ok_nextRound+search_range]):
+                if col > maxc:
+                    maxc = col
+                    maxciR = j
+            if (maxciR+ok_nextRound-search_range)>under:
+                messagebox.showinfo("Fuck", "Helviti, eg kiksaði. Hygg væl eftir áðrenn tú fert víðari")
+                if maxci < 0:
+                    maxci = 0
+                maxi.append(maxci)
+                ok_nextRound = maxci
+            else:
+                if maxciR+ok_nextRound-search_range < 0:
+                    maxi.append(0)
+                else:
+                    maxi.append(maxciR+ok_nextRound-search_range)
+            print(maxciR+ok_nextRound-search_range)
+            ok_nextRound= maxciR+ok_nextRound-search_range
+        else:
+            maxi.append(maxci)
+            ok_nextRound = maxci
+    return maxi
+
 
 def finnNextLargeDiff(data, limit=100):
     diff_data = np.diff(data)
@@ -59,7 +100,7 @@ def velFil():
     data = data.iloc[::-1]  # Eg haldi at hettar flippar
     print("Done")
     ignore_last = 50
-    ignore_first = 400
+    ignore_first = 300
     dataign = data.iloc[ignore_first:-ignore_last, :]
     dataign = pd.DataFrame(np.array(dataign))
     global fig
@@ -73,6 +114,8 @@ def velFil():
     global max_index
     global lines
     global yNumbers
+    global cursor
+    cursor = 0
     max_index = finnmax(dataign, 800)
     yNumbers = np.arange(len(dataign.iloc[:, 1]))
     lines = ax.plot(max_index)
@@ -103,6 +146,68 @@ def splitta_fil():
     print(len(data.iloc[1,:]))
 
 
+def export_stuff():
+    print('Hello, World!')
+    filename = filedialog.askopenfiles(title='Vel fílir at klistra saman til at síðani eksportera', filetypes=(("csv Fílir", "*.csv"), ("all files", "*.*")))
+    #filename = ['~/Documents/data/Echolodd/D20200220-T0857511_0.csv', '~/Documents/data/Echolodd/D20200220-T0857511_1.csv']
+    #filename = ['~/Documents/data/Echolodd/D20200220-T0857511_0.csv']
+    timeFilename = filename[0].name.split('_')[0]
+    #timeFilename = filename[0].split('_')[0]
+    timeFilename = timeFilename[:-1] + '-T.csv'
+    print(timeFilename)
+    timeData = pd.read_csv(timeFilename)
+    stuff_to_export = pd.DataFrame(columns=['Tíð', 'Dýpi', 'Sv'])
+
+
+    SpeedOfSound = 1500     # m/s
+    SampleTime = 0.000025   # s
+    distancePerSample = SpeedOfSound*SampleTime/2
+
+    for fileIndex, file in enumerate(filename):
+        print('Nú rokni eg uppá fíl ' + file.name)
+        disMaxi = pd.read_csv(file.name[:-4] + 'maxi.csv')
+        #disMaxi = pd.read_csv(file[:-4] + 'maxi.csv')
+        disData = pd.read_csv(file.name)
+        #disData = pd.read_csv(file)
+        ignore_last = 50
+        processed = disData.copy()
+
+
+        for i in range(len(disData.iloc[1, :])):
+            tmp = disData.iloc[disMaxi.iloc[i, 1]:-ignore_last, i]
+            variabulTilAsu = 300 # Her Ása!! Broyt hetta! So burdi tað rigga
+            tmp = np.append(tmp, list(np.ones([disMaxi.iloc[i, 1] + ignore_last]) * -variabulTilAsu))
+            processed.iloc[:, i] = tmp
+
+        disData = processed
+
+        for exportPingIndex in range(int(len(disData.iloc[1, :]-213)/75)):
+            # Hettar loop'ið inkrementerar hvørjar 5 minuttir
+            # Fyri hvørja tíð í intervalinum rokna miðal SV
+            for exportDepthIndex in range(int(len(disData.iloc[:, 1])/11)):
+                meanSvSubDepthTimeList = []
+                for subTimeStep in range(75):
+                    meanSvSubDepth = 0
+                    divideby = 0
+                    for subDepth in range(11):# Fyri hvørjar 20 cm
+                        #print('Depth Index: ' + str(exportDepthIndex*7+subDepth))
+                        #print('Time Index: ' + str(exportPingIndex*75+subTimeStep))
+                        if not np.isnan(disData.iloc[exportDepthIndex*11+subDepth, exportPingIndex*75+subTimeStep]):
+                            meanSvSubDepth += 10**(disData.iloc[exportDepthIndex*11+subDepth, exportPingIndex*75+subTimeStep]/10) #Ger til linscale og rokna miðal
+                            divideby += 1
+                    if divideby and not np.isnan(meanSvSubDepth):
+                        meanSvSubDepthTimeList.append(meanSvSubDepth/divideby)
+                    else:
+                        meanSvSubDepthTimeList.append(-201)
+                meanSvSubDepthTime = 10 * np.log10(np.mean(meanSvSubDepthTimeList))
+                if not np.isnan(meanSvSubDepthTime):
+                    if meanSvSubDepthTime != -200.0:
+                        # Set inn eina nýggja linju í tingi
+                        disTid = str(timeData.iloc[exportPingIndex*75]).split('\\t')[1].split('\n')[0]
+                        #print('Innsett dýpið: ' + str((exportDepthIndex*6*distancePerSample)))
+                        stuff_to_export = stuff_to_export.append({'time': disTid.split('.')[0], 'depth': np.round(exportDepthIndex*11*distancePerSample, 3), 'Sv': np.round(meanSvSubDepthTime, 3)}, ignore_index=True)
+    stuff_to_export.to_csv(filename[0].name.split('_')[0]+'_Export.csv', index=False)
+    print('ding dong done!')
 
 root = Tk()
 root.geometry("1200x800")
@@ -117,6 +222,8 @@ Label(menu_frame, text='Cursor position: ').pack(side=LEFT)
 cLabel = Label(menu_frame, text='0')
 cLabel.pack(side=LEFT)
 
+exportStuffBtn = Button(menu_frame, text='Eksportera ting', command=lambda: export_stuff())
+exportStuffBtn.pack(side=RIGHT)
 
 splittaFilarBtn = Button(menu_frame, text='Splitta Fílir', command=lambda: splitta_fil())
 splittaFilarBtn.pack(side=RIGHT, anchor=E)
@@ -148,7 +255,7 @@ canvas.get_tk_widget().pack(fill=BOTH, expand=1)
 canvasSingle.draw()
 canvasSingle.get_tk_widget().pack(fill=BOTH, expand=1)
 print('done')
-cursor = 0
+
 scatters = ax.scatter(0, 100, c='white')
 #yNumbers = np.arange(len(dataign.iloc[:, 1]))
 global yNumbers
@@ -218,7 +325,44 @@ def key(event):
         axS.axhline(y=-float(answer), c='red')
     if event.keysym == 's':
         toSave = pd.DataFrame(max_index)
+        print('Goymur....')
         toSave.to_csv(filename[:-4] + 'maxi.csv')
+        print('Liðugt, ver so glað ása')
+        bad_joke = np.floor(np.random.random()*16)
+        joke = "text"
+        if bad_joke == 0:
+            joke = "How do you spell Canda? C,eh,N,eh,D,eh"
+        elif bad_joke == 1:
+            joke = "I saw a French rifle on eBay today It's never been fired but I heard it was dropped once."
+        elif bad_joke == 2:
+            joke = "A Mexican fireman had twin boys He named them Jose and Hose B"
+        elif bad_joke == 3:
+            joke = "My ex-wife still misses me... But her aim is gettin better."
+        elif bad_joke == 4:
+            joke = "If you have a parrot and you don't teach it to say,\"Help, they've turned me into a parrot.\" you are wasting everybody's time."
+        elif bad_joke == 5:
+            joke = " What do you call a fish with a tie? soFISHticated"
+        elif bad_joke == 6:
+            joke = " What do sea monsters eat? Fish and ships."
+        elif bad_joke == 7:
+            joke = " What party game do fish like to play? Salmon Says."
+        elif bad_joke == 8:
+            joke = " How does an octopus go to war? Well-armed!"
+        elif bad_joke == 9:
+            joke = " What do you call a big fish who makes you an offer you can't refuse? The Codfather!"
+        elif bad_joke == 10:
+            joke = "What’s a pirate’s favorite letter? \n R? \n No. It be the C!"
+        elif bad_joke == 11:
+            joke = "Have you heard any good pirate jokes? Well, neither have ayyyye"
+        elif bad_joke == 12:
+            joke = "Why does it take pirates so long to learn the alphabet? Because they can spend years at C."
+        elif bad_joke == 13:
+            joke = "How do pirates prefer to communicate? A: Aye to aye!"
+        elif bad_joke == 14:
+            joke = " Why did nobody want to play cards with the pirate? Because he was standing on the deck."
+        elif bad_joke == 15:
+            joke = "Why is pirating so addictive? They say once ye lose yer first hand, ye get hooked!"
+        messagebox.showinfo("Goymt", joke)
     if event.keysym == 'KP_Decimal' or event.keysym == 'comma':
         answer = simpledialog.askstring("Input", "Botnurin er undur?", parent=app)
         visible_max = cursor + 500
@@ -226,6 +370,13 @@ def key(event):
         l = lines[0]
         l.remove()
         lines = ax.plot(max_index, c='lime')
+    if event.keysym == '3':
+        visible_max = cursor + 500
+        max_index[cursor:visible_max] = finnmaxRanger(dataign.iloc[:, cursor:visible_max], max_index[cursor], search_range=20, under=float(answer))
+        l = lines[0]
+        l.remove()
+        lines = ax.plot(max_index, c='lime')
+
     elif event.keysym == 'Tab':
         if save_changes:
             print('Do something')
@@ -306,5 +457,6 @@ def key(event):
 
     canvas.draw()
     #canvas.get_tk_widget().pack(fill=BOTH, expand=1)
+#export_stuff()
 root.bind('<Key>', key)
 root.mainloop()

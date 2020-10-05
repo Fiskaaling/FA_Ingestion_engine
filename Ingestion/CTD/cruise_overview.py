@@ -1,0 +1,267 @@
+import pandas as pd
+import os
+from tkinter import *
+from tkinter import messagebox
+import matplotlib
+import Ingestion.CTD.align_ctd
+import Ingestion.CTD.bin_average
+import getpass
+import fileinput
+import subprocess
+from shutil import copyfile
+matplotlib.use('TkAgg')
+
+
+def cruise_overview_frame(frame, root2, selectedCruse=0):
+    mappunavn = './Ingestion/CTD/Lokalt_Data/'
+    frames_dict = {'mappunavn': mappunavn}
+    root = root2
+    for widget in frame.winfo_children():
+        widget.destroy()
+    Label(frame, text='Seabird SBE 25 CTD', font='Helvetica 18 bold').pack(side=TOP)
+
+    controlsFrame = Frame(frame)
+    controlsFrame.pack(side=TOP)
+
+
+    Label(controlsFrame, text='Túrnummar:').pack(side=LEFT)
+
+    turnummar = Entry(controlsFrame, width=10)
+    turnummar.pack(side=LEFT)
+    Button(controlsFrame, text='Stovna Túr', command=lambda: stovna_tur(frames_dict)).pack(side=LEFT)
+
+    frames_dict['cruiseFrame'] = Frame(frame)
+    frames_dict['cruiseFrame'].pack(side=LEFT, anchor=W, expand=True, fill=BOTH)
+
+    frames_dict['statusFrame'] = Frame(frame)
+    frames_dict['statusFrame'].pack(side=LEFT, anchor=W, expand=True, fill=BOTH)
+
+    Label(frames_dict['statusFrame'], text='Status á viðgerð', font=("Courier", 14)).pack(side=TOP)
+
+    frames_dict['selectedFrame'] = 0
+    frames_dict['selectedCruse'] = selectedCruse
+    frames_dict['selectedCast'] = 0
+
+    frames_dict['frame'] = frame
+    frames_dict['root2'] = root2
+    updatecruseframe(frames_dict)
+
+    def key(event):
+        print(len(frames_dict['cruises']))
+        print(frames_dict['selectedCruse'])
+        if frames_dict['selectedFrame'] == 0:
+            if event.keysym == 'Up':
+                if (frames_dict['selectedCruse'] - 1) >= 0:
+                    frames_dict['selectedCruse'] -= 1
+                    updatecruseframe(frames_dict)
+            if event.keysym == 'Down':
+                if frames_dict['selectedCruse'] + 1 < len(frames_dict['cruises']):
+                    frames_dict['selectedCruse'] += 1
+                    updatecruseframe(frames_dict)
+        if frames_dict['selectedFrame'] == 1:
+            if event.keysym == 'Up':
+                if (frames_dict['selectedCast'] - 1) >= 0:
+                    frames_dict['selectedCast'] -= 1
+                    updateCastsFrame(frames_dict)
+            if event.keysym == 'Down':
+                if frames_dict['selectedCast'] + 1 < len(frames_dict['casts']):
+                    frames_dict['selectedCast'] += 1
+                    updateCastsFrame(frames_dict)
+        if event.keysym == 'Right':
+            if frames_dict['selectedFrame'] < 2:
+                frames_dict['selectedFrame'] += 1
+            if frames_dict['selectedFrame'] == 1:
+                updateCastsFrame(frames_dict)
+        if event.keysym == 'Left':
+            if frames_dict['selectedFrame'] > 0:
+                frames_dict['selectedFrame'] -= 1
+            if frames_dict['selectedFrame'] == 1:
+                updateCastsFrame(frames_dict)
+
+
+        print(event.keysym)
+
+    root.bind('<Key>', key)
+
+
+def updateCastsFrame(frames_dict):
+    if 'castFrameDict' in frames_dict:
+        print(frames_dict['castFrameDict'])
+        for frame in frames_dict['castFrameDict']:
+            print(frames_dict['castFrameDict'][frame])
+            for widget in frames_dict['castFrameDict'][frame].winfo_children(): # Tømur quality frame
+                print(widget)
+                widget.destroy()
+            frames_dict['castFrameDict'][frame].pack_forget()
+            frames_dict['castFrameDict'][frame].destroy()
+        frames_dict['statusFrameBelow'].destroy()
+    print(frames_dict['mappunavn'] + frames_dict['cruises'][frames_dict['selectedCruse']])
+    print(frames_dict['mappunavn'])
+
+    frames_dict['casts'] = os.listdir(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/RAW/')
+    frames_dict['casts'].sort()
+    castsDict = {}
+    buttonsDict = {}
+    castFrameDict = {}
+    if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/turMetadata.csv'):
+        metadata = pd.read_csv(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/turMetadata.csv', index_col=False)
+    else:
+        metadata = pd.DataFrame(columns=['key', 'value'])
+
+    meanAlignCTDSum = 0
+    meanAlignCTDDivideby = 0
+
+    for i, cast in enumerate(frames_dict['casts']):
+
+        castFrameDict[cast] = Frame(frames_dict['statusFrame'])
+        castFrameDict[cast].pack(side=TOP)
+        castsDict[str(cast)] = Label(castFrameDict[cast], text=cast[:-4], font=("Courier", 12))
+        castsDict[str(cast)].pack(side=LEFT)
+        print(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/1_Data_Conversion/' + cast[:-4]+'.cnv')
+        if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/1_Data_Conversion/' + cast[:-4]+'.cnv'):
+            buttonsDict['DataConv' + cast] = Button(castFrameDict[cast], text='Data Conversion', bg='lightgreen')
+        else:
+            buttonsDict['DataConv' + cast] = Button(castFrameDict[cast], text='Data Conversion')
+        buttonsDict['DataConv' + cast].pack(side=LEFT)
+        if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/1_Data_Conversion/' + cast[:-4]+'.cnv'):
+            buttonsDict['Filter' + cast] = Button(castFrameDict[cast], text='Filter', bg='lightgreen')
+        else:
+            buttonsDict['Filter' + cast] = Button(castFrameDict[cast], text='Filter')
+        buttonsDict['Filter' + cast].pack(side=LEFT)
+
+        AlignCTD_ok = 0
+        for metadataRowIndex, metadataRow in enumerate(metadata.iloc[:,0]):
+            if metadataRow.split('CTD')[1][:-4] == cast[:-4]:
+                AlignCTD_ok = metadata.iloc[metadataRowIndex, 1]
+                meanAlignCTDSum += metadata.iloc[metadataRowIndex, 1]
+                meanAlignCTDDivideby += 1
+            print('ok')
+
+        if AlignCTD_ok:
+            buttonsDict['AlignCTD' + cast] = Button(castFrameDict[cast], text='Align CTD ' + "{:.2f}".format(AlignCTD_ok), bg='Green', command=lambda: Ingestion.CTD.align_ctd.align_ctd_frame(frames_dict['frame'], frames_dict['root2'], selectNewFolder=False, mappunavn=frames_dict['mappunavn'] + '/' +
+                                                                                                                                                                                                                                          frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/2_Filter/', filIndex=0))
+        elif os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/3_Align_CTD/' + cast[:-4]+'.cnv'):
+            if AlignCTD_ok:
+                buttonsDict['AlignCTD' + cast] = Button(castFrameDict[cast], text='Align CTD ' + "{:.2f}".format(AlignCTD_ok), bg='lightgreen',
+                                                        command=lambda: Ingestion.CTD.align_ctd.align_ctd_frame(frames_dict['frame'], frames_dict['root2'], selectNewFolder=False, mappunavn=frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/2_Filter/', filIndex=0))
+            else:
+                buttonsDict['AlignCTD' + cast] = Button(castFrameDict[cast], text='Align CTD ' + "{:.2f}".format(0), bg='lightgreen',
+                                                        command=lambda: Ingestion.CTD.align_ctd.align_ctd_frame(frames_dict['frame'], frames_dict['root2'], selectNewFolder=False, mappunavn=frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/2_Filter/',
+                                                                                                                filIndex=0))
+        else:
+            buttonsDict['AlignCTD' + cast] = Button(castFrameDict[cast], text='Align CTD ' + "{:.2f}".format(0),
+                                                    command=lambda: Ingestion.CTD.align_ctd.align_ctd_frame(frames_dict['frame'], frames_dict['root2'], selectNewFolder=False, mappunavn=frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/2_Filter/',
+                                                                                                            filIndex=0))
+        buttonsDict['AlignCTD' + cast].pack(side=LEFT)
+
+        if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/4_CTM/' + cast[:-4]+'.cnv'):
+            buttonsDict['CTM' + cast] = Button(castFrameDict[cast], text='Cell Thermal Mass', bg='lightgreen')
+        else:
+            buttonsDict['CTM' + cast] = Button(castFrameDict[cast], text='Cell Thermal Mass')
+        buttonsDict['CTM' + cast].pack(side=LEFT)
+
+        if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/5_Derive/' + cast[:-4]+'.cnv'):
+            buttonsDict['Derive' + cast] = Button(castFrameDict[cast], text='Derived Variables', bg='lightgreen')
+        else:
+            buttonsDict['Derive' + cast] = Button(castFrameDict[cast], text='Derived Variables')
+        buttonsDict['Derive' + cast].pack(side=LEFT)
+
+        if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/5_Derive/' + cast[:-4]+'.cnv'):
+            buttonsDict['Window_Filter' + cast] = Button(castFrameDict[cast], text='Window Filter', bg='lightgreen')
+        else:
+            buttonsDict['Window_Filter' + cast] = Button(castFrameDict[cast], text='Window Filter')
+        buttonsDict['Window_Filter' + cast].pack(side=LEFT)
+
+        if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/7_Bin_Average/' + cast[:-4]+'.cnv'):
+            buttonsDict['BA' + cast] = Button(castFrameDict[cast], text='Bin Average', bg='lightgreen', command=lambda: Ingestion.CTD.bin_average.bin_average_frame(frames_dict['frame'], frames_dict['root2']))
+        else:
+            buttonsDict['BA' + cast] = Button(castFrameDict[cast], text='Bin Average')
+        buttonsDict['BA' + cast].pack(side=LEFT)
+
+        if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/ASCII/ASCII_Downcast/' + cast[:-4]+'.asc'):
+            buttonsDict['ASCII_out' + cast] = Button(castFrameDict[cast], text='Ascii out', bg='lightgreen')
+        else:
+            buttonsDict['ASCII_out' + cast] = Button(castFrameDict[cast], text='Ascii out')
+        buttonsDict['ASCII_out' + cast].pack(side=LEFT)
+
+        buttonsDict['MakeFigures' + cast] = Button(castFrameDict[cast], text='Ger figurar')
+        buttonsDict['MakeFigures' + cast].pack(side=LEFT)
+
+    frames_dict['castFrameDict'] = castFrameDict
+    frames_dict['statusFrameBelow'] = Frame(frames_dict['statusFrame'])
+    frames_dict['statusFrameBelow'].pack(side=TOP, anchor=W)
+    Label(frames_dict['statusFrameBelow'], text='Koyr rokning').pack(side=TOP, anchor=W)
+
+    frames_dict['conv_and_filter_btn'] = Button(frames_dict['statusFrameBelow'], text='Rokna Conversion og Filter', command=lambda: align_ctd(frames_dict, meanAlignCTD), bg='lightgreen', width=30)
+    frames_dict['conv_and_filter_btn'].pack(side=TOP, anchor=W)
+
+    frames_dict['statusFrameBelowAlign'] = Frame(frames_dict['statusFrameBelow'])
+    frames_dict['statusFrameBelowAlign'].pack(side=TOP, anchor=W)
+
+
+
+    meanAlignCTD = 0
+    if meanAlignCTDDivideby:
+        meanAlignCTD = meanAlignCTDSum/meanAlignCTDDivideby
+        frames_dict['AlignCTDLabel'] = Label(frames_dict['statusFrameBelowAlign'], text="{:.2f}".format(meanAlignCTD))
+    else:
+        frames_dict['AlignCTDLabel'] = Label(frames_dict['statusFrameBelowAlign'], text=str(-1))
+
+    if len(os.listdir(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/RAW/')) == len(os.listdir(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/3_Align_CTD/')):
+        frames_dict['AlignCTDButton'] = Button(frames_dict['statusFrameBelowAlign'], text='Rokna Align CTD', command=lambda: align_ctd(frames_dict, meanAlignCTD), bg='lightgreen', width=30)
+    else:
+        frames_dict['AlignCTDButton'] = Button(frames_dict['statusFrameBelowAlign'], text='Rokna Align CTD', command=lambda: align_ctd(frames_dict, meanAlignCTD), width=30)
+    frames_dict['AlignCTDButton'].pack(side=LEFT)
+    Label(frames_dict['statusFrameBelowAlign'], text='Miðal Align CTD virði:').pack(side=LEFT)
+    frames_dict['AlignCTDLabel'].pack(side=LEFT)
+    #frames_dict['AlignCTDLabel'].configure(text='test')
+
+    frames_dict['window_filter_btn'] = Button(frames_dict['statusFrameBelow'], text='Rokna CTM, Derived og Window filter', command=lambda: align_ctd(frames_dict, meanAlignCTD), bg='lightgreen', width=30)
+    frames_dict['window_filter_btn'].pack(side=TOP, anchor=W)
+
+
+    print('Eg eri her!')
+
+def stovna_tur():
+    pass
+
+
+def align_ctd(frames_dict, ox_offset):
+    winedir = '/home/' + getpass.getuser() + '/.wine/drive_c/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/'
+    copyfile(winedir + 'AlignCTD_(custom)_original.psa', winedir + 'AlignCTD_(custom).psa')
+    ikki_funni_linju = True
+    with fileinput.FileInput(winedir + 'AlignCTD_(custom).psa', inplace=True) as file:
+        for line in file:
+            ikki_funni_linju = False
+            print(line.replace('-77', str(ox_offset)), end='')
+
+    if ikki_funni_linju:
+        messagebox.showerror('Feilur við export', 'Customstart fílur ikki funnin!')
+        raise FileNotFoundError('Customstart fílur ikki funnin')
+
+
+    # turdato = os.path.dirname(os.path.dirname(mappunavn_dict['mappunavn'])).split('Lokalt_Data/')[-1]
+    # JKEDIT turdato = mappunavn_dict['mappunavn'].split('Processed')[0].split('Lokalt_Data')[1].replace('/', '')
+    for cast in frames_dict['casts']:
+        print('Input: ' + 'Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/2_Filter/' + cast[:-4])
+        subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
+                         "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/3_Align_CTD_(custom).txt",
+                         str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/2_Filter/' + cast[:-4]),
+                         str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/3_Align_CTD'), '#m'])
+    updateCastsFrame(frames_dict)
+
+
+def updatecruseframe(frames_dict):
+    for widget in frames_dict['cruiseFrame'].winfo_children(): # Tømur quality frame
+        widget.destroy()
+    Label(frames_dict['cruiseFrame'], text='Túrur', font=("Courier", 14)).pack(side=TOP)
+    frames_dict['cruises'] = os.listdir(frames_dict['mappunavn'])
+    frames_dict['cruises'].sort()
+    cruisesDict = {}
+    for i, cruise in enumerate(frames_dict['cruises']):
+        if i == frames_dict['selectedCruse']:
+            cruisesDict[str(cruise)] = Label(frames_dict['cruiseFrame'], text=cruise, font=("Courier", 12, 'underline'))
+        else:
+            cruisesDict[str(cruise)] = Label(frames_dict['cruiseFrame'], text=cruise, font=("Courier", 12))
+        cruisesDict[str(cruise)].pack(side=TOP)
+    frames_dict['cruisesDict'] = cruisesDict
