@@ -601,13 +601,23 @@ def les_og_tekna(text, fig, canvas, silent=False, v_dic={}):
                 siglignsferd = float(command[toindex::])
             elif variable == 'breiddarlinjur':
                 if not renderengine == '3D_botn':
-                    breiddarlinjur = np.linspace(v_dic['req']['latmin'], v_dic['req']['latmax'], int(command[toindex::]))
+                    # um listi kemur inn
+                    if ',' in command[toindex::]:
+                        breiddarlinjur = [float(idx) for idx in command[toindex::].split(',')]
+                    # um tal kemur inn
+                    else:
+                        breiddarlinjur = np.linspace(v_dic['req']['latmin'], v_dic['req']['latmax'], int(command[toindex::]))
                     # gl = ax.gridlines(ccrs_projection, linestyle=linjuSlag, ylocs=breiddarlinjur, xlocs=longdarlinjur, color='lightgray', draw_labels=True, zorder=100)
                     # gl.xlabels_top = False # TODO Ger hettar orduligt, eg havi útkommentera hettar tí okkurt riggar ikki
                     # gl.ylabels_left = False
             elif variable == 'longdarlinjur':
                 if not renderengine == '3D_botn':
-                    longdarlinjur = np.linspace(v_dic['req']['lonmin'], v_dic['req']['lonmax'], int(command[toindex::]))
+                    # um listi kemur inn
+                    if ',' in command[toindex::]:
+                        longdarlinjur = [float(idx) for idx in command[toindex::].split(',')]
+                    # um tal kemur inn
+                    else:
+                        longdarlinjur = np.linspace(v_dic['req']['lonmin'], v_dic['req']['lonmax'], int(command[toindex::]))
                     gl = ax.gridlines(ccrs_projection, linestyle=linjuSlag, ylocs=breiddarlinjur, xlocs=longdarlinjur, color='lightgray', draw_labels=True, zorder=100)
                     gl.xlabels_top = False
                     gl.ylabels_left = False
