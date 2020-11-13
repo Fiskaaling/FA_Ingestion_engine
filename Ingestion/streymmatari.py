@@ -268,7 +268,7 @@ def rokna(fra, til, punktPerPil, bins, skip):
                              decimal=",")
         df_u = pd.read_csv(mappunavn + '/' + str(trip) + '_u.txt', skiprows=11, delim_whitespace=True, index_col=0, decimal=",")
         df_v = pd.read_csv(mappunavn + '/' + str(trip) + '_v.txt', skiprows=11, delim_whitespace=True, index_col=0, decimal=",")
-
+        skip_last = len(df_v)
         if os.path.exists(mappunavn + '/' + str(trip) + '_etc.csv'):
             etc = pd.read_csv(mappunavn + '/' + str(trip) + '_etc.csv', delimiter=',')
             skip_first = 0

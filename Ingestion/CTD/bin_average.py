@@ -4,7 +4,7 @@ import os
 import subprocess
 from tkinter import *
 from tkinter import filedialog
-
+import Ingestion.CTD.cruise_overview
 import matplotlib
 import numpy as np
 import pandas as pd
@@ -25,8 +25,7 @@ from Ingestion.CTD.aux.ctd_pump import pumpstatus
 textsize = 16
 
 
-def bin_average_frame(frame, root2):
-    mappunavn = './Ingestion/CTD/Lokalt_Data/2019-01-17/Processed/ASCII_ALL'
+def bin_average_frame(frame, root2, mappunavn='./Ingestion/CTD/Lokalt_Data/2019-01-17/Processed/ASCII_ALL'):
     mappunavn_dict = {'mappunavn': mappunavn}
     root = root2
     for widget in frame.winfo_children():
@@ -61,14 +60,14 @@ def bin_average_frame(frame, root2):
     mappunavn_dict['continuebtn'] = Button(Quality_frame, text='Halt áfram', command=lambda: Ingestion.CTD.skraset_stodir(frame, root2))
     mappunavn_dict['continuebtn'].pack(side=TOP, anchor=W)
 
-    processera(root, fig, canvas, Quality_frame, mappunavn_dict)
+    processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame)
 
 
 def velFil(mappunavn):
     mappunavn['mappunavn'] = filedialog.askdirectory(title='Vel túramappu', initialdir='./Ingestion/CTD/Lokalt_Data/')
 
 
-def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
+def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
     mappunavn = mappunavn_dict['mappunavn']
     log_b()
     midlingstid = 2  # sek
@@ -91,8 +90,11 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
 
     list_of_casts = os.listdir(mappunavn)
     list_of_casts.sort()
-    parent_folder = os.path.dirname(os.path.dirname(mappunavn))
 
+    print(mappunavn)
+    #parent_folder = os.path.dirname(os.path.dirname(mappunavn))
+    parent_folder = mappunavn.split('Processed')[0]
+    print(parent_folder)
     # Um mappurnar ikki eru til, ger tær
     if not os.path.exists(parent_folder + '/Processed/7_Bin_Average/'):
         os.mkdir(parent_folder + '/Processed/7_Bin_Average/')
@@ -418,7 +420,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
                 print('Toggle ax off')
                 mappunavn_dict['toggle_ax'] = 0
                 log_clear()
-                processera(root, fig, canvas, Quality_frame, mappunavn_dict)
+                processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame)
             else:
                 print('Toggle ax on')
                 mappunavn_dict['toggle_ax'] = 1
@@ -437,8 +439,10 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
                 #    soak_line_dict['annotation'].remove()
                 canvas.draw()
 
-
-
+        elif event.keysym == 'BackSpace':
+            turdato = mappunavn.split('Processed')[0]
+            turdato = turdato.split('Lokalt_Data')[1]
+            Ingestion.CTD.cruise_overview.cruise_overview_frame(frame, root, selectedCruse=turdato.replace('/', ''))
         elif event.keysym == 'Return':
             log_b()
             log_print('Calculating')
@@ -495,8 +499,11 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
 
                 if ikki_funni_linju:
                     messagebox.showerror('Feilur við export', 'Customstart fílur ikki funnin!')
-
-                turdato = os.path.dirname(os.path.dirname(mappunavn)).split('/')[-1]
+                print(mappunavn)
+                #turdato = os.path.dirname(os.path.dirname(mappunavn)).split('/')[-1]
+                turdato = mappunavn.split('Processed')[0]
+                turdato = turdato.split('Lokalt_Data')[1]
+                print('Túrdato:' + turdato)
                 subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
                                  "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/8_Bin_Average(1m-customstart).txt",
                                  str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/6_Window_Filter/' + filnavn[mappunavn_dict['filur']].split('.')[0]),
@@ -550,7 +557,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict):
             canvas.draw()
         elif event.keysym == 'space':
             log_clear()
-            processera(root, fig, canvas, Quality_frame, mappunavn_dict)
+            processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame)
         elif event.keysym == 'onehalf':
             qcontrol(quality_subframe, depth, event_dict, pump_on, filnavn[mappunavn_dict['filur']])
         elif event.keysym == 'Delete':

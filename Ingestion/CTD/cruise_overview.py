@@ -12,7 +12,7 @@ from shutil import copyfile
 matplotlib.use('TkAgg')
 
 
-def cruise_overview_frame(frame, root2, selectedCruse=0):
+def cruise_overview_frame(frame, root2, selectedCruse=''):
     mappunavn = './Ingestion/CTD/Lokalt_Data/'
     frames_dict = {'mappunavn': mappunavn}
     root = root2
@@ -39,11 +39,23 @@ def cruise_overview_frame(frame, root2, selectedCruse=0):
     Label(frames_dict['statusFrame'], text='Status á viðgerð', font=("Courier", 14)).pack(side=TOP)
 
     frames_dict['selectedFrame'] = 0
-    frames_dict['selectedCruse'] = selectedCruse
+    frames_dict['selectedCruse'] = 0
+
     frames_dict['selectedCast'] = 0
 
     frames_dict['frame'] = frame
     frames_dict['root2'] = root2
+
+    updatecruseframe(frames_dict)
+    print('SelectedCruise: ' + selectedCruse)
+    cruises = os.listdir(mappunavn)
+    cruises.sort()
+    print(cruises)
+    for i, file in enumerate(cruises):
+        print(file)
+        if file == selectedCruse:
+            frames_dict['selectedCruse'] = i
+            updateCastsFrame(frames_dict)
     updatecruseframe(frames_dict)
 
     def key(event):
@@ -155,9 +167,9 @@ def updateCastsFrame(frames_dict):
         buttonsDict['AlignCTD' + cast].pack(side=LEFT)
 
         if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/4_CTM/' + cast[:-4]+'.cnv'):
-            buttonsDict['CTM' + cast] = Button(castFrameDict[cast], text='Cell Thermal Mass', bg='lightgreen')
+            buttonsDict['CTM' + cast] = Button(castFrameDict[cast], text='CTM', bg='lightgreen')
         else:
-            buttonsDict['CTM' + cast] = Button(castFrameDict[cast], text='Cell Thermal Mass')
+            buttonsDict['CTM' + cast] = Button(castFrameDict[cast], text='CTM')
         buttonsDict['CTM' + cast].pack(side=LEFT)
 
         if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/5_Derive/' + cast[:-4]+'.cnv'):
@@ -172,10 +184,13 @@ def updateCastsFrame(frames_dict):
             buttonsDict['Window_Filter' + cast] = Button(castFrameDict[cast], text='Window Filter')
         buttonsDict['Window_Filter' + cast].pack(side=LEFT)
 
+        binAverageInputFolder = frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/ASCII_ALL/'
+        binAverageInputFolder = binAverageInputFolder.replace('//', '/')
+        print(binAverageInputFolder)
         if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/7_Bin_Average/' + cast[:-4]+'.cnv'):
-            buttonsDict['BA' + cast] = Button(castFrameDict[cast], text='Bin Average', bg='lightgreen', command=lambda: Ingestion.CTD.bin_average.bin_average_frame(frames_dict['frame'], frames_dict['root2']))
+            buttonsDict['BA' + cast] = Button(castFrameDict[cast], text='Bin Average', bg='lightgreen', command=lambda: Ingestion.CTD.bin_average.bin_average_frame(frames_dict['frame'], frames_dict['root2'], mappunavn=binAverageInputFolder))
         else:
-            buttonsDict['BA' + cast] = Button(castFrameDict[cast], text='Bin Average')
+            buttonsDict['BA' + cast] = Button(castFrameDict[cast], text='Bin Average', command=lambda: Ingestion.CTD.bin_average.bin_average_frame(frames_dict['frame'], frames_dict['root2'], mappunavn=binAverageInputFolder))
         buttonsDict['BA' + cast].pack(side=LEFT)
 
         if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/ASCII/ASCII_Downcast/' + cast[:-4]+'.asc'):
@@ -186,6 +201,27 @@ def updateCastsFrame(frames_dict):
 
         buttonsDict['MakeFigures' + cast] = Button(castFrameDict[cast], text='Ger figurar')
         buttonsDict['MakeFigures' + cast].pack(side=LEFT)
+
+        castsDict['GodskaLabel' + str(cast)] = Label(castFrameDict[cast], text='Góðska:', font=("Courier", 12))
+        castsDict['GodskaLabel' + str(cast)].pack(side=LEFT)
+
+        if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/ASCII/ASCII_Downcast/metadata/' + cast[:-4] + '_metadata.csv'):
+            metadataCast = pd.read_csv(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/ASCII/ASCII_Downcast/metadata/' + cast[:-4] + '_metadata.csv', index_col=False)
+
+            for metadataRowIndex, metadataRow in enumerate(metadataCast.iloc[:, 0]):
+                print(metadataCast)
+                print(metadataRow)
+                if metadataRow.split('CTD')[1][:-4] == cast[:-4]:
+                    AlignCTD_ok = metadata.iloc[metadataRowIndex, 1]
+                    meanAlignCTDSum += metadata.iloc[metadataRowIndex, 1]
+                    meanAlignCTDDivideby += 1
+                print('ok')
+            print(metadataCast)
+            castsDict['GodskaLabelvar' + str(cast)] = Label(castFrameDict[cast], text='farts', font=("Courier", 12))
+            castsDict['GodskaLabelvar' + str(cast)].pack(side=LEFT)
+        else:
+            metadata = pd.DataFrame(columns=['key', 'value'])
+
 
     frames_dict['castFrameDict'] = castFrameDict
     frames_dict['statusFrameBelow'] = Frame(frames_dict['statusFrame'])
