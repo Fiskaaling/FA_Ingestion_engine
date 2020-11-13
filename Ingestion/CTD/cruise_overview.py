@@ -8,6 +8,7 @@ import Ingestion.CTD.bin_average
 import getpass
 import fileinput
 import subprocess
+from tkinter import filedialog
 from shutil import copyfile
 matplotlib.use('TkAgg')
 
@@ -28,7 +29,7 @@ def cruise_overview_frame(frame, root2, selectedCruse=''):
 
     turnummar = Entry(controlsFrame, width=10)
     turnummar.pack(side=LEFT)
-    Button(controlsFrame, text='Stovna Túr', command=lambda: stovna_tur(frames_dict)).pack(side=LEFT)
+    Button(controlsFrame, text='Stovna Túr', command=lambda: stovna_tur(turnummar.get(), frames_dict)).pack(side=LEFT)
 
     frames_dict['cruiseFrame'] = Frame(frame)
     frames_dict['cruiseFrame'].pack(side=LEFT, anchor=W, expand=True, fill=BOTH)
@@ -258,9 +259,37 @@ def updateCastsFrame(frames_dict):
 
     print('Eg eri her!')
 
-def stovna_tur(frames_dict):
-    pass
 
+def stovna_tur(turnummar, frames_dict):
+    mappunavn = filedialog.askdirectory(title='Vel rádatamappu')
+    casts = os.listdir(mappunavn)
+    print(casts)
+    print(os.getcwd())
+    if not os.path.exists('./Ingestion/CTD/Lokalt_Data/' + turnummar + '/'):
+        print('Ger lokala mappu')
+        os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turnummar)
+        os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turnummar + '/Processed')
+        os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turnummar + '/RAW')
+        os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turnummar + '/Processed/1_Data_Conversion')
+        os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turnummar + '/Processed/2_Filter')
+        os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turnummar + '/Processed/3_Align_CTD')
+        os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turnummar + '/Processed/4_CTM')
+        os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turnummar + '/Processed/5_Derive')
+        os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turnummar + '/Processed/6_Window_Filter')
+        os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turnummar + '/Processed/ASCII_ALL')
+
+    else:
+        print('Lokala mappan er til')
+    casts.sort()
+    for i, cast in enumerate(casts):
+        # TODO: Um man velur mappu har castini ikki eru í hvør sínari mappu, processera tað allíkavæl
+        filnavnorginal = os.listdir(mappunavn + '/' + cast)
+        filnavnorginal = filnavnorginal[0]
+        filnavn = str(turnummar) + '{:03d}'.format(i + 1)
+        # TODO: Flyt ístaðin fyri at kopiera
+        copyfile(mappunavn + '/' + cast + '/' + filnavnorginal, './Ingestion/CTD/Lokalt_Data/' + turnummar + '/RAW/' + filnavn + '.xml')
+    updateCastsFrame(frames_dict)
+    updatecruseframe(frames_dict)
 
 def align_ctd(frames_dict, ox_offset):
     winedir = '/home/' + getpass.getuser() + '/.wine/drive_c/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/'
@@ -285,6 +314,7 @@ def align_ctd(frames_dict, ox_offset):
                          str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/2_Filter/' + cast[:-4]),
                          str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/3_Align_CTD'), '#m'])
     updateCastsFrame(frames_dict)
+    updatecruseframe(frames_dict)
 
 
 def updatecruseframe(frames_dict):
