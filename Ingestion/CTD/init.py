@@ -9,6 +9,7 @@ from Ingestion.CTD import cruise_overview
 
 def init(ingestion_listbox):
     ctd = ingestion_listbox.insert("", 0, text='Seabird SBE 25 CTD')
+    ingestion_listbox.insert(ctd, 0, text="Túr yvirlit")
     ingestion_listbox.insert(ctd, 0, text="Tekna Ascii fíl")
     ingestion_listbox.insert(ctd, 0, text="Linju Tíðarseria")
     ingestion_listbox.insert(ctd, 0, text="Skráset støðir")

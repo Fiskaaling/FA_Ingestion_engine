@@ -16,11 +16,11 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 from tkinter import messagebox
 from misc.sha2calc import get_hash
-import Ingestion.CTD.aux.ba_gui as ba_gui
-from Ingestion.CTD.aux.quality_control import qcontrol
+import Ingestion.CTD.misc.ba_gui as ba_gui
+from Ingestion.CTD.misc.quality_control import qcontrol
 import Ingestion.CTD.skraset_stodir
 from shutil import copyfile
-from Ingestion.CTD.aux.ctd_pump import pumpstatus
+from Ingestion.CTD.misc.ctd_pump import pumpstatus
 
 textsize = 16
 
@@ -308,7 +308,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
             move_amount = 1
         else:
             move_amount = 8
-        log_print(event.keysym)
+        #log_print(event.keysym)
 
         if event.keysym == 'w':
             if mappunavn_dict['filur'] < len(filnavn) - 1:

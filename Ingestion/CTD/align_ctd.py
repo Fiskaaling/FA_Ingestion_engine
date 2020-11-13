@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
-from Ingestion.CTD.aux.ctd_pump import pumpstatus
+from Ingestion.CTD.misc.ctd_pump import pumpstatus
 import Ingestion.CTD.cruise_overview
 from misc.faLog import gerlog, log_print, log_w
 
