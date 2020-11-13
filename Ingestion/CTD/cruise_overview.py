@@ -258,7 +258,7 @@ def updateCastsFrame(frames_dict):
 
     print('Eg eri her!')
 
-def stovna_tur():
+def stovna_tur(frames_dict):
     pass
 
 
