@@ -22,7 +22,7 @@
   <ScanRangeDuration value="2.000000" />
   <StartTimeOption value="0" />
   <PromptForNoteAndOrStartTime value="0" />
-  <CalcArray Size="8" >
+  <CalcArray Size="9" >
     <CalcArrayItem index="0" CalcID="72" >
       <Calc UnitID="-1" Ordinal="0" >
         <FullName value="Scan Count" />
@@ -63,6 +63,11 @@
       <Calc UnitID="-1" Ordinal="0" >
         <FullName value="PAR/Logarithmic, Satlantic [umol photons/m^2/sec]" />
         <PAR_Units value="1" />
+      </Calc>
+    </CalcArrayItem>
+    <CalcArrayItem index="8" CalcID="70" >
+      <Calc UnitID="49" Ordinal="0" >
+        <FullName value="Salinity, Practical [PSU]" />
       </Calc>
     </CalcArrayItem>
   </CalcArray>
