@@ -229,7 +229,7 @@ def updateCastsFrame(frames_dict):
     frames_dict['statusFrameBelow'].pack(side=TOP, anchor=W)
     Label(frames_dict['statusFrameBelow'], text='Koyr rokning').pack(side=TOP, anchor=W)
 
-    frames_dict['conv_and_filter_btn'] = Button(frames_dict['statusFrameBelow'], text='Rokna Conversion og Filter', command=lambda: align_ctd(frames_dict, meanAlignCTD), bg='lightgreen', width=30)
+    frames_dict['conv_and_filter_btn'] = Button(frames_dict['statusFrameBelow'], text='Rokna Conversion og Filter', command=lambda: conv_og_filter(frames_dict), bg='lightgreen', width=30)
     frames_dict['conv_and_filter_btn'].pack(side=TOP, anchor=W)
 
     frames_dict['statusFrameBelowAlign'] = Frame(frames_dict['statusFrameBelow'])
@@ -288,8 +288,26 @@ def stovna_tur(turnummar, frames_dict):
         filnavn = str(turnummar) + '{:03d}'.format(i + 1)
         # TODO: Flyt ístaðin fyri at kopiera
         copyfile(mappunavn + '/' + cast + '/' + filnavnorginal, './Ingestion/CTD/Lokalt_Data/' + turnummar + '/RAW/' + filnavn + '.xml')
-    updateCastsFrame(frames_dict)
+
     updatecruseframe(frames_dict)
+    updateCastsFrame(frames_dict)
+
+
+def conv_og_filter(frames_dict):
+    for cast in frames_dict['casts']:
+        print(cast)
+        subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
+                         "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/1_DatCnv.txt",
+                         str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/RAW/' + cast),
+                         str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/1_Data_Conversion'),
+                         '#m'])
+        subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
+                         "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/2_Filter.txt",
+                         str(
+                             'Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/1_Data_Conversion/' + cast[:-4]),
+                         str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/2_Filter'), '#m'])
+        updateCastsFrame(frames_dict)
+
 
 def align_ctd(frames_dict, ox_offset):
     winedir = '/home/' + getpass.getuser() + '/.wine/drive_c/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/'
