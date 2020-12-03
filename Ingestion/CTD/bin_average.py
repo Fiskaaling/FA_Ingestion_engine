@@ -86,6 +86,8 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
     mappunavn_dict['toggle_Sal00'] = 0
     mappunavn_dict['toggle_par'] = 0
     mappunavn_dict['toggle_C0mS'] = 0
+    print(mappunavn_dict['filur'])
+    print(mappunavn + '/' + filnavn[mappunavn_dict['filur']])
     data = pd.read_csv(mappunavn + '/' + filnavn[mappunavn_dict['filur']], encoding='latin-1')  # Les fíl
 
     list_of_casts = os.listdir(mappunavn)

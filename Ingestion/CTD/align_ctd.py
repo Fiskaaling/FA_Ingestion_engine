@@ -68,10 +68,11 @@ def align_ctd(root, fig, canvas, info_frame, selectNewFolder, mappunavn_dict):
     refresh_infoframe(info_frame, list_of_casts, mappunavn_dict)
 
     mappunavn_dict['ax'] = fig.subplots()
-    mappunavn_dict['ax'].set_xlabel('Raw Oxygen [V]')
+    mappunavn_dict['ax'].set_xlabel('Raw oxygen [V]')
     mappunavn_dict['ax2'] = mappunavn_dict['ax'].twiny()
-    mappunavn_dict['ax2'].set_xlabel('Salinity [c0mS/cm]')
-    mappunavn_dict['ax'].set_ylabel('Dýpið [m]')
+    mappunavn_dict['ax2'].set_xlabel('Conductivity [c0mS/cm]')
+    mappunavn_dict['ax'].set_ylabel('Temperature [C]')
+    #mappunavn_dict['ax'].set_ylabel('Pressure [db]')
 
     def key(event):
         print(event.keysym)
@@ -92,13 +93,30 @@ def align_ctd(root, fig, canvas, info_frame, selectNewFolder, mappunavn_dict):
             else:
                 metadatas = pd.DataFrame(columns=['key', 'value'])
 
-            cast_metadata_keys = metadatas.key
-            cast_metadata_values = metadatas.value
-            cast_metadata = {}
-            for i, key in enumerate(cast_metadata_keys):
-                cast_metadata[key] = cast_metadata_values[i]
+            keyname = 'alignCTD'+list_of_casts[mappunavn_dict['filur']]
+            if keyname in metadatas.key.values:
+                metadatas.loc[metadatas.key == keyname,'value'] = mappunavn_dict['ox_advance']
+            else:
+                metadatas = metadatas.append({'key': keyname, 'value': mappunavn_dict['ox_advance']}, ignore_index=True)
+            #
+            # umGjortFyrr = 0
+            # umGjortFyrrIndex = -1
+            # for i, row in enumerate(metadatas):
+            #     print(row)
+            #     print(row[0])
+            #     print( ( ('alignCTD'+list_of_casts[mappunavn_dict['filur']])))
+            #     if row[0] == ('alignCTD'+list_of_casts[mappunavn_dict['filur']]):
+            #         umGjortFyrr = 1
+            #         umGjortFyrrIndex = i
+            #
+            #     if key in column
+            #
+            # if umGjortFyrr:
+            #     metadatas[umGjortFyrrIndex] = {'key':'alignCTD'+list_of_casts[mappunavn_dict['filur']], 'value': mappunavn_dict['ox_advance']}
+            # else:
+            #     metadatas = metadatas.append({'key':'alignCTD'+list_of_casts[mappunavn_dict['filur']], 'value': mappunavn_dict['ox_advance']}, ignore_index=True)
+            #
 
-            metadatas = metadatas.append({'key':'alignCTD'+list_of_casts[mappunavn_dict['filur']], 'value': mappunavn_dict['ox_advance']}, ignore_index=True)
             print(metadatas)
             metadatas.to_csv(mappunavn_dict['mappunavn'].split('Processed')[0] + 'turMetadata.csv', index=False)
 
@@ -141,7 +159,7 @@ def align_ctd(root, fig, canvas, info_frame, selectNewFolder, mappunavn_dict):
             tempdir = tempfile.mkdtemp('tempOx')
 
             #turdato = os.path.dirname(os.path.dirname(mappunavn_dict['mappunavn'])).split('Lokalt_Data/')[-1]
-            turdato=mappunavn_dict['mappunavn'].split('Processed')[0].split('Lokalt_Data')[1].replace('/', '')
+            turdato = mappunavn_dict['mappunavn'].split('Processed')[0].split('Lokalt_Data')[1].replace('/', '')
 
             print(turdato)
             print(mappunavn_dict['mappunavn'])
@@ -154,14 +172,19 @@ def align_ctd(root, fig, canvas, info_frame, selectNewFolder, mappunavn_dict):
             # So les inn
 
             n_rows_to_skip = 0
+            col_names = []
             with open(tempdir + '/' + list_of_casts[mappunavn_dict['filur']], 'r', encoding='latin-1') as f:
                 lines = f.read().split("\n")
             for i, line in enumerate(lines):
-                if '*END*' in line:  # or word in line.split() to search for full words
+                # finding row where data begins
+                if '*END*' in line:
                     n_rows_to_skip = i
+                # finding names of data columns
+                if '# name' in line:
+                    col_names.append(line.split()[4][0:-1])
             print(n_rows_to_skip)
 
-            data = pd.read_csv(tempdir + '/' + list_of_casts[mappunavn_dict['filur']], encoding='latin-1', skiprows=n_rows_to_skip + 1, delimiter=r"\s+", names=["scan", "TimeS", "c0mS/cm", "t090C", "prdM", "flECO-AFL", "sbeox0V", "par/sat/log", "flag"])  # Les fíl
+            data = pd.read_csv(tempdir + '/' + list_of_casts[mappunavn_dict['filur']], encoding='latin-1', skiprows=n_rows_to_skip + 1, delimiter=r"\s+", names=col_names)  # Les fíl
 
             tempfiles = os.listdir(tempdir)
             for file in tempfiles:
@@ -174,7 +197,7 @@ def align_ctd(root, fig, canvas, info_frame, selectNewFolder, mappunavn_dict):
             [pump_on, pump_off] = pumpstatus(mappunavn_dict['mappunavn'], mappunavn_dict['list_of_casts'][mappunavn_dict['filur']])
 
             midlingstid = 2  # sek
-            n_midlingspunktir = int(np.ceil(midlingstid / (max(data.TimeS) / len(data))))
+            n_midlingspunktir = int(np.ceil(midlingstid / (max(data.timeS) / len(data))))
 
             maxd = max(data.prdM)
             maxdi = -1
@@ -192,19 +215,23 @@ def align_ctd(root, fig, canvas, info_frame, selectNewFolder, mappunavn_dict):
 
             # mappunavn_dict['ax'].plot(data.Sbeox0PS[pump_on+16:upcast_stop], -data.DepSM[pump_on+16:upcast_stop])
 
-            oxd = mappunavn_dict['ax'].plot(data.sbeox0V[pump_on + 64:maxdi], -data.prdM[pump_on + 64:maxdi], c='g', label='ox Downcast')
-            oxu = mappunavn_dict['ax'].plot(data.sbeox0V[maxdi:upcast_stop], -data.prdM[maxdi:upcast_stop], c='r', label='ox Upcast')
+            oxd = mappunavn_dict['ax'].plot(data.sbeox0V[pump_on + 64:maxdi], -data.t090C[pump_on + 64:maxdi], c='g', label='ox Downcast')
+            oxu = mappunavn_dict['ax'].plot(data.sbeox0V[maxdi:upcast_stop], -data.t090C[maxdi:upcast_stop], c='r', label='ox Upcast')
 
-            mappunavn_dict['ax'].set_xlim(min(data.sbeox0V[pump_on + 64:upcast_stop]) - 0.02, max(data.sbeox0V[pump_on + 64:upcast_stop]) + 0.02)
-            mappunavn_dict['ax'].set_ylim(min(-data.prdM[pump_on + 64:upcast_stop]) - 1, max(-data.prdM[pump_on + 64:upcast_stop]) + 1)
+            #oxd = mappunavn_dict['ax'].plot(data.sbeox0V[pump_on + 64:maxdi], -data.prdM[pump_on + 64:maxdi], c='g', label='ox Downcast')
+            #oxu = mappunavn_dict['ax'].plot(data.sbeox0V[maxdi:upcast_stop], -data.prdM[maxdi:upcast_stop], c='r', label='ox Upcast')
+
+            mappunavn_dict['ax'].set_xlim(min(data.sbeox0V[pump_on + 64:upcast_stop]) - 0.01, max(data.sbeox0V[pump_on + 64:upcast_stop]) + 0.01)
+            mappunavn_dict['ax'].set_ylim(min(-data.t090C[pump_on + 64:upcast_stop]) - 0.1, max(-data.t090C[pump_on + 64:upcast_stop]) + 0.1)
+            #mappunavn_dict['ax'].set_ylim(min(-data.prdM[pump_on + 64:upcast_stop]) - 1, max(-data.prdM[pump_on + 64:upcast_stop]) + 1)
             mappunavn_dict['ax'].set_title('Ox Advance:' + str(mappunavn_dict['ox_advance']))
 
-            condd = mappunavn_dict['ax2'].plot(data['c0mS/cm'][pump_on + 64:maxdi], -data.prdM[pump_on + 64:maxdi], c='orangered', alpha=0.5, label='c Downcast')
-            condu = mappunavn_dict['ax2'].plot(data['c0mS/cm'][maxdi:upcast_stop], -data.prdM[maxdi:upcast_stop], c='gold', alpha=0.5, label='c Upcast')
-            mappunavn_dict['ax2'].set_xlim(min(data['c0mS/cm'][pump_on + 64:upcast_stop]) - 0.1, max(data['c0mS/cm'][pump_on + 64:upcast_stop]) + 0.1)
-            mappunavn_dict['ax2'].set_ylim(min(-data.prdM[pump_on + 64:upcast_stop]) - 1, max(-data.prdM[pump_on + 64:upcast_stop]) + 1)
+            #condd = mappunavn_dict['ax2'].plot(data['c0mS/cm'][pump_on + 64:maxdi], -data.prdM[pump_on + 64:maxdi], c='orangered', alpha=0.5, label='c Downcast')
+            #condu = mappunavn_dict['ax2'].plot(data['c0mS/cm'][maxdi:upcast_stop], -data.prdM[maxdi:upcast_stop], c='gold', alpha=0.5, label='c Upcast')
+            #mappunavn_dict['ax2'].set_xlim(min(data['c0mS/cm'][pump_on + 64:upcast_stop]) - 0.1, max(data['c0mS/cm'][pump_on + 64:upcast_stop]) + 0.1)
+            #mappunavn_dict['ax2'].set_ylim(min(-data.prdM[pump_on + 64:upcast_stop]) - 1, max(-data.prdM[pump_on + 64:upcast_stop]) + 1)
 
-            lns = oxd + oxu + condd + condu
+            lns = oxd + oxu #lns = oxd + oxu + condd + condu
             labs = [l.get_label() for l in lns]
             mappunavn_dict['ax'].legend(lns, labs, loc=0)
             # mappunavn_dict['ax2'].legend(loc=0)

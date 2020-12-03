@@ -48,7 +48,7 @@ def cruise_overview_frame(frame, root2, selectedCruse=''):
     frames_dict['root2'] = root2
 
     updatecruseframe(frames_dict)
-    print('SelectedCruise: ' + selectedCruse)
+    print('SelectedCruise: {}'.format(selectedCruse))
     cruises = os.listdir(mappunavn)
     cruises.sort()
     print(cruises)
@@ -91,11 +91,9 @@ def cruise_overview_frame(frame, root2, selectedCruse=''):
             if frames_dict['selectedFrame'] == 1:
                 updateCastsFrame(frames_dict)
 
-
         print(event.keysym)
 
     root.bind('<Key>', key)
-
 
 def updateCastsFrame(frames_dict):
     if 'castFrameDict' in frames_dict:
@@ -125,7 +123,6 @@ def updateCastsFrame(frames_dict):
     meanAlignCTDDivideby = 0
 
     for i, cast in enumerate(frames_dict['casts']):
-
         castFrameDict[cast] = Frame(frames_dict['statusFrame'])
         castFrameDict[cast].pack(side=TOP)
         castsDict[str(cast)] = Label(castFrameDict[cast], text=cast[:-4], font=("Courier", 12))
@@ -223,7 +220,6 @@ def updateCastsFrame(frames_dict):
         else:
             metadata = pd.DataFrame(columns=['key', 'value'])
 
-
     frames_dict['castFrameDict'] = castFrameDict
     frames_dict['statusFrameBelow'] = Frame(frames_dict['statusFrame'])
     frames_dict['statusFrameBelow'].pack(side=TOP, anchor=W)
@@ -234,8 +230,6 @@ def updateCastsFrame(frames_dict):
 
     frames_dict['statusFrameBelowAlign'] = Frame(frames_dict['statusFrameBelow'])
     frames_dict['statusFrameBelowAlign'].pack(side=TOP, anchor=W)
-
-
 
     meanAlignCTD = 0
     if meanAlignCTDDivideby:
@@ -253,9 +247,8 @@ def updateCastsFrame(frames_dict):
     frames_dict['AlignCTDLabel'].pack(side=LEFT)
     #frames_dict['AlignCTDLabel'].configure(text='test')
 
-    frames_dict['window_filter_btn'] = Button(frames_dict['statusFrameBelow'], text='Rokna CTM, Derived og Window filter', command=lambda: align_ctd(frames_dict, meanAlignCTD), bg='lightgreen', width=30)
+    frames_dict['window_filter_btn'] = Button(frames_dict['statusFrameBelow'], text='Rokna CTM, Derived og Window filter', command=lambda: CTM_derived_window(frames_dict), bg='lightgreen', width=30)
     frames_dict['window_filter_btn'].pack(side=TOP, anchor=W)
-
 
     print('Eg eri her!')
 
@@ -292,7 +285,9 @@ def stovna_tur(turnummar, frames_dict):
     updatecruseframe(frames_dict)
     updateCastsFrame(frames_dict)
 
+# funkur, ið koyra røttu prossesering  tá túr trýstir á knøttarnar
 
+# Rokna Conversion og Filter
 def conv_og_filter(frames_dict):
     for cast in frames_dict['casts']:
         print(cast)
@@ -308,7 +303,7 @@ def conv_og_filter(frames_dict):
                          str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/2_Filter'), '#m'])
         updateCastsFrame(frames_dict)
 
-
+# Rokna Align CTD
 def align_ctd(frames_dict, ox_offset):
     winedir = '/home/' + getpass.getuser() + '/.wine/drive_c/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/'
     copyfile(winedir + 'AlignCTD_(custom)_original.psa', winedir + 'AlignCTD_(custom).psa')
@@ -322,9 +317,6 @@ def align_ctd(frames_dict, ox_offset):
         messagebox.showerror('Feilur við export', 'Customstart fílur ikki funnin!')
         raise FileNotFoundError('Customstart fílur ikki funnin')
 
-
-    # turdato = os.path.dirname(os.path.dirname(mappunavn_dict['mappunavn'])).split('Lokalt_Data/')[-1]
-    # JKEDIT turdato = mappunavn_dict['mappunavn'].split('Processed')[0].split('Lokalt_Data')[1].replace('/', '')
     for cast in frames_dict['casts']:
         print('Input: ' + 'Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/2_Filter/' + cast[:-4])
         subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
@@ -333,6 +325,29 @@ def align_ctd(frames_dict, ox_offset):
                          str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/3_Align_CTD'), '#m'])
     updateCastsFrame(frames_dict)
     updatecruseframe(frames_dict)
+
+def CTM_derived_window(frames_dict):
+    for cast in frames_dict['casts']:
+        print(cast)
+        subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
+                         "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/4_CTM.txt",
+                         str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/3_Align_CTD/' + cast[:-4]),
+                         str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/4_CTM'), '#m'])
+        subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
+                         "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/6_Derive.txt",
+                         str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/4_CTM/' + cast[:-4]),
+                         str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/5_Derive'), '#m'])
+        subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
+                         "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/7_Window_Filter.txt",
+                         str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/5_Derive/' + cast[:-4]),
+                         str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/6_Window_Filter'), '#m'])
+        subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',  # Eyka - Til alt data
+                         "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/9_All_ASCII_Out.txt",
+                         str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/6_Window_Filter/' + cast[:-4]),
+                         str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/ASCII_ALL'), '#m'])
+
+        updateCastsFrame(frames_dict)
+        updatecruseframe(frames_dict)
 
 
 def updatecruseframe(frames_dict):
