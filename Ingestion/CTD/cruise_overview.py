@@ -60,8 +60,8 @@ def cruise_overview_frame(frame, root2, selectedCruse=''):
     updatecruseframe(frames_dict)
 
     def key(event):
-        print(len(frames_dict['cruises']))
-        print(frames_dict['selectedCruse'])
+        #print(len(frames_dict['cruises']))
+        #print(frames_dict['selectedCruse'])
         if frames_dict['selectedFrame'] == 0:
             if event.keysym == 'Up':
                 if (frames_dict['selectedCruse'] - 1) >= 0:
@@ -97,17 +97,17 @@ def cruise_overview_frame(frame, root2, selectedCruse=''):
 
 def updateCastsFrame(frames_dict):
     if 'castFrameDict' in frames_dict:
-        print(frames_dict['castFrameDict'])
+        #print(frames_dict['castFrameDict'])
         for frame in frames_dict['castFrameDict']:
-            print(frames_dict['castFrameDict'][frame])
+            #print(frames_dict['castFrameDict'][frame])
             for widget in frames_dict['castFrameDict'][frame].winfo_children(): # Tømur quality frame
-                print(widget)
+                #print(widget)
                 widget.destroy()
             frames_dict['castFrameDict'][frame].pack_forget()
             frames_dict['castFrameDict'][frame].destroy()
         frames_dict['statusFrameBelow'].destroy()
-    print(frames_dict['mappunavn'] + frames_dict['cruises'][frames_dict['selectedCruse']])
-    print(frames_dict['mappunavn'])
+    #print(frames_dict['mappunavn'] + frames_dict['cruises'][frames_dict['selectedCruse']])
+    #print(frames_dict['mappunavn'])
 
     frames_dict['casts'] = os.listdir(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/RAW/')
     frames_dict['casts'].sort()
@@ -127,7 +127,7 @@ def updateCastsFrame(frames_dict):
         castFrameDict[cast].pack(side=TOP)
         castsDict[str(cast)] = Label(castFrameDict[cast], text=cast[:-4], font=("Courier", 12))
         castsDict[str(cast)].pack(side=LEFT)
-        print(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/1_Data_Conversion/' + cast[:-4]+'.cnv')
+        #print(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/1_Data_Conversion/' + cast[:-4]+'.cnv')
         if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/1_Data_Conversion/' + cast[:-4]+'.cnv'):
             buttonsDict['DataConv' + cast] = Button(castFrameDict[cast], text='Data Conversion', bg='lightgreen')
         else:
@@ -142,10 +142,12 @@ def updateCastsFrame(frames_dict):
         AlignCTD_ok = 0
         for metadataRowIndex, metadataRow in enumerate(metadata.iloc[:,0]):
             if metadataRow.split('CTD')[1][:-4] == cast[:-4]:
+                print('Align row found')
                 AlignCTD_ok = metadata.iloc[metadataRowIndex, 1]
                 meanAlignCTDSum += metadata.iloc[metadataRowIndex, 1]
                 meanAlignCTDDivideby += 1
-            print('ok')
+            else:
+                print('Align row not found')
 
         if AlignCTD_ok:
             buttonsDict['AlignCTD' + cast] = Button(castFrameDict[cast], text='Align CTD ' + "{:.2f}".format(AlignCTD_ok), bg='Green', command=lambda: Ingestion.CTD.align_ctd.align_ctd_frame(frames_dict['frame'], frames_dict['root2'], selectNewFolder=False, mappunavn=frames_dict['mappunavn'] + '/' +
@@ -184,7 +186,6 @@ def updateCastsFrame(frames_dict):
 
         binAverageInputFolder = frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/ASCII_ALL/'
         binAverageInputFolder = binAverageInputFolder.replace('//', '/')
-        print(binAverageInputFolder)
         if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/7_Bin_Average/' + cast[:-4]+'.cnv'):
             buttonsDict['BA' + cast] = Button(castFrameDict[cast], text='Bin Average', bg='lightgreen', command=lambda: Ingestion.CTD.bin_average.bin_average_frame(frames_dict['frame'], frames_dict['root2'], mappunavn=binAverageInputFolder))
         else:
@@ -250,14 +251,11 @@ def updateCastsFrame(frames_dict):
     frames_dict['window_filter_btn'] = Button(frames_dict['statusFrameBelow'], text='Rokna CTM, Derived og Window filter', command=lambda: CTM_derived_window(frames_dict), bg='lightgreen', width=30)
     frames_dict['window_filter_btn'].pack(side=TOP, anchor=W)
 
-    print('Eg eri her!')
-
 
 def stovna_tur(turnummar, frames_dict):
     mappunavn = filedialog.askdirectory(title='Vel rádatamappu')
     casts = os.listdir(mappunavn)
-    print(casts)
-    print(os.getcwd())
+
     if not os.path.exists('./Ingestion/CTD/Lokalt_Data/' + turnummar + '/'):
         print('Ger lokala mappu')
         os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turnummar)

@@ -87,37 +87,22 @@ def align_ctd(root, fig, canvas, info_frame, selectNewFolder, mappunavn_dict):
                 call_refresh_infoframe = True
         elif event.keysym == 'BackSpace':
             Ingestion.CTD.cruise_overview.cruise_overview_frame(mappunavn_dict['frame'], mappunavn_dict['root2'], mappunavn_dict['filur'])
-        elif event.keysym == 'Return':
+        #elif event.keysym == 'Return':
+        elif event.keysym == 'KP_Enter' or event.keysym == 'Return':
             if os.path.exists(mappunavn_dict['mappunavn'].split('Processed')[0] + 'turMetadata.csv'):
                 metadatas = pd.read_csv(mappunavn_dict['mappunavn'].split('Processed')[0] + 'turMetadata.csv', index_col=False)
+                print('turMetadata.csv funnin')
             else:
                 metadatas = pd.DataFrame(columns=['key', 'value'])
+                print('Eingin turMetadata.csv funnin')
 
             keyname = 'alignCTD'+list_of_casts[mappunavn_dict['filur']]
             if keyname in metadatas.key.values:
                 metadatas.loc[metadatas.key == keyname,'value'] = mappunavn_dict['ox_advance']
             else:
                 metadatas = metadatas.append({'key': keyname, 'value': mappunavn_dict['ox_advance']}, ignore_index=True)
-            #
-            # umGjortFyrr = 0
-            # umGjortFyrrIndex = -1
-            # for i, row in enumerate(metadatas):
-            #     print(row)
-            #     print(row[0])
-            #     print( ( ('alignCTD'+list_of_casts[mappunavn_dict['filur']])))
-            #     if row[0] == ('alignCTD'+list_of_casts[mappunavn_dict['filur']]):
-            #         umGjortFyrr = 1
-            #         umGjortFyrrIndex = i
-            #
-            #     if key in column
-            #
-            # if umGjortFyrr:
-            #     metadatas[umGjortFyrrIndex] = {'key':'alignCTD'+list_of_casts[mappunavn_dict['filur']], 'value': mappunavn_dict['ox_advance']}
-            # else:
-            #     metadatas = metadatas.append({'key':'alignCTD'+list_of_casts[mappunavn_dict['filur']], 'value': mappunavn_dict['ox_advance']}, ignore_index=True)
-            #
 
-            print(metadatas)
+            print('metadata: ', metadatas)
             metadatas.to_csv(mappunavn_dict['mappunavn'].split('Processed')[0] + 'turMetadata.csv', index=False)
 
 
@@ -152,7 +137,6 @@ def align_ctd(root, fig, canvas, info_frame, selectNewFolder, mappunavn_dict):
                 for line in file:
                     ikki_funni_linju = False
                     print(line.replace('-77', str(mappunavn_dict['ox_advance'])), end='')
-
             if ikki_funni_linju:
                 messagebox.showerror('Feilur við export', 'Customstart fílur ikki funnin!')
 
@@ -199,11 +183,13 @@ def align_ctd(root, fig, canvas, info_frame, selectNewFolder, mappunavn_dict):
             midlingstid = 2  # sek
             n_midlingspunktir = int(np.ceil(midlingstid / (max(data.timeS) / len(data))))
 
+            # finna downcast/upcast
             maxd = max(data.prdM)
             maxdi = -1
             for i, d in enumerate(data.prdM):
                 if d == maxd:
                     maxdi = i
+            upcast_stop = -1
             for i in list(range(maxdi, len(data.prdM))):
                 if np.var(data.prdM[i:i + n_midlingspunktir]) > 0.01:
                     upcast_stop = i
@@ -215,14 +201,14 @@ def align_ctd(root, fig, canvas, info_frame, selectNewFolder, mappunavn_dict):
 
             # mappunavn_dict['ax'].plot(data.Sbeox0PS[pump_on+16:upcast_stop], -data.DepSM[pump_on+16:upcast_stop])
 
-            oxd = mappunavn_dict['ax'].plot(data.sbeox0V[pump_on + 64:maxdi], -data.t090C[pump_on + 64:maxdi], c='g', label='ox Downcast')
-            oxu = mappunavn_dict['ax'].plot(data.sbeox0V[maxdi:upcast_stop], -data.t090C[maxdi:upcast_stop], c='r', label='ox Upcast')
+            oxd = mappunavn_dict['ax'].plot(data.sbeox0V[pump_on + 64:maxdi], data.t090C[pump_on + 64:maxdi], c='g', label='ox Downcast')
+            oxu = mappunavn_dict['ax'].plot(data.sbeox0V[maxdi:upcast_stop], data.t090C[maxdi:upcast_stop], c='r', label='ox Upcast')
 
             #oxd = mappunavn_dict['ax'].plot(data.sbeox0V[pump_on + 64:maxdi], -data.prdM[pump_on + 64:maxdi], c='g', label='ox Downcast')
             #oxu = mappunavn_dict['ax'].plot(data.sbeox0V[maxdi:upcast_stop], -data.prdM[maxdi:upcast_stop], c='r', label='ox Upcast')
 
             mappunavn_dict['ax'].set_xlim(min(data.sbeox0V[pump_on + 64:upcast_stop]) - 0.01, max(data.sbeox0V[pump_on + 64:upcast_stop]) + 0.01)
-            mappunavn_dict['ax'].set_ylim(min(-data.t090C[pump_on + 64:upcast_stop]) - 0.1, max(-data.t090C[pump_on + 64:upcast_stop]) + 0.1)
+            mappunavn_dict['ax'].set_ylim(min(data.t090C[pump_on + 64:upcast_stop]) - 0.1, max(data.t090C[pump_on + 64:upcast_stop]) + 0.1)
             #mappunavn_dict['ax'].set_ylim(min(-data.prdM[pump_on + 64:upcast_stop]) - 1, max(-data.prdM[pump_on + 64:upcast_stop]) + 1)
             mappunavn_dict['ax'].set_title('Ox Advance:' + str(mappunavn_dict['ox_advance']))
 
