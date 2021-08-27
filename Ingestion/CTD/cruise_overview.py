@@ -12,7 +12,6 @@ from tkinter import filedialog
 from shutil import copyfile
 matplotlib.use('TkAgg')
 
-
 def cruise_overview_frame(frame, root2, selectedCruse=''):
     if not os.path.exists('./Ingestion/CTD/Lokalt_Data/'):
         print('Ger lokala mappu')
@@ -27,19 +26,24 @@ def cruise_overview_frame(frame, root2, selectedCruse=''):
         widget.destroy()
     Label(frame, text='Seabird SBE 25 CTD', font='Helvetica 18 bold').pack(side=TOP)
 
+# Turnummar - Stovna tur
     controlsFrame = Frame(frame)
     controlsFrame.pack(side=TOP)
-
-
     Label(controlsFrame, text='Túrnummar:').pack(side=LEFT)
 
     turnummar = Entry(controlsFrame, width=10)
     turnummar.pack(side=LEFT)
+    # stovna_tur
     Button(controlsFrame, text='Stovna Túr', command=lambda: stovna_tur(turnummar.get(), frames_dict)).pack(side=LEFT)
 
+####################################################################################################################
+# Upper panel Data Conversion, Filter, Align, CTM, Derive, Window Filter, Bin Average, Ascii Out, Ger figurar
+####################################################################################################################
+
+# Túr ramma
     frames_dict['cruiseFrame'] = Frame(frame)
     frames_dict['cruiseFrame'].pack(side=LEFT, anchor=W, expand=True, fill=BOTH)
-
+# Status ramma
     frames_dict['statusFrame'] = Frame(frame)
     frames_dict['statusFrame'].pack(side=LEFT, anchor=W, expand=True, fill=BOTH)
 
@@ -103,17 +107,12 @@ def cruise_overview_frame(frame, root2, selectedCruse=''):
 
 def updateCastsFrame(frames_dict):
     if 'castFrameDict' in frames_dict:
-        #print(frames_dict['castFrameDict'])
         for frame in frames_dict['castFrameDict']:
-            #print(frames_dict['castFrameDict'][frame])
             for widget in frames_dict['castFrameDict'][frame].winfo_children(): # Tømur quality frame
-                #print(widget)
                 widget.destroy()
             frames_dict['castFrameDict'][frame].pack_forget()
             frames_dict['castFrameDict'][frame].destroy()
         frames_dict['statusFrameBelow'].destroy()
-    #print(frames_dict['mappunavn'] + frames_dict['cruises'][frames_dict['selectedCruse']])
-    #print(frames_dict['mappunavn'])
 
     frames_dict['casts'] = os.listdir(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/RAW/')
     frames_dict['casts'].sort()
@@ -128,9 +127,7 @@ def updateCastsFrame(frames_dict):
     meanAlignCTDSum = 0
     meanAlignCTDDivideby = 0
 
-    ####################################################################################################################
-    # Upper panel Data Conversion, Filter, Align, CTM, Derive, Window Filter, Bin Average, Ascii Out, Ger figurar
-    ####################################################################################################################
+
 
     for i, cast in enumerate(frames_dict['casts']):
         castFrameDict[cast] = Frame(frames_dict['statusFrame'])
@@ -142,8 +139,11 @@ def updateCastsFrame(frames_dict):
         # IF statement controlls color of button
         if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/1_Data_Conversion/' + cast[:-4]+'.cnv'):
             col = 'lightgreen'
+            print('lightgreen')
         else:
             col = '#40E0D0'
+            print('gray')
+
         buttonsDict['DataConv' + cast] = Button(castFrameDict[cast], text='Data Conversion', bg=col)
         buttonsDict['DataConv' + cast].pack(side=LEFT)
         buttonsDict['Filter' + cast] = Button(castFrameDict[cast], text='Filter', bg=col)
