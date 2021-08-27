@@ -19,6 +19,8 @@ def cruise_overview_frame(frame, root2, selectedCruse=''):
     else:
         print('Lokala mappan er til')
 
+    # TODO: Sleppa uttanum fasta mappustrukturin. Byrja við at velja datamapp og arbeiða haðan.
+
     mappunavn = './Ingestion/CTD/Lokalt_Data/'
     frames_dict = {'mappunavn': mappunavn}
     root = root2
@@ -26,7 +28,7 @@ def cruise_overview_frame(frame, root2, selectedCruse=''):
         widget.destroy()
     Label(frame, text='Seabird SBE 25 CTD', font='Helvetica 18 bold').pack(side=TOP)
 
-# Turnummar - Stovna tur
+    # Turnummar - Stovna tur
     controlsFrame = Frame(frame)
     controlsFrame.pack(side=TOP)
     Label(controlsFrame, text='Túrnummar:').pack(side=LEFT)
@@ -46,24 +48,22 @@ def cruise_overview_frame(frame, root2, selectedCruse=''):
 # Status ramma
     frames_dict['statusFrame'] = Frame(frame)
     frames_dict['statusFrame'].pack(side=LEFT, anchor=W, expand=True, fill=BOTH)
-
     Label(frames_dict['statusFrame'], text='Status á viðgerð', font=("Courier", 14)).pack(side=TOP)
 
     frames_dict['selectedFrame'] = 0
     frames_dict['selectedCruse'] = 0
-
     frames_dict['selectedCast'] = 0
 
     frames_dict['frame'] = frame
     frames_dict['root2'] = root2
 
     updatecruseframe(frames_dict)
-    print('SelectedCruise: {}'.format(selectedCruse))
+    #print('SelectedCruise: {}'.format(selectedCruse))
     cruises = os.listdir(mappunavn)
     cruises.sort()
-    print(cruises)
+    #print(cruises)
     for i, file in enumerate(cruises):
-        print(file)
+        #print(file)
         if file == selectedCruse:
             frames_dict['selectedCruse'] = i
             updateCastsFrame(frames_dict)
@@ -100,7 +100,6 @@ def cruise_overview_frame(frame, root2, selectedCruse=''):
                 frames_dict['selectedFrame'] -= 1
             if frames_dict['selectedFrame'] == 1:
                 updateCastsFrame(frames_dict)
-
         print(event.keysym)
 
     root.bind('<Key>', key)
@@ -128,7 +127,6 @@ def updateCastsFrame(frames_dict):
     meanAlignCTDDivideby = 0
 
 
-
     for i, cast in enumerate(frames_dict['casts']):
         castFrameDict[cast] = Frame(frames_dict['statusFrame'])
         castFrameDict[cast].pack(side=TOP)
@@ -139,16 +137,14 @@ def updateCastsFrame(frames_dict):
         # IF statement controlls color of button
         if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/1_Data_Conversion/' + cast[:-4]+'.cnv'):
             col = 'lightgreen'
-            print('lightgreen')
         else:
-            col = '#40E0D0'
-            print('gray')
-
+            col = '#D9D9D9'
         buttonsDict['DataConv' + cast] = Button(castFrameDict[cast], text='Data Conversion', bg=col)
         buttonsDict['DataConv' + cast].pack(side=LEFT)
         buttonsDict['Filter' + cast] = Button(castFrameDict[cast], text='Filter', bg=col)
         buttonsDict['Filter' + cast].pack(side=LEFT)
 
+        # Align buttons
         AlignCTD_ok = 0
         for metadataRowIndex, metadataRow in enumerate(metadata.iloc[:,0]):
             if metadataRow.split('CTD')[1][:-4] == cast[:-4]:
@@ -167,46 +163,50 @@ def updateCastsFrame(frames_dict):
             else:
                 var, col = 0, 'lightgreen'
         else:
-            var, col = 0, '#40E0D0'
+            var, col = 0, '#D9D9D9'
+
         buttonsDict['AlignCTD' + cast] = Button(castFrameDict[cast], text='Align CTD ' + "{:.2f}".format(var), bg=col,
-                                                command=lambda: Ingestion.CTD.align_ctd.align_ctd_frame(frames_dict['frame'],frames_dict['root2'],selectNewFolder=False,mappunavn=frames_dict['mappunavn'] + '/' +frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/2_Filter/',filIndex=0))
+                                                command=lambda: Ingestion.CTD.align_ctd.align_ctd_frame(frames_dict['frame'],
+                                                frames_dict['root2'],selectNewFolder=False,mappunavn=frames_dict['mappunavn'] + '/' +frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/2_Filter/',filIndex=0))
         buttonsDict['AlignCTD' + cast].pack(side=LEFT)
 
-        if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/4_CTM/' + cast[:-4]+'.cnv'):
-            buttonsDict['CTM' + cast] = Button(castFrameDict[cast], text='CTM', bg='lightgreen')
-        else:
-            buttonsDict['CTM' + cast] = Button(castFrameDict[cast], text='CTM')
+        # CTM buttons
+        if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/4_CTM/' + cast[:-4]+'.cnv'): col = 'lightgreen'
+        else: col = '#D9D9D9'
+        buttonsDict['CTM' + cast] = Button(castFrameDict[cast], text='CTM', bg=col)
         buttonsDict['CTM' + cast].pack(side=LEFT)
 
-        if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/5_Derive/' + cast[:-4]+'.cnv'):
-            buttonsDict['Derive' + cast] = Button(castFrameDict[cast], text='Derived Variables', bg='lightgreen')
-        else:
-            buttonsDict['Derive' + cast] = Button(castFrameDict[cast], text='Derived Variables')
+        # Derive buttons
+        if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/5_Derive/' + cast[:-4]+'.cnv'): col = 'lightgreen'
+        else: col = '#D9D9D9'
+        buttonsDict['Derive' + cast] = Button(castFrameDict[cast], text='Derived Variables', bg=col)
         buttonsDict['Derive' + cast].pack(side=LEFT)
 
-        if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/5_Derive/' + cast[:-4]+'.cnv'):
-            buttonsDict['Window_Filter' + cast] = Button(castFrameDict[cast], text='Window Filter', bg='lightgreen')
-        else:
-            buttonsDict['Window_Filter' + cast] = Button(castFrameDict[cast], text='Window Filter')
+        # Window Filter buttons
+        if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/6_Window_Filter/' + cast[:-4]+'.cnv'):col = 'lightgreen'
+        else: col = '#D9D9D9'
+        buttonsDict['Window_Filter' + cast] = Button(castFrameDict[cast], text='Window Filter', bg=col)
         buttonsDict['Window_Filter' + cast].pack(side=LEFT)
 
+        # Bin Average buttons
         binAverageInputFolder = frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/ASCII_ALL/'
         binAverageInputFolder = binAverageInputFolder.replace('//', '/')
-        if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/7_Bin_Average/' + cast[:-4]+'.cnv'):
-            buttonsDict['BA' + cast] = Button(castFrameDict[cast], text='Bin Average', bg='lightgreen', command=lambda: Ingestion.CTD.bin_average.bin_average_frame(frames_dict['frame'], frames_dict['root2'], mappunavn=binAverageInputFolder))
-        else:
-            buttonsDict['BA' + cast] = Button(castFrameDict[cast], text='Bin Average', command=lambda: Ingestion.CTD.bin_average.bin_average_frame(frames_dict['frame'], frames_dict['root2'], mappunavn=binAverageInputFolder))
+        if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/7_Bin_Average/' + cast[:-4]+'.cnv'): col = 'lightgreen'
+        else: col = '#D9D9D9'
+        buttonsDict['BA' + cast] = Button(castFrameDict[cast], text='Bin Average', command=lambda: Ingestion.CTD.bin_average.bin_average_frame(frames_dict['frame'], frames_dict['root2'], mappunavn=binAverageInputFolder), bg=col)
         buttonsDict['BA' + cast].pack(side=LEFT)
 
-        if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/ASCII/ASCII_Downcast/' + cast[:-4]+'.asc'):
-            buttonsDict['ASCII_out' + cast] = Button(castFrameDict[cast], text='Ascii out', bg='lightgreen')
-        else:
-            buttonsDict['ASCII_out' + cast] = Button(castFrameDict[cast], text='Ascii out')
+        # Ascii out buttons
+        if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/ASCII/ASCII_Downcast/' + cast[:-4]+'.asc'): col = 'lightgreen'
+        else: col = '#D9D9D9'
+        buttonsDict['ASCII_out' + cast] = Button(castFrameDict[cast], text='Ascii out', bg=col)
         buttonsDict['ASCII_out' + cast].pack(side=LEFT)
 
+        # Ger figurar buttons
         buttonsDict['MakeFigures' + cast] = Button(castFrameDict[cast], text='Ger figurar')
         buttonsDict['MakeFigures' + cast].pack(side=LEFT)
 
+        # Góðska
         castsDict['GodskaLabel' + str(cast)] = Label(castFrameDict[cast], text='Góðska:', font=("Courier", 12))
         castsDict['GodskaLabel' + str(cast)].pack(side=LEFT)
 
