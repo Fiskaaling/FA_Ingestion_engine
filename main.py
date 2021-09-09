@@ -5,21 +5,9 @@ import tkinter.ttk as ttk
 import subprocess
 import sys
 
-import FA_DB_Interface.init
-import Ingestion.LV
-import Ingestion.LV_Aldumátingar
-import Ingestion.oxygenkeda
-import Ingestion.streymmatari
-from Ingestion.Aanderaa import init as AADI
 import Ingestion.Botnkort.tilCsv
-import Ingestion.CTD.init
-import Ingestion.RDI.fra_botni
-import Ingestion.seaguard.seaguard as seaguard
-import Processing.tekna_kort
-import Processing.std_fragreidingar.init as std_fragreidingar
-import Strfbotni.strbotni
-import vatnstoduanalysa.vatnstoduanalysa
 
+import Ingestion.CTD.init
 
 class Window(Frame):
     def __init__(self, master=None):
@@ -47,32 +35,8 @@ def OnDoubleClick(event, tree, clo):
         item = tree.identify('item', event.x, event.y)
         item = tree.item(item, "text")
 
-    if item == 'Tekna Kort':
-        Processing.tekna_kort.teknakort()
-    elif item == 'Rokna quiver data':
-        Ingestion.streymmatari.roknaQuiver(RightFrame, root)
-    elif item == 'Veðurstøðir':
-        Ingestion.LV.vedurstodirPlt(RightFrame, root)
-    elif item == 'Rokna miðal streym':
-        Ingestion.streymmatari.roknaMidalstreym(RightFrame, root)
-    elif item == 'Countour plot':
-        Strfbotni.strbotni.botnmatPlt(RightFrame, root)
-    elif item == 'Aldumátingar':
-        Ingestion.LV_Aldumátingar.Alduplt(RightFrame, root)
-    elif item == 'Vatnstoduanalysa':
-        vatnstoduanalysa.vatnstoduanalysa.load(RightFrame, root)
-    elif item == 'seaguard':
-        seaguard.load(RightFrame, root)
-    else:
-        minimize = 0
-        minimize += Ingestion.oxygenkeda.check_click(item, RightFrame, root)
-        minimize += Ingestion.RDI.fra_botni.check_click(item, RightFrame, root)
-        minimize += Ingestion.Botnkort.tilCsv.check_click(item, RightFrame, root)
-        minimize += Ingestion.CTD.init.check_click(item, RightFrame, root)
-        minimize += FA_DB_Interface.init.check_click(item, RightFrame, root)
-        minimize += std_fragreidingar.check_click(item, RightFrame, root)
-        minimize += AADI.check_click(item, RightFrame, root)
-
+    minimize = 0
+    minimize += Ingestion.CTD.init.check_click(item, RightFrame, root)
     if minimize:
         mintree()
 
@@ -127,30 +91,9 @@ scrollbar.config(command=ingestion_listbox.yview)
 scrollbar.pack(side=RIGHT, fill=Y)
 
 # Byrjar at fylla ting inní listan
-
-ingestion_listbox.insert("", 0, text='Tekna Kort')
-ingestion_listbox.insert("", 0, text='Vatnstoduanalysa')
-ingestion_listbox.insert("", 0, text='seaguard')
-LV = ingestion_listbox.insert("", 0, text='Landsverk')
-
-
-# Rudduligari máti at gera hettar uppá, ikki implementera allastaðni enn
-Ingestion.streymmatari.init(ingestion_listbox)
-Ingestion.RDI.fra_botni.init(ingestion_listbox)
-Ingestion.oxygenkeda.init(ingestion_listbox)
-Ingestion.Botnkort.tilCsv.init(ingestion_listbox)
 Ingestion.CTD.init.init(ingestion_listbox)
-FA_DB_Interface.init.init(ingestion_listbox)
-std_fragreidingar.init(ingestion_listbox)
-AADI.init(ingestion_listbox)
-
-alduboya = ingestion_listbox.insert("", 0, text='Alduboya')
 
 ingestion_listbox.bind("<Double-1>", lambda event, arg=ingestion_listbox: OnDoubleClick(event, arg, False))
-
-ingestion_listbox.insert(LV, "end", text='Veðurstøðir')
-ingestion_listbox.insert(LV, "end", text='Aldumátingar')
-ingestion_listbox.insert(LV, "end", text='Vatnstøða')
 
 #ingestion_listbox.insert(END, 'Test')
 condens = Button(ingestion_subframe, text='<', command=lambda: mintree())
