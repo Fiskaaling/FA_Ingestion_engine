@@ -8,15 +8,14 @@ from Ingestion.CTD import cruise_overview
 #import Ingestion.CTD.MultipleAxisProfile
 
 def init(ingestion_listbox):
-    ctd = ingestion_listbox.insert("", 0, text='Seabird SBE 25 CTD')
-    ingestion_listbox.insert(ctd, 0, text="Túr yvirlit")
-    ingestion_listbox.insert(ctd, 0, text="Tekna Ascii fíl")
-    ingestion_listbox.insert(ctd, 0, text="Linju Tíðarseria")
-    ingestion_listbox.insert(ctd, 0, text="Skráset støðir")
-    ingestion_listbox.insert(ctd, 0, text="Bin Average")
-    ingestion_listbox.insert(ctd, 0, text="Processera rádata")
-    ingestion_listbox.insert(ctd, 0, text="Plot Multiple Axis Profile")
-    ingestion_listbox.insert(ctd, 0, text="Align CTD")
+    ingestion_listbox.insert("", 0, text="Túr yvirlit")
+    ingestion_listbox.insert("", 0, text="Tekna Ascii fíl")
+    ingestion_listbox.insert("", 0, text="Linju Tíðarseria")
+    ingestion_listbox.insert("", 0, text="Skráset støðir")
+    ingestion_listbox.insert("", 0, text="Bin Average")
+    ingestion_listbox.insert("", 0, text="Processera rádata")
+    ingestion_listbox.insert("", 0, text="Plot Multiple Axis Profile")
+    ingestion_listbox.insert("", 0, text="Align CTD")
 
 
 def check_click(item, RightFrame, root):
