@@ -227,7 +227,6 @@ def updateCastsFrame(frames_dict):
         else:
             metadata = pd.DataFrame(columns=['key', 'value'])
 
-
     frames_dict['castFrameDict'] = castFrameDict
     frames_dict['statusFrameBelow'] = Frame(frames_dict['statusFrame'])
     frames_dict['statusFrameBelow'].pack(side=TOP, anchor=W)

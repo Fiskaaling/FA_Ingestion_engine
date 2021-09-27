@@ -152,10 +152,6 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
     current_stat = states[0]
     log_print(current_stat)
 
-    soaktime = -1
-    soak_depth = -1
-    pump_on = -1
-    pump_off = -1
     var_greinsa = 0.01 # Fyrr 0.01
     [pump_on, pump_off] = pumpstatus(mappunavn_dict['mappunavn'], filnavn[mappunavn_dict['filur']])
     if not metadata:
@@ -186,8 +182,8 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
 
             elif current_stat == "soak_stop":
                 # finn hvar dypið byrjar at broytast og set 'soak stop'
-                if np.var(dypid[i:i + n_midlingspunktir]) > var_greinsa:
-                    soak_stop = i + n_midlingspunktir
+                if np.var(dypid[i:i + n_midlingspunktir]) > var_greinsa*5:
+                    soak_stop = i-1 + n_midlingspunktir
                     soaktime = time_fulllength[soak_stop] - time_fulllength[soak_start]
                     soak_depth = np.round(np.mean(dypid[soak_start:soak_stop]), 3)
                     current_stat = "downcast_prepare"
