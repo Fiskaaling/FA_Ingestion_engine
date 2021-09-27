@@ -8,7 +8,7 @@
   </InputFileArray>
   <OutputDir value="Z:\home\johannus\Documents\FA_Ingestion_engine\Ingestion\CTD\Lokalt_Data\2018-06-28\Processed\7_Bin_Average" />
   <NameAppend value="" />
-  <OutputFile value="1874001.asc" />
+  <OutputFile value="" />
   <LastProcessed value="0" />
   <HeaderFile value="0" />
   <DataFile value="1" />
