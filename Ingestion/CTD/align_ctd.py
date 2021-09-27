@@ -148,10 +148,12 @@ def align_ctd(root, fig, canvas, info_frame, selectNewFolder, mappunavn_dict):
             print(turdato)
             print(mappunavn_dict['mappunavn'])
             print(os.path.dirname(mappunavn_dict['mappunavn']))
-            subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
+            subprocess.call(['wine',
+                             'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
                              "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/3_Align_CTD_(custom).txt",
                              str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/2_Filter/' + list_of_casts[mappunavn_dict['filur']].split('.')[0]),
-                             str('Z:/' + tempdir), '#m'])
+                             str('Z:/' + tempdir),
+                             '#m'])
 
             # So les inn
 

@@ -288,22 +288,27 @@ def stovna_tur(turnummar, frames_dict):
         os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turnummar + '/Processed/5_Derive')
         os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turnummar + '/Processed/6_Window_Filter')
         os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turnummar + '/Processed/ASCII_ALL')
-
     else:
         print('Lokala mappan er til')
+
     casts.sort()
     for i, cast in enumerate(casts):
-        # TODO: Um man velur mappu har castini ikki eru í hvør sínari mappu, processera tað allíkavæl
-        filnavnorginal = os.listdir(mappunavn + '/' + cast)
-        filnavnorginal = filnavnorginal[0]
         filnavn = str(turnummar) + '{:03d}'.format(i + 1)
-        # TODO: Flyt ístaðin fyri at kopiera
-        copyfile(mappunavn + '/' + cast + '/' + filnavnorginal, './Ingestion/CTD/Lokalt_Data/' + turnummar + '/RAW/' + filnavn + '.xml')
-
+        if os.path.isfile('{}/{}.xml'.format(mappunavn,filnavn)):
+            print('file is')
+            copyfile('{}/{}.xml'.format(mappunavn,filnavn),
+                     './Ingestion/CTD/Lokalt_Data/' + turnummar + '/RAW/' + filnavn + '.xml')
+        else:
+            filnavnorginal = os.listdir(mappunavn + '/' + cast)
+            filnavnorginal = filnavnorginal[0]
+            # TODO: Flyt ístaðin fyri at kopiera
+            copyfile(mappunavn + '/' + cast + '/' + filnavnorginal,
+                     './Ingestion/CTD/Lokalt_Data/' + turnummar + '/RAW/' + filnavn + '.xml')
+    # TODO: krasjar tá stovna túr er gjørt, tí onnur cast koma við í okkurt index. Riggar at pressesera víðari um man genstartar.
     updatecruseframe(frames_dict)
     updateCastsFrame(frames_dict)
 
-# funkur, ið koyra røttu prossesering  tá túr trýstir á knøttarnar
+# funkur, ið koyra røttu prossesering tá túr trýstir á knøttarnar
 
 # Rokna Conversion og Filter
 def conv_og_filter(frames_dict):
@@ -322,6 +327,7 @@ def conv_og_filter(frames_dict):
         updateCastsFrame(frames_dict)
 
 # Rokna Align CTD
+# TODO: Gera Align Modul til at finna bestu align fyri C og Ox (og Par og FLu). C er konstant um CTD'in ikki broytist, men Ox kann broytast við árstíðunum
 def align_ctd(frames_dict, ox_offset):
     winedir = '/home/' + getpass.getuser() + '/.wine/drive_c/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/'
     copyfile(winedir + 'AlignCTD_(custom)_original.psa', winedir + 'AlignCTD_(custom).psa')
