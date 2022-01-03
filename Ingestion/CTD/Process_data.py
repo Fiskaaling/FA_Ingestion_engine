@@ -71,7 +71,36 @@ def processera(mappunavn, turnummar):
         copyfile(mappunavn + '/' + cast + '/' + filnavnorginal, './Ingestion/CTD/Lokalt_Data/' + turdato + '/RAW/' + filnavn + '.xml')
         print(cast)
         print(filnavn)
-        if platform.system() == 'Linux':
+        if os.name == 'nt':
+            subprocess.call(['C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
+                             "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/1_DatCnv.txt",
+                             str(os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/RAW/' + filnavn + '.xml'),
+                             str(os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/1_Data_Conversion'), '#m'])
+            subprocess.call(['C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
+                             "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/2_Filter.txt",
+                             str(os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/1_Data_Conversion/' + filnavn),
+                             str(os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/2_Filter'), '#m'])
+            subprocess.call(['C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
+                             "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/3_Align_CTD.txt",
+                             str(os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/2_Filter/' + filnavn),
+                             str(os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/3_Align_CTD'), '#m'])
+            subprocess.call(['C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
+                             "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/4_CTM.txt",
+                             str(os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/3_Align_CTD/' + filnavn),
+                             str(os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/4_CTM'), '#m'])
+            subprocess.call(['C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
+                             "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/6_Derive.txt",
+                             str(os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/4_CTM/' + filnavn),
+                             str(os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/5_Derive'), '#m'])
+            subprocess.call(['C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
+                             "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/7_Window_Filter.txt",
+                             str(os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/5_Derive/' + filnavn),
+                             str(os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/6_Window_Filter'), '#m'])
+            subprocess.call(['C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',  # Eyka - Til alt data
+                             "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/9_All_ASCII_Out.txt",
+                             str(os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/6_Window_Filter/' + filnavn),
+                             str(os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/ASCII_ALL'), '#m'])
+        elif platform.system() == 'Linux':
             # hey hey
             # Hettar riggar bara um wine er og SBE Data processing er installera, og um settings mappan er har hon skal vera
             subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
