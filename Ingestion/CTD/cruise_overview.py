@@ -126,7 +126,6 @@ def updateCastsFrame(frames_dict):
     meanAlignCTDSum = 0
     meanAlignCTDDivideby = 0
 
-
     for i, cast in enumerate(frames_dict['casts']):
         castFrameDict[cast] = Frame(frames_dict['statusFrame'])
         castFrameDict[cast].pack(side=TOP)
@@ -171,19 +170,22 @@ def updateCastsFrame(frames_dict):
         buttonsDict['AlignCTD' + cast].pack(side=LEFT)
 
         # CTM buttons
-        if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/4_CTM/' + cast[:-4]+'.cnv'): col = 'lightgreen'
+        if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/4_CTM/' + cast[:-4]+'.cnv'):
+            col = 'lightgreen'
         else: col = '#D9D9D9'
         buttonsDict['CTM' + cast] = Button(castFrameDict[cast], text='CTM', bg=col)
         buttonsDict['CTM' + cast].pack(side=LEFT)
 
         # Derive buttons
-        if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/5_Derive/' + cast[:-4]+'.cnv'): col = 'lightgreen'
+        if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/5_Derive/' + cast[:-4]+'.cnv'):
+            col = 'lightgreen'
         else: col = '#D9D9D9'
         buttonsDict['Derive' + cast] = Button(castFrameDict[cast], text='Derived Variables', bg=col)
         buttonsDict['Derive' + cast].pack(side=LEFT)
 
         # Window Filter buttons
-        if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/6_Window_Filter/' + cast[:-4]+'.cnv'):col = 'lightgreen'
+        if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/6_Window_Filter/' + cast[:-4]+'.cnv'):
+            col = 'lightgreen'
         else: col = '#D9D9D9'
         buttonsDict['Window_Filter' + cast] = Button(castFrameDict[cast], text='Window Filter', bg=col)
         buttonsDict['Window_Filter' + cast].pack(side=LEFT)
@@ -191,7 +193,8 @@ def updateCastsFrame(frames_dict):
         # Bin Average buttons
         binAverageInputFolder = frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/ASCII_ALL/'
         binAverageInputFolder = binAverageInputFolder.replace('//', '/')
-        if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/7_Bin_Average/' + cast[:-4]+'.cnv'): col = 'lightgreen'
+        if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/7_Bin_Average/' + cast[:-4]+'.cnv'):
+            col = 'lightgreen'
         else: col = '#D9D9D9'
         buttonsDict['BA' + cast] = Button(castFrameDict[cast], text='Bin Average', command=lambda: Ingestion.CTD.bin_average.bin_average_frame(frames_dict['frame'], frames_dict['root2'], mappunavn=binAverageInputFolder), bg=col)
         buttonsDict['BA' + cast].pack(side=LEFT)
