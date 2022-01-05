@@ -441,6 +441,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
             turdato = mappunavn.split('Processed')[0]
             turdato = turdato.split('Lokalt_Data')[1]
             Ingestion.CTD.cruise_overview.cruise_overview_frame(frame, root, selectedCruse=turdato.replace('/', ''))
+            #Ingestion.CTD.cruise_overview.cruise_overview_frame(frame, root, selectedCruse=filnavn[mappunavn_dict['filur']])
         elif event.keysym == 'Return':
             log_b()
             log_print('Calculating')
