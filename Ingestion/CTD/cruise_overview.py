@@ -250,7 +250,7 @@ def updateCastsFrame(frames_dict):
     frames_dict['ConvFilter_area'].pack(side=TOP, anchor=W)
     frames_dict['ConvFilter_btn'] = Button(frames_dict['ConvFilter_area'],
                                            text='Koyr Data Conversion og Filter',
-                                           command=lambda: conv_og_filter(frames_dict), width=35)
+                                           command=lambda: conv_og_filter(frames_dict,choises.xmlcon), width=35)
     frames_dict['ConvFilter_btn'].pack(side=LEFT)
     Label(frames_dict['ConvFilter_area'],
           text=f' Xmlcon file used:\t {choises.xmlcon}.xmlcon\t\t Calibrated: {choises.calibrated}').pack(side=LEFT)
@@ -336,32 +336,35 @@ def stovna_tur(turnummar, frames_dict):
 # funkur, ið koyra røttu prossesering tá túr trýstir á knøttarnar
 
 # Rokna Conversion og Filter
-def conv_og_filter(frames_dict):
+def conv_og_filter(frames_dict,xmlcon):
     for cast in frames_dict['casts']:
-        print(cast)
+        TripNo = frames_dict['cruises'][frames_dict['selectedCruse']]
+        print(cast, TripNo)
         if os.name == 'nt':
             subprocess.call(['C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
-                             "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/1_DatCnv.txt",
-                             str(os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/RAW/' + cast),
-                             str(os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/1_Data_Conversion'),
+                             f"{os.getcwd()}/ingestion/CTD/Settings/1_DatCnv.txt",
+                             f"{os.getcwd()}/ingestion/CTD/Settings/{xmlcon}.xmlcon",
+                             f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/RAW/{cast}",
+                             f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/1_Data_Conversion",
                              '#m'])
             subprocess.call(['C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
-                             "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/2_Filter.txt",
-                             str(os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/1_Data_Conversion/' + cast[:-4]),
-                             str(os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/2_Filter'), '#m'])
+                             f"{os.getcwd()}/ingestion/CTD/Settings/2_Filter.txt",
+                             f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/1_Data_Conversion/{cast[:-4]}",
+                             f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/2_Filter",
+                             '#m'])
         else:
             subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
-                             "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/1_DatCnv.txt",
-                             str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/RAW/' + cast),
-                             str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/1_Data_Conversion'),
+                             f"{os.getcwd()}/ingestion/CTD/Settings/1_DatCnv.txt",
+                             f"{os.getcwd()}/ingestion/CTD/Settings/{xmlcon}.xmlcon",
+                             f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/RAW/{cast}",
+                             f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/1_Data_Conversion",
                              '#m'])
             subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
-                             "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/2_Filter.txt",
-                             str(
-                                 'Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/1_Data_Conversion/' + cast[:-4]),
-                             str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/2_Filter'), '#m'])
+                             f"{os.getcwd()}/ingestion/CTD/Settings/2_Filter.txt",
+                             f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/1_Data_Conversion/{cast[:-4]}",
+                             f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/2_Filter",
+                             '#m'])
         updateCastsFrame(frames_dict)
-
 
 def align_ctd_standard(frames_dict):
     for cast in frames_dict['casts']:
@@ -393,18 +396,17 @@ def align_ctd_standard(frames_dict):
     #     if os.name == 'nt':
     #         print('Input: ' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/2_Filter/' + cast[:-4])
     #         subprocess.call(['C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
-    #                          "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/3_Align_CTD_(custom).txt",
+    #                          f"{os.getcwd()}/ingestion/CTD/Settings/3_Align_CTD_(custom).txt",
     #                          str(os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/2_Filter/' + cast[:-4]),
     #                          str(os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/3_Align_CTD'), '#m'])
     #     else:
     #         print('Input: ' + 'Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/2_Filter/' + cast[:-4])
     #         subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
-    #                          "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/3_Align_CTD_(custom).txt",
+    #                          f"{os.getcwd()}/ingestion/CTD/Settings/3_Align_CTD_(custom).txt",
     #                          str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/2_Filter/' + cast[:-4]),
     #                          str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/3_Align_CTD'), '#m'])
     # updateCastsFrame(frames_dict)
     # updatecruseframe(frames_dict)
-
 
 # Rokna Align CTD
 # TODO: Gera Align Modul til at finna bestu align fyri C og Ox (og Par og FLu). C er konstant um CTD'in ikki broytist, men Ox kann broytast við árstíðunum
@@ -428,13 +430,13 @@ def align_ctd(frames_dict, ox_offset):
         if os.name == 'nt':
             print('Input: ' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/2_Filter/' + cast[:-4])
             subprocess.call(['C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
-                             "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/3_Align_CTD_(custom).txt",
+                             f"{os.getcwd()}/ingestion/CTD/Settings/3_Align_CTD_(custom).txt",
                              str(os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/2_Filter/' + cast[:-4]),
                              str(os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/3_Align_CTD'), '#m'])
         else:
             print('Input: ' + 'Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/2_Filter/' + cast[:-4])
             subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
-                             "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/3_Align_CTD_(custom).txt",
+                             f"{os.getcwd()}/ingestion/CTD/Settings/3_Align_CTD_(custom).txt",
                              str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/2_Filter/' + cast[:-4]),
                              str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/3_Align_CTD'), '#m'])
     updateCastsFrame(frames_dict)
@@ -445,36 +447,36 @@ def CTM_derived_window(frames_dict):
         print(cast)
         if os.name == 'nt':
             subprocess.call(['C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
-                             "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/4_CTM.txt",
+                             f"{os.getcwd()}/ingestion/CTD/Settings/4_CTM.txt",
                              str(os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/3_Align_CTD/' + cast[:-4]),
                              str(os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/4_CTM'), '#m'])
             subprocess.call(['C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
-                             "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/6_Derive.txt",
+                             f"{os.getcwd()}/ingestion/CTD/Settings/6_Derive.txt",
                              str(os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/4_CTM/' + cast[:-4]),
                              str(os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/5_Derive'), '#m'])
             subprocess.call(['C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
-                             "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/7_Window_Filter.txt",
+                             f"{os.getcwd()}/ingestion/CTD/Settings/7_Window_Filter.txt",
                              str(os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/5_Derive/' + cast[:-4]),
                              str(os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/6_Window_Filter'), '#m'])
             subprocess.call(['C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',  # Eyka - Til alt data
-                             "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/9_All_ASCII_Out.txt",
+                             f"{os.getcwd()}/ingestion/CTD/Settings/9_All_ASCII_Out.txt",
                              str(os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/6_Window_Filter/' + cast[:-4]),
                              str(os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/ASCII_ALL'), '#m'])
         else:
             subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
-                             "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/4_CTM.txt",
+                             f"{os.getcwd()}/ingestion/CTD/Settings/4_CTM.txt",
                              str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/3_Align_CTD/' + cast[:-4]),
                              str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/4_CTM'), '#m'])
             subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
-                             "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/6_Derive.txt",
+                             f"{os.getcwd()}/ingestion/CTD/Settings/6_Derive.txt",
                              str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/4_CTM/' + cast[:-4]),
                              str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/5_Derive'), '#m'])
             subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
-                             "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/7_Window_Filter.txt",
+                             f"{os.getcwd()}/ingestion/CTD/Settings/7_Window_Filter.txt",
                              str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/5_Derive/' + cast[:-4]),
                              str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/6_Window_Filter'), '#m'])
             subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',  # Eyka - Til alt data
-                             "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/9_All_ASCII_Out.txt",
+                             f"{os.getcwd()}/ingestion/CTD/Settings/9_All_ASCII_Out.txt",
                              str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/6_Window_Filter/' + cast[:-4]),
                              str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/ASCII_ALL'), '#m'])
 
