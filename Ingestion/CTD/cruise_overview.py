@@ -230,19 +230,47 @@ def updateCastsFrame(frames_dict):
         else:
             metadata = pd.DataFrame(columns=['key', 'value'])
 
+    ####################################################################################################################
+    # Lower panel KOYR VIÐGERÐ
+    ####################################################################################################################
+
+    # Read processing choises from file
+    xmlcon_align = pd.read_csv('Ingestion/CTD/Settings/xmlcon_align_choice.txt')
+    TripNo = int(frames_dict['cruises'][frames_dict['selectedCruse']])
+    print('TripNo: ', TripNo)
+    choises = xmlcon_align[xmlcon_align.trip < TripNo].iloc[-1]
+
     frames_dict['castFrameDict'] = castFrameDict
     frames_dict['statusFrameBelow'] = Frame(frames_dict['statusFrame'])
     frames_dict['statusFrameBelow'].pack(side=TOP, anchor=W)
-    Label(frames_dict['statusFrameBelow'], text='Koyr rokning').pack(side=TOP, anchor=W)
+    Label(frames_dict['statusFrameBelow'], text='Koyr viðgerð', font=("Courier", 14)).pack(side=TOP)
 
-    frames_dict['conv_and_filter_btn'] = Button(frames_dict['statusFrameBelow'], 
-                                                text='Rokna Conversion og Filter', 
-                                                command=lambda: conv_og_filter(frames_dict), bg='lightgreen', width=30)
-    frames_dict['conv_and_filter_btn'].pack(side=TOP, anchor=W)
+    # Conversion og Filter
+    frames_dict['ConvFilter_area'] = Frame(frames_dict['statusFrameBelow'])
+    frames_dict['ConvFilter_area'].pack(side=TOP, anchor=W)
+    frames_dict['ConvFilter_btn'] = Button(frames_dict['ConvFilter_area'],
+                                           text='Koyr Data Conversion og Filter',
+                                           command=lambda: conv_og_filter(frames_dict), width=35)
+    frames_dict['ConvFilter_btn'].pack(side=LEFT)
+    Label(frames_dict['ConvFilter_area'],
+          text=f' Xmlcon file used:\t {choises.xmlcon}.xmlcon\t\t Calibrated: {choises.calibrated}').pack(side=LEFT)
+
+    # TODO: Gera 2 knøttar úteftir til Align. 1 ið brúkar virði, ið eru roknaði frammanundan, 2 id koyrir Rokna Align modulið.
+
+    # Align Standard
+    frames_dict['AlignStandard_area'] = Frame(frames_dict['statusFrameBelow'])
+    frames_dict['AlignStandard_area'].pack(side=TOP, anchor=W)
+    frames_dict['AlignStandard_btn'] = Button(frames_dict['AlignStandard_area'],
+                                              text='Koyr Align við Standard virðum',
+                                              command=lambda: align_ctd(frames_dict, 2.5), width=35)
+    frames_dict['AlignStandard_btn'].pack(side=LEFT)
+    Label(frames_dict['AlignStandard_area'],
+          text=f' Align values used:\t Cond = {choises.c}, Ox = {choises.ox}\t Calculated: {choises.calculated} by {choises.by}').pack(side=LEFT)
 
     frames_dict['statusFrameBelowAlign'] = Frame(frames_dict['statusFrameBelow'])
     frames_dict['statusFrameBelowAlign'].pack(side=TOP, anchor=W)
 
+    # Align Calculate
     meanAlignCTD = 0
     if meanAlignCTDDivideby:
         meanAlignCTD = meanAlignCTDSum/meanAlignCTDDivideby
@@ -253,26 +281,21 @@ def updateCastsFrame(frames_dict):
     if len(os.listdir(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/RAW/')) == len(os.listdir(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/3_Align_CTD/')):
         frames_dict['AlignCTDButton'] = Button(frames_dict['statusFrameBelowAlign'],
                                                text='Rokna Align CTD',
-                                               command=lambda: align_ctd(frames_dict, meanAlignCTD), bg='lightgreen', width=30)
+                                               command=lambda: align_ctd(frames_dict, meanAlignCTD), width=35)
     else:
         frames_dict['AlignCTDButton'] = Button(frames_dict['statusFrameBelowAlign'],
                                                text='Rokna Align CTD',
-                                               command=lambda: align_ctd(frames_dict, meanAlignCTD), width=30)
+                                               command=lambda: align_ctd(frames_dict, meanAlignCTD), width=35)
     frames_dict['AlignCTDButton'].pack(side=LEFT)
 
-    Label(frames_dict['statusFrameBelowAlign'], text='Miðal Align CTD virði:').pack(side=LEFT)
+    Label(frames_dict['statusFrameBelowAlign'], text=' Mean Align value:').pack(side=LEFT)
     frames_dict['AlignCTDLabel'].pack(side=LEFT)
-    
-    frames_dict['AlignCTDButton1'] = Button(frames_dict['statusFrameBelow'],
-                                            text='Rokna Align CTD við Standard virðum', anchor=W,
-                                            command=lambda: align_ctd(frames_dict, 2.5), bg='lightgreen', width=35, )
-    frames_dict['AlignCTDButton1'].pack(side=TOP, anchor=W)
 
+    # CTM, Derive and Window Filter
     frames_dict['window_filter_btn'] = Button(frames_dict['statusFrameBelow'], 
-                                              text='Rokna CTM, Derived og Window filter', anchor=W,
-                                              command=lambda: CTM_derived_window(frames_dict), bg='lightgreen', width=35)
+                                              text='Koyr CTM, Derived og Window filter',
+                                              command=lambda: CTM_derived_window(frames_dict), width=35)
     frames_dict['window_filter_btn'].pack(side=TOP, anchor=W)
-
 
 def stovna_tur(turnummar, frames_dict):
     mappunavn = filedialog.askdirectory(title='Vel rádatamappu')
@@ -338,6 +361,50 @@ def conv_og_filter(frames_dict):
                                  'Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/1_Data_Conversion/' + cast[:-4]),
                              str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/2_Filter'), '#m'])
         updateCastsFrame(frames_dict)
+
+
+def align_ctd_standard(frames_dict):
+    for cast in frames_dict['casts']:
+        if os.name == 'nt':
+            print('Input: ' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/2_Filter/' + cast[:-4])
+            subprocess.call(['C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
+                            f"{os.getcwd()}/Ingestion/CTD/Settings/3_Align_CTD.txt",
+                             str(os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/2_Filter/' + cast[:-4]),
+                             str(os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/3_Align_CTD'), '#m'])
+    updateCastsFrame(frames_dict)
+    updatecruseframe(frames_dict)
+
+    # if os.name == 'nt':
+    #     winedir = 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/'
+    # else:
+    #     winedir = '/home/' + getpass.getuser() + '/.wine/drive_c/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/'
+    # copyfile(winedir + 'AlignCTD_(custom)_original.psa', winedir + 'AlignCTD_(custom).psa')
+    # ikki_funni_linju = True
+    # with fileinput.FileInput(winedir + 'AlignCTD_(custom).psa', inplace=True) as file:
+    #     for line in file:
+    #         ikki_funni_linju = False
+    #         print(line.replace('-77', str(ox_offset)), end='')
+    #
+    # if ikki_funni_linju:
+    #     messagebox.showerror('Feilur við export', 'Customstart fílur ikki funnin!')
+    #     raise FileNotFoundError('Customstart fílur ikki funnin')
+    #
+    # for cast in frames_dict['casts']:
+    #     if os.name == 'nt':
+    #         print('Input: ' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/2_Filter/' + cast[:-4])
+    #         subprocess.call(['C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
+    #                          "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/3_Align_CTD_(custom).txt",
+    #                          str(os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/2_Filter/' + cast[:-4]),
+    #                          str(os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/3_Align_CTD'), '#m'])
+    #     else:
+    #         print('Input: ' + 'Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/2_Filter/' + cast[:-4])
+    #         subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
+    #                          "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/3_Align_CTD_(custom).txt",
+    #                          str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/2_Filter/' + cast[:-4]),
+    #                          str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/3_Align_CTD'), '#m'])
+    # updateCastsFrame(frames_dict)
+    # updatecruseframe(frames_dict)
+
 
 # Rokna Align CTD
 # TODO: Gera Align Modul til at finna bestu align fyri C og Ox (og Par og FLu). C er konstant um CTD'in ikki broytist, men Ox kann broytast við árstíðunum
