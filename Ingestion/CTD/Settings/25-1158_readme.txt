@@ -1,0 +1,5 @@
+25-1158_switch_dontuse: Sum upprunafílan, men nodurnar 0 og 1 eru býttar um. Hetta tí at tveir káplar vóru býttir um tá vit fingu CTD'ina. Henda fílan rigga bara til teir fyrstu royndartúrarnar tá kaðlarnir vóru stóðu skeivt. 
+	
+25-1158-0: Uppruna fílan frá SBE. Túr 1873->
+25-1158-1: Sum upprunafílan, men nú við PAR
+25-1152-2: Við nýggjum viðrum frá calibrering 2021. Túr 2107 ->

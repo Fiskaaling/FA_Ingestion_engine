@@ -1,0 +1,3 @@
+trip,xmlcon,calibrated,c,ox,calculated,by
+1873,'25-1158-1','Nov. 2017',0.0625,5.5,'Jan. 2021','ELO'
+2107,'25-1158-2','Feb. 2021',0.0625,4.0,'Jan. 2021','ELO'
