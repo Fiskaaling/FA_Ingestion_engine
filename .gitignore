@@ -21,5 +21,6 @@ projektir/*
 *.npy
 *.ipynb
 *.txt
+!/Ingestion/CTD/Settings/*.txt
 *.swp
 .ycm_extra_conf.py
