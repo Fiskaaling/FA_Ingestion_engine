@@ -1,1 +1,1 @@
-Derive /i%1.cnv /c"C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/25-1158.xmlcon" /o%2 /p"C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/Derive.psa"
+Derive /p"C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/DatCnv.psa" /c%1 /i%2 /o%3
