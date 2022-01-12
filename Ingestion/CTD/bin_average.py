@@ -488,13 +488,13 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
                 update_qframe = True
 
                 if os.name == 'nt':
-                    winedir = 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/'
+                    winedir = f"{os.getcwd()}/Ingestion/CTD/Settings/"
                 else:
-                    winedir = '/home/' + getpass.getuser() + '/.wine/drive_c/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/'
+                    winedir = f"{os.getcwd()}/Ingestion/CTD/Settings/"
+                copyfile(f'{winedir}BinAvg(1mcustomstart)_original.psa', f'{winedir}BinAvg(1m-customstart).psa')
 
-                copyfile(winedir + 'BinAvg(1mcustomstart)_original.psa', winedir + 'BinAvg(1m-customstart).psa')
                 ikki_funni_linju = True
-                with fileinput.FileInput(winedir + 'BinAvg(1m-customstart).psa', inplace=True) as file:
+                with fileinput.FileInput(f'{winedir}BinAvg(1m-customstart).psa', inplace=True) as file:
                     for line in file:
                         ikki_funni_linju = False
                         print(line.replace('-77', str(event_dict['downcast_start'])), end='')
@@ -506,25 +506,25 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
                 turdato = mappunavn.split('Processed')[0]
                 turdato = turdato.split('Lokalt_Data')[1]
                 print('Túrdato:' + turdato)
-                if os.name == 'nt':
-                    subprocess.call(['C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
-                                     "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/8_Bin_Average(1m-customstart).txt",
-                                     str(os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/6_Window_Filter/' + filnavn[mappunavn_dict['filur']].split('.')[0]),
-                                     str(os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/7_Bin_Average'), '#m'])
-                    subprocess.call(['C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
-                                     "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/9_ASCII_Out.txt",
-                                     str(os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/7_Bin_Average/' + filnavn[mappunavn_dict['filur']].split('.')[0]),
-                                     str(os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/ASCII'), '#m'])
-                else:
-                    subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
-                                     "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/8_Bin_Average(1m-customstart).txt",
-                                     str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/6_Window_Filter/' + filnavn[mappunavn_dict['filur']].split('.')[0]),
-                                     str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/7_Bin_Average'), '#m'])
-                    subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
-                                     "C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/9_ASCII_Out.txt",
-                                     str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/7_Bin_Average/' + filnavn[mappunavn_dict['filur']].split('.')[0]),
-                                     str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/ASCII'), '#m'])
 
+                if os.name == 'nt':
+                    commands = ['C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe']
+                else:
+                    commands = ['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe']
+                subprocess.call(commands +
+                                [f"{os.getcwd()}/ingestion/CTD/Settings/8_Bin_Average(1m-customstart).txt",
+                                 # 1: program, 2: in, 3: out
+                                 f"{os.getcwd()}/ingestion/CTD/Settings/BinAvg(1m-customstart).psa",
+                                 str(os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/6_Window_Filter/' + filnavn[mappunavn_dict['filur']].split('.')[0]),
+                                 str(os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/7_Bin_Average'), '#m'])
+                print('bin avg complete')
+
+                subprocess.call(commands + [f"{os.getcwd()}/ingestion/CTD/Settings/9_ASCII_Out.txt",
+                                # 1: program, 2: in, 3: out
+                                f"{os.getcwd()}/ingestion/CTD/Settings/ASCII_Out.psa",
+                                str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/7_Bin_Average/' + filnavn[mappunavn_dict['filur']].split('.')[0]),
+                                str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/ASCII'), '#m'])
+                print('Ascii out complete')
                 log_print('Done exporting')
             log_e()
         elif event.keysym == 'l':
