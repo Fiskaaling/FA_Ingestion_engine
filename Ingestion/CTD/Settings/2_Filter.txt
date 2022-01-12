@@ -1,1 +1,1 @@
-filter /p"C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/Filter.psa" /i%1.cnv /o%2
+filter /p%1 /i%2.cnv /o%3

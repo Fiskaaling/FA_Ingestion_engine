@@ -1,1 +1,1 @@
-Celltm /p"C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/CellTM.psa" /i%1.cnv /o%2
+Celltm /p%1 /i%2.cnv /o%3

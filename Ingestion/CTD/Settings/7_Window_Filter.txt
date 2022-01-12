@@ -1,1 +1,1 @@
-Wfilter /p"C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/W_Filter.psa" /i%1.cnv /o%2
+Wfilter /p%1 /i%2.cnv /o%3
