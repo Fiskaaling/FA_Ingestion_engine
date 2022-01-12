@@ -238,7 +238,6 @@ def updateCastsFrame(frames_dict):
     # Read processing choises from file
     xmlcon_align = pd.read_csv('Ingestion/CTD/Settings/xmlcon_align_choice.txt')
     TripNo = int(frames_dict['cruises'][frames_dict['selectedCruse']])
-    print('TripNo: ', TripNo)
     choises = xmlcon_align[xmlcon_align.trip < TripNo].iloc[-1]
 
     frames_dict['castFrameDict'] = castFrameDict
@@ -374,7 +373,8 @@ def align_ctd_standard(frames_dict,CondAdv,OxAdv):
 
     for cast in frames_dict['casts']:
         TripNo = frames_dict['cruises'][frames_dict['selectedCruse']]
-        print(cast, TripNo)
+        print('Align: ', cast, TripNo)
+
         if os.name == 'nt':
             commands = ['C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe']
         else:
