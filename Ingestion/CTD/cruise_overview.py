@@ -1,5 +1,6 @@
 import pandas as pd
 import os
+import glob
 from tkinter import *
 from tkinter import messagebox
 import matplotlib
@@ -216,7 +217,7 @@ def updateCastsFrame(frames_dict):
 
         if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/ASCII/ASCII_Downcast/metadata/' + cast[:-4] + '_metadata.csv'):
             metadataCast = pd.read_csv(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/ASCII/ASCII_Downcast/metadata/' + cast[:-4] + '_metadata.csv', index_col=False)
-
+            print('her: ',metadataCast.iloc[:, 0])
             for metadataRowIndex, metadataRow in enumerate(metadataCast.iloc[:, 0]):
                 print(metadataCast)
                 print(metadataRow)
@@ -319,9 +320,9 @@ def stovna_tur(turnummar, frames_dict):
     casts.sort()
     for i, cast in enumerate(casts):
         filnavn = str(turnummar) + '{:03d}'.format(i + 1)
-        if os.path.isfile('{}/{}.xml'.format(mappunavn,filnavn)):
+        if os.path.isfile('{}/{}.xml'.format(mappunavn, filnavn)):
             print('file is')
-            copyfile('{}/{}.xml'.format(mappunavn,filnavn),
+            copyfile('{}/{}.xml'.format(mappunavn, filnavn),
                      './Ingestion/CTD/Lokalt_Data/' + turnummar + '/RAW/' + filnavn + '.xml')
         else:
             filnavnorginal = os.listdir(mappunavn + '/' + cast)

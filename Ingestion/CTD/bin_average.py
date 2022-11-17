@@ -69,6 +69,7 @@ def velFil(mappunavn):
 
 def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
     mappunavn = mappunavn_dict['mappunavn']
+    print(mappunavn)
     log_b()
     midlingstid = 2  # sek
     fig.clf()
