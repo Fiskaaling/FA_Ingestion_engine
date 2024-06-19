@@ -119,10 +119,10 @@
       <Sensor index="2" SensorID="20" ExportInRealTime="1" >
         <FluoroWetlabECO_AFL_FL_Sensor SensorID="20" >
           <SerialNumber>FLRT-4863</SerialNumber>
-          <CalibrationDate>05-Oct-17</CalibrationDate>
-          <ScaleFactor>2.50000000e+001</ScaleFactor>
+          <CalibrationDate>03-Dec-21</CalibrationDate>
+          <ScaleFactor>2.40000000e+001</ScaleFactor>
           <!-- Dark output -->
-          <Vblank>0.0190</Vblank>
+          <Vblank>0.0220</Vblank>
         </FluoroWetlabECO_AFL_FL_Sensor>
       </Sensor>
       <Sensor index="3" SensorID="27" ExportInRealTime="0" >
