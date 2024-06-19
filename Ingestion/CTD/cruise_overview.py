@@ -14,6 +14,8 @@ from shutil import copyfile
 matplotlib.use('TkAgg')
 import xml.etree.ElementTree as ET
 
+SEA_BIRD_WINE_PATH = 'C:/Program Files (x86)/SBE/SBEDataProcessing-Win32/'
+
 def cruise_overview_frame(frame, root2, selectedCruse=''):
     if not os.path.exists('./Ingestion/CTD/Lokalt_Data/'):
         print('Ger lokala mappu')
@@ -168,11 +170,14 @@ def updateCastsFrame(frames_dict):
 
         buttonsDict['AlignCTD' + cast] = Button(castFrameDict[cast], text='Align CTD ' + "{:.2f}".format(var), bg=col,
                                                 command=lambda: Ingestion.CTD.align_ctd.align_ctd_frame(frames_dict['frame'],
-                                                frames_dict['root2'],selectNewFolder=False,mappunavn=frames_dict['mappunavn'] + '/' +frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/2_Filter/',filIndex=0))
+                                                frames_dict['root2'], selectNewFolder=False,
+                                                mappunavn=frames_dict['mappunavn'] + '/' +frames_dict['cruises'][frames_dict['selectedCruse']] + 
+                                                '/Processed/2_Filter/',filIndex=0))
         buttonsDict['AlignCTD' + cast].pack(side=LEFT)
 
         # CTM buttons
-        if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/4_CTM/' + cast[:-4]+'.cnv'):
+        if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + 
+                          '/Processed/4_CTM/' + cast[:-4]+'.cnv'):
             col = 'lightgreen'
         else: col = '#D9D9D9'
         buttonsDict['CTM' + cast] = Button(castFrameDict[cast], text='CTM', bg=col)
@@ -343,8 +348,8 @@ def conv_og_filter(frames_dict,xmlcon):
         if os.name == 'nt':
             commands = ['C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe']
         else:
-            commands = ['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe']
-        subprocess.call(commands +
+            SBE_path = ['wine', SEA_BIRD_WINE_PATH + 'SBEBatch.exe']
+        subprocess.call(SBE_path +
                         [f"{os.getcwd()}/ingestion/CTD/Settings/1_DatCnv.txt",
                          # 1: command, 2: program, 3: in, 4: out
                          f"{os.getcwd()}/ingestion/CTD/Settings/{xmlcon}.xmlcon",
@@ -353,7 +358,7 @@ def conv_og_filter(frames_dict,xmlcon):
                          f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/1_Data_Conversion",
                          '#m'])
 
-        subprocess.call(commands +
+        subprocess.call(SBE_path +
                         [f"{os.getcwd()}/ingestion/CTD/Settings/2_Filter.txt",
                         # 1: program, 2: in, 3: out
                         f"{os.getcwd()}/ingestion/CTD/Settings/Filter.psa",
@@ -379,14 +384,16 @@ def align_ctd_standard(frames_dict,CondAdv,OxAdv):
         if os.name == 'nt':
             commands = ['C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe']
         else:
-            commands = ['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe']
+            SBE_path = ['wine', SEA_BIRD_WINE_PATH + 'SBEBatch.exe']
 
-        subprocess.call(commands + [f"{os.getcwd()}/ingestion/CTD/Settings/3_Align_CTD.txt",
-                         # 1: program, 2: in, 3: out
-                         f"{os.getcwd()}/ingestion/CTD/Settings/AlignCTD.psa",
-                         f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/2_Filter/{cast[:-4]}",
-                         f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/3_Align_CTD",
-                         '#m'])
+        subprocess.call(SBE_path +
+                        # bash script 
+                        [f"{os.getcwd()}/ingestion/CTD/Settings/3_Align_CTD.txt",
+                        # 1: program, 2: in, 3: out
+                        f"{os.getcwd()}/ingestion/CTD/Settings/AlignCTD.psa",
+                        f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/2_Filter/{cast[:-4]}",
+                        f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/3_Align_CTD",
+                        '#m'])
 
         updateCastsFrame(frames_dict)
         updatecruseframe(frames_dict)
@@ -395,13 +402,14 @@ def align_ctd_standard(frames_dict,CondAdv,OxAdv):
 # TODO: Gera Align Modul til at finna bestu align fyri C og Ox (og Par og FLu). C er konstant um CTD'in ikki broytist, men Ox kann broytast við árstíðunum
 def align_ctd(frames_dict, ox_offset):
     if os.name == 'nt':
-        winedir = 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/'
+        settings_path = 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/'
     else:
-        winedir = f'/home/{getpass.getuser()}/.wine/drive_c/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/Settings/'
-    copyfile(f'{winedir}AlignCTD_(custom)_original.psa', f'{winedir}AlignCTD_(custom).psa')
+        settings_path = ['wine', SEA_BIRD_WINE_PATH + 'settings/']
+    
+    copyfile(f'{settings_path}AlignCTD_(custom)_original.psa', f'{settings_path}AlignCTD_(custom).psa')
     ikki_funni_linju = True
 
-    with fileinput.FileInput(winedir + 'AlignCTD_(custom).psa', inplace=True) as file:
+    with fileinput.FileInput(settings_path + 'AlignCTD_(custom).psa', inplace=True) as file:
         for line in file:
             ikki_funni_linju = False
             print(line.replace('-77', str(ox_offset)), end='')
@@ -422,14 +430,20 @@ def align_ctd(frames_dict, ox_offset):
                              f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/3_Align_CTD",
                              '#m'])
         else:
-            print('Input: ' + 'Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/2_Filter/' + cast[:-4])
-            subprocess.call(['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe',
-                             f"{os.getcwd()}/ingestion/CTD/Settings/3_Align_CTD_(custom).txt",
-                             # 1: program, 2: in, 3: out
-                             f"{os.getcwd()}/ingestion/CTD/Settings/AlignCTD_(custom).psa",
-                             f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/2_Filter/{cast[:-4]}",
-                             f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/3_Align_CTD",
-                             '#m'])
+            print('Input: ' + 'Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' 
+                  + frames_dict['cruises'][frames_dict['selectedCruse']] 
+                  + '/Processed/2_Filter/' + cast[:-4])
+            SBE_path = ['wine', SEA_BIRD_WINE_PATH + 'SBEBatch.exe']
+
+            subprocess.call(SBE_path + 
+                            # bash skript
+                            [f"{os.getcwd()}/ingestion/CTD/Settings/3_Align_CTD_(custom).txt",
+                            # 1: program, 2: in, 3: out
+                            f"{os.getcwd()}/ingestion/CTD/Settings/AlignCTD_(custom).psa",
+                            f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/2_Filter/{cast[:-4]}",
+                            f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/3_Align_CTD",
+                            '#m'])
+
         updateCastsFrame(frames_dict)
         updatecruseframe(frames_dict)
 
@@ -439,29 +453,33 @@ def CTM_derived_window(frames_dict,xmlcon):
         if os.name == 'nt':
             commands = ['C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe']
         else:
-            commands = ['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe']
-        subprocess.call(commands + [f"{os.getcwd()}/ingestion/CTD/Settings/4_CTM.txt",
-                         # 1: program, 2: in, 3: out
-                         f"{os.getcwd()}/ingestion/CTD/Settings/CellTM.psa",
-                         f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/3_Align_CTD/{cast[:-4]}",
-                         f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/4_CTM",
-                         '#m'])
-        subprocess.call(commands + [f"{os.getcwd()}/ingestion/CTD/Settings/6_Derive.txt",
-                         # 1: command, 2: in, 3: out
-                         f"{os.getcwd()}/ingestion/CTD/Settings/{xmlcon}.xmlcon",
-                         f"{os.getcwd()}/ingestion/CTD/Settings/Derive.psa",
-                         f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/4_CTM/{cast[:-4]}",
-                         f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/5_Derive", '#m'])
-        subprocess.call(commands + [f"{os.getcwd()}/ingestion/CTD/Settings/7_Window_Filter.txt",
-                         # 1: program, 2: in, 3: out
-                         f"{os.getcwd()}/ingestion/CTD/Settings/W_Filter.psa",
-                         f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/5_Derive/{cast[:-4]}",
-                         f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/6_Window_Filter", '#m'])
-        subprocess.call(commands + [f"{os.getcwd()}/ingestion/CTD/Settings/9_All_ASCII_Out.txt",
-                         # 1: program, 2: in, 3: out
-                         f"{os.getcwd()}/ingestion/CTD/Settings/All_ASCII_Out.psa",
-                         f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/6_Window_Filter/{cast[:-4]}",
-                         f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/ASCII_ALL", '#m'])
+            SBE_path = ['wine', SEA_BIRD_WINE_PATH + 'SBEBatch.exe']
+        subprocess.call(SBE_path + 
+                        [f"{os.getcwd()}/ingestion/CTD/Settings/4_CTM.txt",
+                        # 1: program, 2: in, 3: out
+                        f"{os.getcwd()}/ingestion/CTD/Settings/CellTM.psa",
+                        f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/3_Align_CTD/{cast[:-4]}",
+                        f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/4_CTM",
+                        '#m'])
+        subprocess.call(SBE_path + 
+                        [f"{os.getcwd()}/ingestion/CTD/Settings/6_Derive.txt",
+                        # 1: command, 2: in, 3: out
+                        f"{os.getcwd()}/ingestion/CTD/Settings/{xmlcon}.xmlcon",
+                        f"{os.getcwd()}/ingestion/CTD/Settings/Derive.psa",
+                        f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/4_CTM/{cast[:-4]}",
+                        f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/5_Derive", '#m'])
+        subprocess.call(SBE_path + 
+                        [f"{os.getcwd()}/ingestion/CTD/Settings/7_Window_Filter.txt",
+                        # 1: program, 2: in, 3: out
+                        f"{os.getcwd()}/ingestion/CTD/Settings/W_Filter.psa",
+                        f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/5_Derive/{cast[:-4]}",
+                        f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/6_Window_Filter", '#m'])
+        subprocess.call(SBE_path + 
+                        [f"{os.getcwd()}/ingestion/CTD/Settings/9_All_ASCII_Out.txt",
+                        # 1: program, 2: in, 3: out
+                        f"{os.getcwd()}/ingestion/CTD/Settings/All_ASCII_Out.psa",
+                        f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/6_Window_Filter/{cast[:-4]}",
+                        f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/ASCII_ALL", '#m'])
 
         updateCastsFrame(frames_dict)
         updatecruseframe(frames_dict)
