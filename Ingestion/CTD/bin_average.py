@@ -235,21 +235,32 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
 
 
     if pump_on != -1:
-        mappunavn_dict['ax'].plot([pump_on / 16, pump_on / 16], [-100, 100], ':')
+        mappunavn_dict['ax'].plot([pump_on / 16, pump_on / 16], [-100, maxd + 1], ':')
         log_print('Pumpan tendraði aftaná: ' + str(pump_on / 16) + ' sek')
 
     if pump_off != -1:
         log_print('Pumpan sløknaði aftaná: ' + str(pump_off / 16) + ' sek')
-        mappunavn_dict['ax'].plot([pump_off / 16, pump_off / 16], [-100, 100], ':')
+        mappunavn_dict['ax'].plot([pump_off / 16, pump_off / 16], [-100, maxd + 1], ':')
 
     event_dict = {'time_fulllength': time_fulllength, 'soak_start': soak_start, 'soak_stop': soak_stop, 'downcast_start': downcast_start, 'downcast_stop': downcast_stop, 'upcast_stop': upcast_stop}
 
     ba_gui.kanna_events(event_dict, log_w)
 
-    soak_line_dict = {'soak_start_line': mappunavn_dict['ax'].plot([x_aksi[event_dict['soak_start']], x_aksi[event_dict['soak_start']]], [-100, 100], 'k'), 'soak_stop_line': mappunavn_dict['ax'].plot([x_aksi[event_dict['soak_stop']], x_aksi[event_dict['soak_stop']]], [-100, 100], 'k'),
-                      'downcast_start_line': mappunavn_dict['ax'].plot([x_aksi[event_dict['downcast_start']], x_aksi[event_dict['downcast_start']]], [-100, 100], 'k'),
-                      'downcast_stop_line': mappunavn_dict['ax'].plot([x_aksi[event_dict['downcast_stop']], x_aksi[event_dict['downcast_stop']]], [-100, 100], 'k'),
-                      'upcast_stop_line': mappunavn_dict['ax'].plot([x_aksi[event_dict['upcast_stop']], x_aksi[event_dict['upcast_stop']]], [-100, 100], 'k')}
+    soak_line_dict = {'soak_start_line': mappunavn_dict['ax'].plot([x_aksi[event_dict['soak_start']], 
+                                                                    x_aksi[event_dict['soak_start']]], 
+                                                                   [-100, maxd + 1], 'k'), 
+                      'soak_stop_line': mappunavn_dict['ax'].plot([x_aksi[event_dict['soak_stop']], 
+                                                                   x_aksi[event_dict['soak_stop']]], 
+                                                                   [-100, maxd + 1], 'k'),
+                      'downcast_start_line': mappunavn_dict['ax'].plot([x_aksi[event_dict['downcast_start']], 
+                                                                        x_aksi[event_dict['downcast_start']]], 
+                                                                        [-100, maxd + 1], 'k'),
+                      'downcast_stop_line': mappunavn_dict['ax'].plot([x_aksi[event_dict['downcast_stop']], 
+                                                                       x_aksi[event_dict['downcast_stop']]], 
+                                                                       [-100, maxd + 1], 'k'),
+                      'upcast_stop_line': mappunavn_dict['ax'].plot([x_aksi[event_dict['upcast_stop']], 
+                                                                     x_aksi[event_dict['upcast_stop']]], 
+                                                                     [-100, maxd + 1], 'k')}
 
     event_dict['selected_event'] = 0
     zoomed_in_dict = {'zoomed_in': False, 'onlyDowncast': False}
@@ -441,7 +452,8 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
         elif event.keysym == 'BackSpace':
             turdato = mappunavn.split('Processed')[0]
             turdato = turdato.split('Lokalt_Data')[1]
-            Ingestion.CTD.cruise_overview.cruise_overview_frame(frame, root, selectedCruse=turdato.replace('/', ''))
+            Ingestion.CTD.cruise_overview.cruise_overview_frame(frame, root, selectedCruse='')
+            #Ingestion.CTD.cruise_overview.cruise_overview_frame(frame, root, selectedCruse=turdato.replace('/', ''))
             #Ingestion.CTD.cruise_overview.cruise_overview_frame(frame, root, selectedCruse=filnavn[mappunavn_dict['filur']])
         elif event.keysym == 'Return':
             log_b()
