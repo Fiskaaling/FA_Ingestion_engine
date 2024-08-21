@@ -36,10 +36,14 @@ def bin_average_frame(frame, root2, mappunavn='./Ingestion/CTD/Lokalt_Data/2019-
     mappunavn_dict['controlsFrame'].pack(side=TOP, anchor=W)
     mappunavn_dict['sensorsFrame'] = Frame(mappunavn_dict['controlsFrame'])
     mappunavn_dict['sensorsFrame'].pack(side=LEFT, anchor=N)
-    velMappuBtn = Button(mappunavn_dict['controlsFrame'], text='Vel Fílir', command=lambda: velFil(mappunavn_dict))
+    velMappuBtn = Button(mappunavn_dict['controlsFrame'], 
+                         text='Vel Fílir', 
+                         command=lambda: velFil(mappunavn_dict))
     velMappuBtn.pack(side=LEFT, anchor=W)
 
-    processBtn = Button(mappunavn_dict['controlsFrame'], text='Les inn', command=lambda: processera(root, fig, canvas, Quality_frame, mappunavn_dict))
+    processBtn = Button(mappunavn_dict['controlsFrame'], 
+                        text='Les inn', 
+                        command=lambda: processera(root, fig, canvas, Quality_frame, mappunavn_dict))
     processBtn.pack(side=LEFT, anchor=W)
 
     Right_frame = Frame(frame)
@@ -119,10 +123,10 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
     quality_subframe = Frame(Quality_frame)
     quality_subframe.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
 
-    depth = data['PrdM']
+    dypid = data['PrdM']
     time_fulllength = data['TimeS']
     log_print(time_fulllength)
-    maxd = max(depth)
+    maxd = max(dypid)
     start_index = 0
     for time in data.TimeS:
         start_index += 1
@@ -134,21 +138,20 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
     x_aksi = timeAx
     mappunavn_dict['start_index'] = start_index
     mappunavn_dict['x_aksi'] = timeAx
-    mappunavn_dict['d_plot'] = mappunavn_dict['ax'].plot(x_aksi, depth[start_index:])
+    mappunavn_dict['d_plot'] = mappunavn_dict['ax'].plot(x_aksi, dypid[start_index:])
     mappunavn_dict['ax'].set_ylim(-1, maxd + 1)
     mappunavn_dict['ax'].set_xlabel('Tíð [s]')
     mappunavn_dict['ax'].set_ylabel('Dýpið [m]', color='k')
 
     myvar = []
     n_midlingspunktir = int(np.ceil(midlingstid / (max(data.TimeS) / len(data))))
-    dypid = data['PrdM']
     for i in range(len(data[data.columns[0]]) - 2):
         myvar.append(np.var(dypid[i:i + n_midlingspunktir]))
 
     # Rokna ferð á CTD
     diff_d = []
-    for i in range(1, len(depth)):
-        diff_d.append((depth[i - 1] - depth[i]) / (time_fulllength.iloc[i - 1] - time_fulllength.iloc[i]))
+    for i in range(1, len(dypid)):
+        diff_d.append((dypid[i - 1] - dypid[i]) / (time_fulllength.iloc[i - 1] - time_fulllength.iloc[i]))
     states = ["PreSoak", "soak_start", "soak_stop", "downcast_start", "downcast_stop", "upcast_start", "upcast_stop"]
     current_stat = states[0]
     log_print(current_stat)
@@ -161,7 +164,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
         downcast_start = -1
         downcast_stop = -1
         upcast_stop = -1
-        for i, d in enumerate(depth):  # Hettar er kodan ið finnur nær tey ymsku tingini henda
+        for i, d in enumerate(dypid):  # Hettar er kodan ið finnur nær tey ymsku tingini henda
             if current_stat == "PreSoak":  # Bíða 5 sek áðrenn byrja verður at leita eftir hvar soak byrjar
                 if time_fulllength[i] > 5:
                     current_stat = "soak_start"
@@ -186,7 +189,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
                 if np.var(dypid[i:i + n_midlingspunktir]) > var_greinsa*5:
                     soak_stop = i-1 + n_midlingspunktir
                     soaktime = time_fulllength[soak_stop] - time_fulllength[soak_start]
-                    soak_depth = np.round(np.mean(dypid[soak_start:soak_stop]), 3)
+                    soak_dypid = np.round(np.mean(dypid[soak_start:soak_stop]), 3)
                     current_stat = "downcast_prepare"
 
             elif current_stat == "downcast_prepare":
@@ -308,7 +311,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
     #    sens_buttons_dict['column'] = Button(mappunavn_dict['sensorsFrame'], text=column, relief=SUNKEN)
     #    sens_buttons_dict['column'].pack(side=LEFT)
 
-    qcontrol(quality_subframe, depth, event_dict, pump_on, filnavn[mappunavn_dict['filur']])
+    qcontrol(quality_subframe, dypid, event_dict, pump_on, filnavn[mappunavn_dict['filur']])
 
     def key(event):
         update_annotations = False
@@ -472,7 +475,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
             upcast_Data.to_csv(parent_folder + '/Processed/ASCII_Upcast/' + filnavn[mappunavn_dict['filur']], index=False)
             # Roknar kvalitet
             log_print('Assesing quality')
-            summary = qcontrol(quality_subframe, depth, event_dict, pump_on, filnavn[mappunavn_dict['filur']])
+            summary = qcontrol(quality_subframe, dypid, event_dict, pump_on, filnavn[mappunavn_dict['filur']])
             confirmation = False
             if summary['downcast_quality'] < 0:
                 if messagebox.askyesno('Vátta', 'Ávaring!\nKvaliteturin á kastinum er undir 0\n Vátta at allir parametrar eru rættir'):
@@ -573,7 +576,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
         elif event.keysym == 'i':
             if not zoomed_in_dict['zoomed_in']:
                 zoomed_in_dict['zoomed_in'] = True
-                ba_gui.zoom_in(event_dict['selected_event'], mappunavn_dict['ax'], event_dict, depth)
+                ba_gui.zoom_in(event_dict['selected_event'], mappunavn_dict['ax'], event_dict, dypid)
                 canvas.draw()
         elif event.keysym == 'o':
             mappunavn_dict['ax'].set_xlim(0, time_fulllength[len(time_fulllength) - 1])
@@ -584,7 +587,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
             log_clear()
             processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame)
         elif event.keysym == 'onehalf':
-            qcontrol(quality_subframe, depth, event_dict, pump_on, filnavn[mappunavn_dict['filur']])
+            qcontrol(quality_subframe, dypid, event_dict, pump_on, filnavn[mappunavn_dict['filur']])
         elif event.keysym == 'Delete':
             if os.path.exists(parent_folder + '/ASCII/ASCII_Downcast/metadata/' + filnavn[mappunavn_dict['filur']].split('.')[0] + '_do_not_use_.csv'):
                 if messagebox.askyesno('Vátta', 'Strika at casti ikki skal brúkast?'):
