@@ -1,39 +1,26 @@
 import os
-from misc.faLog import log_w, log_print
+import pandas as pd
+from misc.faLog import log_print
 
-
+# Checks when CTD pump turns on and off
 def pumpstatus(mappa, filur):
-    #parent_folder = os.path.dirname(os.path.dirname(mappa))
     parent_folder = mappa.split('Processed')[0]
-    if os.path.isdir(parent_folder + '/RAW/'):
-        raw_filar = os.listdir(parent_folder + '/RAW/')
-        raw_filnavn = '-1'
-        hesin_filur = filur.upper()[:]
-        for raw_file in raw_filar:  # Hettar finnur rætta xml fílin
-            if raw_file[0:7].upper() == hesin_filur[0:7]:
-                print('Alright')
-                raw_filnavn = raw_file
-        if raw_filnavn == '-1':
-            log_w('Eingin raw fílur funnin')
-            raise FileNotFoundError('Eingin raw fílur funnin')
-            return
-        # raw_filnavn = raw_filar[filur]
-        print('Lesur raw fíl: ' + raw_filnavn)
-        with open(parent_folder + '/RAW/' + raw_filnavn, 'r') as raw_file:
-            raw_data = raw_file.read()
-        raw_data = raw_data.split('*END*')
-        raw_data = raw_data[1].split('\n')
-        pump_on = -1
-        pump_off = -1
-        lastLine = 0
-        for i, line in enumerate(raw_data):
-            if line:
-                if line[0] == '1' and lastLine == '0':
-                    pump_on = i
-                elif line[0] == '0' and lastLine == '1':
-                    pump_off = i
-                lastLine = line[0]
+    raw_folder = f'{parent_folder}RAW/'
+    raw_file = f'{filur[0:7]}.xml'
+    raw_file_path = f'{raw_folder}{raw_file}'
+
+    if os.path.exists(raw_file_path):
+        print(f'Lesur raw fíl: {raw_file}')
+        raw_data = pd.read_csv(raw_file_path, skiprows=185, skipfooter=3, 
+                               header=None, names=['hex'],
+                               dtype='str', engine='python')
+        raw_data['hex'] = raw_data['hex'].str.replace("\t\t","")
+        # Pump on signaled by first character being 0 when off and 1 when on
+        pump_on = raw_data.index[raw_data['hex'].str.startswith('1')][0]
+        pump_off = raw_data.index[raw_data['hex'].str.startswith('1')][-1]
+
         log_print('Pump ' + str(pump_on))
         return [pump_on, pump_off]
+    
     else:
         raise FileNotFoundError('Eingin raw fílur funnin') 
