@@ -28,7 +28,7 @@ def qcontrol(Quality_subframe, depth, event_dict, pump_on, filnavn):
         print('Downcast R value: ' + str(downcast_r_value))
     # Upcast stabilitetur
     # Fitta linju og rokna error
-    slope, intercept, upcast_r_value, p_value, std_err = stats.linregress(time_fulllength[event_dict['downcast_stop']:event_dict['upcast_stop']], depth[event_dict['downcast_stop']:event_dict['upcast_stop']])
+    slope, intercept, upcast_r_value, p_value, std_err = stats.linregress(time_fulllength[event_dict['upcast_start']:event_dict['upcast_stop']], depth[event_dict['upcast_start']:event_dict['upcast_stop']])
     upcast_r_value = abs(upcast_r_value)
     print('Upcast R value: ' + str(upcast_r_value))
     # Pumpa tendrar
@@ -48,7 +48,7 @@ def qcontrol(Quality_subframe, depth, event_dict, pump_on, filnavn):
         Label(Quality_subframe, text='Soak er nóg miki langt', font=("Courier", textsize), bg="lightgreen").pack(
             side=TOP, anchor=W)
         cast_quality += 1
-        if soakvar < 0.1:
+        if soakvar < 0.5:
             Label(Quality_subframe, text='Variansurin á soak er OK', font=("Courier", textsize), bg="lightgreen").pack(
                 side=TOP, anchor=W)
         else:
