@@ -124,14 +124,14 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
     quality_subframe.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
 
     dypid = data['PrdM']
+    maxd = max(dypid)
     time_fulllength = data['TimeS']
     log_print(time_fulllength)
-    maxd = max(dypid)
-    start_index = 0
-    for time in data.TimeS:
-        start_index += 1
-        if time > 0:
-            break
+    start_index = 1
+    # for time in data.TimeS:
+    #     start_index += 1
+    #     if time > 0:
+    #         break
     timeAx = data.TimeS[start_index:]
 
     # Plottar Dýpið
@@ -152,29 +152,36 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
     diff_d = []
     for i in range(1, len(dypid)):
         diff_d.append((dypid[i - 1] - dypid[i]) / (time_fulllength.iloc[i - 1] - time_fulllength.iloc[i]))
-    states = ["PreSoak", "soak_start", "soak_stop", "downcast_start", "downcast_stop", "upcast_start", "upcast_stop"]
-    current_stat = states[0]
-    log_print(current_stat)
-
+    
     var_greinsa = 0.01 # Fyrr 0.01
     [pump_on, pump_off] = pumpstatus(mappunavn_dict['mappunavn'], filnavn[mappunavn_dict['filur']])
+    
+    # states = ["PreSoak", "soak_start", "soak_stop", "downcast_start", "downcast_stop", "upcast_start", "upcast_stop"]
+    # current_stat = states[0]
+    # log_print(current_stat)
     if not metadata:
         soak_start = -1
         soak_stop = -1
         downcast_start = -1
         downcast_stop = -1
+        upcast_start = -1
         upcast_stop = -1
-        for i, d in enumerate(dypid):  # Hettar er kodan ið finnur nær tey ymsku tingini henda
-            if current_stat == "PreSoak":  # Bíða 5 sek áðrenn byrja verður at leita eftir hvar soak byrjar
+
+        # Hettar er kodan ið finnur nær tey ymsku tingini henda
+        # states = ["PreSoak", "soak_start", "soak_stop", "downcast_start", "downcast_stop", "upcast_start", "upcast_stop"]
+        current_stat = "PreSoak"
+        for i, d in enumerate(dypid):  
+            # Bíða 5 sek áðrenn byrja verður at leita eftir hvar soak byrjar
+            if current_stat == "PreSoak":  
                 if time_fulllength[i] > 5:
                     current_stat = "soak_start"
 
-            if current_stat == "soak_start":
+            elif current_stat == "soak_start":
                 # bíða til eftir 3m at kanna
                 if d < 3:
                     continue
                 # set rímilig virði um einki soak er
-                elif d > 15:
+                elif d > 20:
                     soak_start = int(i / 2)
                     soak_stop = pump_on
                     current_stat = "downcast_prepare"
@@ -188,8 +195,6 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
                 # finn hvar dypið byrjar at broytast og set 'soak stop'
                 if np.var(dypid[i:i + n_midlingspunktir]) > var_greinsa*5:
                     soak_stop = i-1 + n_midlingspunktir
-                    soaktime = time_fulllength[soak_stop] - time_fulllength[soak_start]
-                    soak_dypid = np.round(np.mean(dypid[soak_start:soak_stop]), 3)
                     current_stat = "downcast_prepare"
 
             elif current_stat == "downcast_prepare":
@@ -215,19 +220,29 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
             elif current_stat == "downcast_stop":
                 if d == maxd:
                     downcast_stop = i
+                    upcast_start = i
+                    #current_stat = "upcast_start"
                     current_stat = "upcast_stop"
+            
+            # elif current_stat == "upcast_start":
+            #     if i == downcast_stop+1:
+            #         upcast_start = i
+            #         current_stat == "upcast_stop"
 
             elif current_stat == "upcast_stop":
                 if np.var(dypid[i:i + n_midlingspunktir]) > var_greinsa:
                     upcast_stop = i
             else:
                 pass
+    
+    # Um metadata eru        
     else:
         log_print('Lesur goymd event virðir')
         soak_start = int(metadata['soak_start'])
         soak_stop = int(metadata['soak_stop'])
         downcast_start = int(metadata['downcast_start'])
         downcast_stop = int(metadata['downcast_stop'])
+        upcast_start = int(metadata['upcast_start'])
         upcast_stop = int(metadata['upcast_stop'])
 
         bin_stodd = 1  # [m]
@@ -235,7 +250,6 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
         downcast_start_d = dypid[downcast_start]
     if downcast_stop != -1:
         downcast_stop_d = dypid[downcast_stop]
-
 
     if pump_on != -1:
         mappunavn_dict['ax'].plot([pump_on / 16, pump_on / 16], [-100, maxd + 1], ':')
@@ -245,7 +259,10 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
         log_print('Pumpan sløknaði aftaná: ' + str(pump_off / 16) + ' sek')
         mappunavn_dict['ax'].plot([pump_off / 16, pump_off / 16], [-100, maxd + 1], ':')
 
-    event_dict = {'time_fulllength': time_fulllength, 'soak_start': soak_start, 'soak_stop': soak_stop, 'downcast_start': downcast_start, 'downcast_stop': downcast_stop, 'upcast_stop': upcast_stop}
+    event_dict = {'time_fulllength': time_fulllength, 
+                  'soak_start': soak_start, 'soak_stop': soak_stop, 
+                  'downcast_start': downcast_start, 'downcast_stop': downcast_stop, 
+                  'upcast_start': upcast_start, 'upcast_stop': upcast_stop}
 
     ba_gui.kanna_events(event_dict, log_w)
 
@@ -261,6 +278,9 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
                       'downcast_stop_line': mappunavn_dict['ax'].plot([x_aksi[event_dict['downcast_stop']], 
                                                                        x_aksi[event_dict['downcast_stop']]], 
                                                                        [-100, maxd + 1], 'k'),
+                      'upcast_start_line': mappunavn_dict['ax'].plot([x_aksi[event_dict['upcast_start']], 
+                                                                     x_aksi[event_dict['upcast_start']]], 
+                                                                     [-100, maxd + 1], 'k'),
                       'upcast_stop_line': mappunavn_dict['ax'].plot([x_aksi[event_dict['upcast_stop']], 
                                                                      x_aksi[event_dict['upcast_stop']]], 
                                                                      [-100, maxd + 1], 'k')}
@@ -310,6 +330,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
     # for column in data.columns.values:
     #    sens_buttons_dict['column'] = Button(mappunavn_dict['sensorsFrame'], text=column, relief=SUNKEN)
     #    sens_buttons_dict['column'].pack(side=LEFT)
+    print('event dict:', event_dict)
 
     qcontrol(quality_subframe, dypid, event_dict, pump_on, filnavn[mappunavn_dict['filur']])
 
@@ -464,12 +485,12 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
             log_print(data.columns.values)
 
             downcast_Data = pd.DataFrame({'DepSM': np.round(data.DepSM.iloc[event_dict['downcast_start']:event_dict['downcast_stop']], 7)})
-            upcast_Data = pd.DataFrame({'DepSM': np.round(data.DepSM.iloc[event_dict['downcast_stop']:event_dict['upcast_stop']], 7)})
+            upcast_Data = pd.DataFrame({'DepSM': np.round(data.DepSM.iloc[event_dict['upcast_start']:event_dict['upcast_stop']], 7)})
 
             for column in data.columns.values:
                 if column != "DepSM":
                     downcast_Data = downcast_Data.join(pd.DataFrame({column: np.round(data[column].iloc[event_dict['downcast_start']:event_dict['downcast_stop']], 7)}))
-                    upcast_Data = upcast_Data.join(pd.DataFrame({column: np.round(data[column].iloc[event_dict['downcast_stop']:event_dict['upcast_stop']], 7)}))
+                    upcast_Data = upcast_Data.join(pd.DataFrame({column: np.round(data[column].iloc[event_dict['upcast_start']:event_dict['upcast_stop']], 7)}))
             # Og goym dataði í mappunum
             downcast_Data.to_csv(parent_folder + '/ASCII/ASCII_Downcast/' + filnavn[mappunavn_dict['filur']], index=False)
             upcast_Data.to_csv(parent_folder + '/Processed/ASCII_Upcast/' + filnavn[mappunavn_dict['filur']], index=False)
@@ -561,6 +582,8 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
             elif event_dict['selected_event'] == 3:
                 event_dict['downcast_stop'] -= move_amount
             elif event_dict['selected_event'] == 4:
+                event_dict['upcast_start'] -= move_amount
+            elif event_dict['selected_event'] == 5:
                 event_dict['upcast_stop'] -= move_amount
         elif event.keysym == 'k':
             if event_dict['selected_event'] == 0:
@@ -572,7 +595,9 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
             elif event_dict['selected_event'] == 3:
                 event_dict['downcast_stop'] += move_amount
             elif event_dict['selected_event'] == 4:
-                event_dict['upcast_stop'] += move_amount
+                event_dict['upcast_start'] -= move_amount
+            elif event_dict['selected_event'] == 5:
+                event_dict['upcast_stop'] -= move_amount
         elif event.keysym == 'i':
             if not zoomed_in_dict['zoomed_in']:
                 zoomed_in_dict['zoomed_in'] = True
@@ -609,15 +634,29 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
 
         if event.keysym == 'j' or event.keysym == 'k':
             if event_dict['selected_event'] == 0:
-                soak_line_dict['soak_start_line'][0].set_data([time_fulllength[event_dict['soak_start']], time_fulllength[event_dict['soak_start']]], [-100, 100])
+                soak_line_dict['soak_start_line'][0].set_data([time_fulllength[event_dict['soak_start']], 
+                                                               time_fulllength[event_dict['soak_start']]], 
+                                                               [-100, 100])
             if event_dict['selected_event'] == 1:
-                soak_line_dict['soak_stop_line'][0].set_data([time_fulllength[event_dict['soak_stop']], time_fulllength[event_dict['soak_stop']]], [-100, 100])
+                soak_line_dict['soak_stop_line'][0].set_data([time_fulllength[event_dict['soak_stop']], 
+                                                              time_fulllength[event_dict['soak_stop']]], 
+                                                              [-100, 100])
             if event_dict['selected_event'] == 2:
-                soak_line_dict['downcast_start_line'][0].set_data([time_fulllength[event_dict['downcast_start']], time_fulllength[event_dict['downcast_start']]], [-100, 100])
+                soak_line_dict['downcast_start_line'][0].set_data([time_fulllength[event_dict['downcast_start']], 
+                                                                   time_fulllength[event_dict['downcast_start']]], 
+                                                                   [-100, 100])
             if event_dict['selected_event'] == 3:
-                soak_line_dict['downcast_stop_line'][0].set_data([time_fulllength[event_dict['downcast_stop']], time_fulllength[event_dict['downcast_stop']]], [-100, 100])
+                soak_line_dict['downcast_stop_line'][0].set_data([time_fulllength[event_dict['downcast_stop']], 
+                                                                  time_fulllength[event_dict['downcast_stop']]], 
+                                                                  [-100, 100])
             if event_dict['selected_event'] == 4:
-                soak_line_dict['upcast_stop_line'][0].set_data([time_fulllength[event_dict['upcast_stop']], time_fulllength[event_dict['upcast_stop']]], [-100, 100])
+                soak_line_dict['upcast_start_line'][0].set_data([time_fulllength[event_dict['upcast_start']], 
+                                                                time_fulllength[event_dict['upcast_start']]], 
+                                                                [-100, 100])
+            if event_dict['selected_event'] == 5:
+                soak_line_dict['upcast_stop_line'][0].set_data([time_fulllength[event_dict['upcast_stop']], 
+                                                                time_fulllength[event_dict['upcast_stop']]], 
+                                                                [-100, 100])
             # update_annotations = True
             canvas.draw()
         if update_annotations:
