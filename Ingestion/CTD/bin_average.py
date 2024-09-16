@@ -516,6 +516,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
                 metadatafile += 'soak_stop,' + str(event_dict['soak_stop']) + '\n'
                 metadatafile += 'downcast_start,' + str(event_dict['downcast_start']) + '\n'
                 metadatafile += 'downcast_stop,' + str(event_dict['downcast_stop']) + '\n'
+                metadatafile += 'upcast_start,' + str(event_dict['upcast_start']) + '\n'
                 metadatafile += 'upcast_stop,' + str(event_dict['upcast_stop']) + '\n'
                 log_print(metadatafile)
                 # Og her verður metadata fílurin goymdur
