@@ -24,6 +24,8 @@ from Ingestion.CTD.misc.ctd_pump import pumpstatus
 
 textsize = 16
 
+SEA_BIRD_WINE_PATH = 'C:/Program Files (x86)/SBE/SBEDataProcessing-Win32/SBEBatch.exe'
+
 
 def bin_average_frame(frame, root2, mappunavn='./Ingestion/CTD/Lokalt_Data/2019-01-17/Processed/ASCII_ALL'):
     mappunavn_dict = {'mappunavn': mappunavn}
@@ -242,7 +244,10 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
         log_print('Pumpan sløknaði aftaná: ' + str(pump_off / 16) + ' sek')
         mappunavn_dict['ax'].plot([pump_off / 16, pump_off / 16], [-100, maxd + 1], ':')
 
-    event_dict = {'time_fulllength': time_fulllength, 'soak_start': soak_start, 'soak_stop': soak_stop, 'downcast_start': downcast_start, 'downcast_stop': downcast_stop, 'upcast_stop': upcast_stop}
+    event_dict = {'time_fulllength': time_fulllength, 
+                  'soak_start': soak_start, 'soak_stop': soak_stop, 
+                  'downcast_start': downcast_start, 'downcast_stop': downcast_stop, 
+                  'upcast_stop': upcast_stop}
 
     ba_gui.kanna_events(event_dict, log_w)
 
@@ -336,7 +341,8 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
             else:
                 zoomed_in_dict['onlyDowncast'] = True
                 log_print('All')
-                mappunavn_dict['ax'].set_xlim(time_fulllength[event_dict['downcast_start']], time_fulllength[event_dict['downcast_stop']])
+                mappunavn_dict['ax'].set_xlim(time_fulllength[event_dict['downcast_start']], 
+                                              time_fulllength[event_dict['downcast_stop']])
             canvas.draw()
             canvas.get_tk_widget().pack(fill=BOTH, expand=1)
         elif event.keysym == '1':
@@ -523,7 +529,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
                 if os.name == 'nt':
                     commands = ['C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe']
                 else:
-                    commands = ['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe']
+                    commands = ['wine', SEA_BIRD_WINE_PATH]
                 subprocess.call(commands +
                                 [f"{os.getcwd()}/ingestion/CTD/Settings/8_Bin_Average(1m-customstart).txt",
                                  # 1: program, 2: in, 3: out
