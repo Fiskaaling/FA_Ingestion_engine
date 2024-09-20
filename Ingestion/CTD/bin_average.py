@@ -24,6 +24,8 @@ from Ingestion.CTD.misc.ctd_pump import pumpstatus
 
 textsize = 16
 
+SEA_BIRD_WINE_PATH = 'C:/Program Files (x86)/SBE/SBEDataProcessing-Win32/'
+
 
 def bin_average_frame(frame, root2, mappunavn='./Ingestion/CTD/Lokalt_Data/2019-01-17/Processed/ASCII_ALL'):
     mappunavn_dict = {'mappunavn': mappunavn}
@@ -46,22 +48,30 @@ def bin_average_frame(frame, root2, mappunavn='./Ingestion/CTD/Lokalt_Data/2019-
                         command=lambda: processera(root, fig, canvas, Quality_frame, mappunavn_dict))
     processBtn.pack(side=LEFT, anchor=W)
 
+    # Right frame
     Right_frame = Frame(frame)
     Right_frame.pack(fill=BOTH, expand=False, side=RIGHT, anchor=N)
 
+    # Plot frame
     fig = Figure(figsize=(12, 8), dpi=100)
-    plot_frame = Frame(frame, borderwidth=1, highlightbackground="green", highlightcolor="green", highlightthickness=1)
+    plot_frame = Frame(frame, borderwidth=1, 
+                       highlightbackground="green", highlightcolor="green", 
+                       highlightthickness=1)
     plot_frame.pack(fill=BOTH, expand=True, side=LEFT, anchor=N)
     canvas = FigureCanvasTkAgg(fig, master=plot_frame)
 
+    #Quality frame
     Quality_frame = Frame(Right_frame)
     Quality_frame.pack(fill=BOTH, expand=True, side=TOP, anchor=W)
-    log_frame = Frame(Right_frame, height=300, width=600, borderwidth=1, highlightbackground="green", highlightcolor="green", highlightthickness=1)
+    log_frame = Frame(Right_frame, height=300, width=600, borderwidth=1, 
+                      highlightbackground="green", highlightcolor="green", 
+                      highlightthickness=1)
     log_frame.pack(fill=X, expand=False, side=BOTTOM, anchor=W)
     gerlog(log_frame, root)
     mappunavn_dict['filur'] = 0
 
-    mappunavn_dict['continuebtn'] = Button(Quality_frame, text='Halt áfram', command=lambda: Ingestion.CTD.skraset_stodir(frame, root2))
+    mappunavn_dict['continuebtn'] = Button(Quality_frame, text='Halt áfram', 
+                                           command=lambda: Ingestion.CTD.skraset_stodir(frame, root2))
     mappunavn_dict['continuebtn'].pack(side=TOP, anchor=W)
 
     processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame)
@@ -97,9 +107,8 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
 
     list_of_casts = os.listdir(mappunavn)
     list_of_casts.sort()
-
     print(mappunavn)
-    #parent_folder = os.path.dirname(os.path.dirname(mappunavn))
+    
     parent_folder = mappunavn.split('Processed')[0]
     print(parent_folder)
     # Um mappurnar ikki eru til, ger tær
@@ -114,7 +123,9 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
     if not os.path.isdir(parent_folder + '/ASCII/ASCII_Downcast/metadata'):
         os.makedirs(parent_folder + '/ASCII/ASCII_Downcast/metadata')  # Um ikki, ger hana
 
-    metadata, finished_processing = ba_gui.refresh_qframe(Quality_frame, list_of_casts, parent_folder, filnavn, mappunavn_dict)
+    metadata, finished_processing = ba_gui.refresh_qframe(Quality_frame, list_of_casts, 
+                                                          parent_folder, filnavn, 
+                                                          mappunavn_dict)
     log_print('Finished_processing?: ' + str(finished_processing))
     if finished_processing:
         pass
@@ -220,14 +231,8 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
             elif current_stat == "downcast_stop":
                 if d == maxd:
                     downcast_stop = i
-                    upcast_start = i
-                    #current_stat = "upcast_start"
-                    current_stat = "upcast_stop"
-            
-            # elif current_stat == "upcast_start":
-            #     if i == downcast_stop+1:
-            #         upcast_start = i
-            #         current_stat == "upcast_stop"
+                    upcast_start = i+5
+                    current_stat = "upcast_start"
 
             elif current_stat == "upcast_stop":
                 if np.var(dypid[i:i + n_midlingspunktir]) > var_greinsa:
@@ -316,7 +321,8 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
                         farts.append(True)
                     else:
                         farts.append(False)
-                mappunavn_dict['ax'].fill_between(data.TimeS, -100, 0, where=farts, facecolor='red', alpha=0.2)
+                mappunavn_dict['ax'].fill_between(data.TimeS, -100, 0, 
+                                                  where=farts, facecolor='red', alpha=0.2)
 
             lastflag = flag
 
@@ -338,31 +344,26 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
         update_annotations = False
         update_qframe = False
         x_aksi = mappunavn_dict['x_aksi']
+
         if zoomed_in_dict['zoomed_in']:
             move_amount = 1
         else:
             move_amount = 8
-        #log_print(event.keysym)
 
+    # CHOSE FILE
+        # next file
         if event.keysym == 'w':
             if mappunavn_dict['filur'] < len(filnavn) - 1:
                 mappunavn_dict['filur'] += 1
                 update_qframe = True
+        # previous file
         elif event.keysym == 'q':
             if mappunavn_dict['filur'] != 0:
                 mappunavn_dict['filur'] -= 1
                 update_qframe = True
-        elif event.keysym == 'e':
-            if zoomed_in_dict['onlyDowncast']:
-                zoomed_in_dict['onlyDowncast'] = False
-                mappunavn_dict['ax'].set_xlim(0, time_fulllength[len(time_fulllength) - 1])
-                log_print('Downcast')
-            else:
-                zoomed_in_dict['onlyDowncast'] = True
-                log_print('All')
-                mappunavn_dict['ax'].set_xlim(time_fulllength[event_dict['downcast_start']], time_fulllength[event_dict['downcast_stop']])
-            canvas.draw()
-            canvas.get_tk_widget().pack(fill=BOTH, expand=1)
+
+    # TOGGLE LINE
+        # temperature
         elif event.keysym == '1':
             if mappunavn_dict['toggle_temp'] == 0:
                 mappunavn_dict['toggle_temp'] = 1
@@ -376,6 +377,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
                 mappunavn_dict['ax2'].axis('off')
             canvas.draw()
             canvas.get_tk_widget().pack(fill=BOTH, expand=1)
+        # fluorescence
         elif event.keysym == '2':
             if mappunavn_dict['toggle_FlECO'] == 0:
                 mappunavn_dict['toggle_FlECO'] = 1
@@ -389,6 +391,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
                 mappunavn_dict['ax3'].axis('off')
             canvas.draw()
             canvas.get_tk_widget().pack(fill=BOTH, expand=1)
+        # oxygen
         elif event.keysym == '3':
             if mappunavn_dict['toggle_Sbeox0PS'] == 0:
                 mappunavn_dict['toggle_Sbeox0PS'] = 1
@@ -402,6 +405,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
                 mappunavn_dict['ax4'].axis('off')
             canvas.draw()
             canvas.get_tk_widget().pack(fill=BOTH, expand=1)
+        # par
         elif event.keysym == '4':
             if mappunavn_dict['toggle_par'] == 0:
                 mappunavn_dict['toggle_par'] = 1
@@ -415,6 +419,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
                 mappunavn_dict['ax5'].axis('off')
             canvas.draw()
             canvas.get_tk_widget().pack(fill=BOTH, expand=1)
+        # salinity
         elif event.keysym == '5':
             if mappunavn_dict['toggle_Sal00'] == 0:
                 mappunavn_dict['toggle_Sal00'] = 1
@@ -428,6 +433,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
                 mappunavn_dict['ax6'].axis('off')
             canvas.draw()
             canvas.get_tk_widget().pack(fill=BOTH, expand=1)
+        # conductivity
         elif event.keysym == '6':
             if mappunavn_dict['toggle_C0mS'] == 0:
                 mappunavn_dict['toggle_C0mS'] = 1
@@ -441,14 +447,74 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
                 mappunavn_dict['ax7'].axis('off')
             canvas.draw()
             canvas.get_tk_widget().pack(fill=BOTH, expand=1)
+    
+    # EVENT LINES
+        # next event line
+        elif event.keysym == 'l':
+            if not zoomed_in_dict['zoomed_in']:
+                event_dict['selected_event'] += 1
+                update_annotations = True
+        # previous event line
+        elif event.keysym == 'h':
+            if not zoomed_in_dict['zoomed_in']:
+                event_dict['selected_event'] -= 1
+                update_annotations = True
+        # move event line to the right
+        elif event.keysym == 'j':
+            if event_dict['selected_event'] == 0:
+                event_dict['soak_start'] -= move_amount
+            elif event_dict['selected_event'] == 1:
+                event_dict['soak_stop'] -= move_amount
+            elif event_dict['selected_event'] == 2:
+                event_dict['downcast_start'] -= move_amount
+            elif event_dict['selected_event'] == 3:
+                event_dict['downcast_stop'] -= move_amount
+            elif event_dict['selected_event'] == 4:
+                event_dict['upcast_start'] -= move_amount
+            elif event_dict['selected_event'] == 5:
+                event_dict['upcast_stop'] -= move_amount
+        # move event line to the left
+        elif event.keysym == 'k':
+            if event_dict['selected_event'] == 0:
+                event_dict['soak_start'] += move_amount
+            elif event_dict['selected_event'] == 1:
+                event_dict['soak_stop'] += move_amount
+            elif event_dict['selected_event'] == 2:
+                event_dict['downcast_start'] += move_amount
+            elif event_dict['selected_event'] == 3:
+                event_dict['downcast_stop'] += move_amount
+            elif event_dict['selected_event'] == 4:
+                event_dict['upcast_start'] -= move_amount
+            elif event_dict['selected_event'] == 5:
+                event_dict['upcast_stop'] -= move_amount
 
-            # C0mS/cm
+    # TOGGLE ZOOM
+        # in
+        elif event.keysym == 'i':
+            if not zoomed_in_dict['zoomed_in']:
+                zoomed_in_dict['zoomed_in'] = True
+                ba_gui.zoom_in(event_dict['selected_event'], mappunavn_dict['ax'], event_dict, dypid)
+                canvas.draw()
+        # out
+        elif event.keysym == 'o':
+            mappunavn_dict['ax'].set_xlim(0, time_fulllength[len(time_fulllength) - 1])
+            mappunavn_dict['ax'].set_ylim(-1, maxd + 1)
+            zoomed_in_dict['zoomed_in'] = False
             canvas.draw()
-            canvas.get_tk_widget().pack(fill=BOTH, expand=1)
+        # downcast ounly
+        elif event.keysym == 'e':
+            if zoomed_in_dict['onlyDowncast']:
+                zoomed_in_dict['onlyDowncast'] = False
+                mappunavn_dict['ax'].set_xlim(0, time_fulllength[len(time_fulllength) - 1])
+                log_print('Downcast')
+            else:
+                zoomed_in_dict['onlyDowncast'] = True
+                log_print('All')
+                mappunavn_dict['ax'].set_xlim(time_fulllength[event_dict['downcast_start']], 
+                                              time_fulllength[event_dict['downcast_stop']])
+            canvas.draw()
+            canvas.get_tk_widget().pack(fill=BOTH, expand=1)    
 
-            # Sbeox0PS
-            canvas.draw()
-            canvas.get_tk_widget().pack(fill=BOTH, expand=1)
         elif event.keysym == 'Shift_L':
             if mappunavn_dict['toggle_ax']:
                 print('Toggle ax off')
@@ -463,34 +529,35 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
                     mappunavn_dict['ax'].lines.pop(0)
                 # Sbeox0PS
                 mappunavn_dict['x_aksi'] = data.DepSM[mappunavn_dict['start_index']:]
-                # mappunavn_dict['ax'].plot(data.DepSM, data.Sbeox0PS)
-                mappunavn_dict['ax'].set_ylim(min(data.DepSM[event_dict['soak_stop']:event_dict['upcast_stop']]) - 0.1, max(data.DepSM[event_dict['soak_stop']:event_dict['upcast_stop']]) + 0.1)
-                mappunavn_dict['ax'].set_xlim(min(data.DepSM[event_dict['soak_stop']:event_dict['upcast_stop']]) - 0.1, max(data.DepSM[event_dict['soak_stop']:event_dict['upcast_stop']]) + 0.1)
+                mappunavn_dict['ax'].set_ylim(min(data.DepSM[event_dict['soak_stop']:event_dict['upcast_stop']]) - 0.1, 
+                                              max(data.DepSM[event_dict['soak_stop']:event_dict['upcast_stop']]) + 0.1)
+                mappunavn_dict['ax'].set_xlim(min(data.DepSM[event_dict['soak_stop']:event_dict['upcast_stop']]) - 0.1, 
+                                              max(data.DepSM[event_dict['soak_stop']:event_dict['upcast_stop']]) + 0.1)
                 mappunavn_dict['ax'].set_xlabel('Dýpið [m]')
                 mappunavn_dict['ax'].plot(data.DepSM, data.DepSM, c='k')
-                # if 'annotation' in soak_line_dict:
-                #    print(soak_line_dict)
-                #    soak_line_dict['annotation'].remove()
                 canvas.draw()
 
-        elif event.keysym == 'BackSpace':
-            turdato = mappunavn.split('Processed')[0]
-            turdato = turdato.split('Lokalt_Data')[1]
-            Ingestion.CTD.cruise_overview.cruise_overview_frame(frame, root, selectedCruse='')
-            #Ingestion.CTD.cruise_overview.cruise_overview_frame(frame, root, selectedCruse=turdato.replace('/', ''))
-            #Ingestion.CTD.cruise_overview.cruise_overview_frame(frame, root, selectedCruse=filnavn[mappunavn_dict['filur']])
+    # PROCESS CAST
         elif event.keysym == 'Return':
             log_b()
             log_print('Calculating')
             log_print(data.columns.values)
 
-            downcast_Data = pd.DataFrame({'DepSM': np.round(data.DepSM.iloc[event_dict['downcast_start']:event_dict['downcast_stop']], 7)})
-            upcast_Data = pd.DataFrame({'DepSM': np.round(data.DepSM.iloc[event_dict['upcast_start']:event_dict['upcast_stop']], 7)})
+            downcast_Data = pd.DataFrame({'DepSM': np.round(
+                            data.DepSM.iloc[event_dict['downcast_start']:
+                                            event_dict['downcast_stop']], 7)})
+            upcast_Data = pd.DataFrame({'DepSM': np.round(
+                            data.DepSM.iloc[event_dict['upcast_start']:
+                                            event_dict['upcast_stop']], 7)})
 
             for column in data.columns.values:
                 if column != "DepSM":
-                    downcast_Data = downcast_Data.join(pd.DataFrame({column: np.round(data[column].iloc[event_dict['downcast_start']:event_dict['downcast_stop']], 7)}))
-                    upcast_Data = upcast_Data.join(pd.DataFrame({column: np.round(data[column].iloc[event_dict['upcast_start']:event_dict['upcast_stop']], 7)}))
+                    downcast_Data = downcast_Data.join(pd.DataFrame({column: np.round(
+                                    data[column].iloc[event_dict['downcast_start']:
+                                                      event_dict['downcast_stop']], 7)}))
+                    upcast_Data = upcast_Data.join(pd.DataFrame({column: np.round(
+                                    data[column].iloc[event_dict['upcast_start']:
+                                                      event_dict['upcast_stop']], 7)}))
             # Og goym dataði í mappunum
             downcast_Data.to_csv(parent_folder + '/ASCII/ASCII_Downcast/' + filnavn[mappunavn_dict['filur']], index=False)
             upcast_Data.to_csv(parent_folder + '/Processed/ASCII_Upcast/' + filnavn[mappunavn_dict['filur']], index=False)
@@ -499,7 +566,8 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
             summary = qcontrol(quality_subframe, dypid, event_dict, pump_on, filnavn[mappunavn_dict['filur']])
             confirmation = False
             if summary['downcast_quality'] < 0:
-                if messagebox.askyesno('Vátta', 'Ávaring!\nKvaliteturin á kastinum er undir 0\n Vátta at allir parametrar eru rættir'):
+                if messagebox.askyesno('Vátta', 
+                                       'Ávaring!\nKvaliteturin á kastinum er undir 0\n Vátta at allir parametrar eru rættir'):
                     confirmation = True
             else:
                 confirmation = True
@@ -548,7 +616,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
                 if os.name == 'nt':
                     commands = ['C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe']
                 else:
-                    commands = ['wine', 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/SBEBatch.exe']
+                    commands = ['wine', f'{SEA_BIRD_WINE_PATH}SBEBatch.exe']
                 subprocess.call(commands +
                                 [f"{os.getcwd()}/ingestion/CTD/Settings/8_Bin_Average(1m-customstart).txt",
                                  # 1: program, 2: in, 3: out
@@ -565,50 +633,18 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
                 print('Ascii out complete')
                 log_print('Done exporting')
             log_e()
-        elif event.keysym == 'l':
-            if not zoomed_in_dict['zoomed_in']:
-                event_dict['selected_event'] += 1
-                update_annotations = True
-        elif event.keysym == 'h':
-            if not zoomed_in_dict['zoomed_in']:
-                event_dict['selected_event'] -= 1
-                update_annotations = True
-        elif event.keysym == 'j':
-            if event_dict['selected_event'] == 0:
-                event_dict['soak_start'] -= move_amount
-            elif event_dict['selected_event'] == 1:
-                event_dict['soak_stop'] -= move_amount
-            elif event_dict['selected_event'] == 2:
-                event_dict['downcast_start'] -= move_amount
-            elif event_dict['selected_event'] == 3:
-                event_dict['downcast_stop'] -= move_amount
-            elif event_dict['selected_event'] == 4:
-                event_dict['upcast_start'] -= move_amount
-            elif event_dict['selected_event'] == 5:
-                event_dict['upcast_stop'] -= move_amount
-        elif event.keysym == 'k':
-            if event_dict['selected_event'] == 0:
-                event_dict['soak_start'] += move_amount
-            elif event_dict['selected_event'] == 1:
-                event_dict['soak_stop'] += move_amount
-            elif event_dict['selected_event'] == 2:
-                event_dict['downcast_start'] += move_amount
-            elif event_dict['selected_event'] == 3:
-                event_dict['downcast_stop'] += move_amount
-            elif event_dict['selected_event'] == 4:
-                event_dict['upcast_start'] -= move_amount
-            elif event_dict['selected_event'] == 5:
-                event_dict['upcast_stop'] -= move_amount
-        elif event.keysym == 'i':
-            if not zoomed_in_dict['zoomed_in']:
-                zoomed_in_dict['zoomed_in'] = True
-                ba_gui.zoom_in(event_dict['selected_event'], mappunavn_dict['ax'], event_dict, dypid)
-                canvas.draw()
-        elif event.keysym == 'o':
-            mappunavn_dict['ax'].set_xlim(0, time_fulllength[len(time_fulllength) - 1])
-            mappunavn_dict['ax'].set_ylim(-1, maxd + 1)
-            zoomed_in_dict['zoomed_in'] = False
-            canvas.draw()
+
+        # back to trip overview
+        elif event.keysym == 'BackSpace':
+            turdato = mappunavn.split('Processed')[0]
+            turdato = turdato.split('Lokalt_Data')[1]
+            Ingestion.CTD.cruise_overview.cruise_overview_frame(frame, root, selectedCruse='')
+            #Ingestion.CTD.cruise_overview.cruise_overview_frame(frame, root, selectedCruse=turdato.replace('/', ''))
+            #Ingestion.CTD.cruise_overview.cruise_overview_frame(frame, root, selectedCruse=filnavn[mappunavn_dict['filur']])
+
+
+        
+        
         elif event.keysym == 'space':
             log_clear()
             processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame)
@@ -658,12 +694,13 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
                 soak_line_dict['upcast_stop_line'][0].set_data([time_fulllength[event_dict['upcast_stop']], 
                                                                 time_fulllength[event_dict['upcast_stop']]], 
                                                                 [-100, 100])
-            # update_annotations = True
             canvas.draw()
         if update_annotations:
             soak_line_dict['annotation'].remove()
-            soak_line_dict['annotation'] = ba_gui.update_annotations(event_dict['selected_event'], mappunavn_dict['ax'], event_dict, maxd)
-
+            soak_line_dict['annotation'] = ba_gui.update_annotations(event_dict['selected_event'], 
+                                                                     mappunavn_dict['ax'], 
+                                                                     event_dict, 
+                                                                     maxd)
             canvas.draw()
         if update_qframe:
             ba_gui.refresh_qframe(Quality_frame, list_of_casts, parent_folder, filnavn, mappunavn_dict)
