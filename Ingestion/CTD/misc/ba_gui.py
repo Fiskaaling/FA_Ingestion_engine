@@ -12,8 +12,8 @@ def refresh_qframe(Quality_frame, list_of_casts, parent_folder, filnavn, mappuna
     finished_processing = True
     for cast in list_of_casts:
         casttext = cast
-        if os.path.exists(parent_folder + '/ASCII/ASCII_Downcast/metadata/' + cast.split('.')[0] + '_metadata.csv'):
-            cast_metadata_df = pd.read_csv(parent_folder + '/ASCII/ASCII_Downcast/metadata/' + cast.split('.')[0] + '_metadata.csv', index_col=False)
+        if os.path.exists(parent_folder + '/ASCII/metadata/' + cast.split('.')[0] + '_metadata.csv'):
+            cast_metadata_df = pd.read_csv(parent_folder + '/ASCII/metadata/' + cast.split('.')[0] + '_metadata.csv', index_col=False)
             cast_metadata_keys = cast_metadata_df.key
             cast_metadata_values = cast_metadata_df.value
             cast_metadata = {}
@@ -29,7 +29,7 @@ def refresh_qframe(Quality_frame, list_of_casts, parent_folder, filnavn, mappuna
                 casttext += ' ✓'
         else:
             finished_processing = False
-        if os.path.exists(parent_folder + '/ASCII/ASCII_Downcast/metadata/' + cast.split('.')[0] + '_do_not_use_.csv'):
+        if os.path.exists(parent_folder + '/ASCII/metadata/' + cast.split('.')[0] + '_do_not_use_.csv'):
             casttext += ' X'
             finished_processing = True
         if cast == filnavn[mappunavn_dict['filur']]:
@@ -56,7 +56,6 @@ def kanna_events(event_dict, log_w):
         log_w('Ávaring! Upcast Stop er ikki funnið')
         event_dict['upcast_stop'] = 250
 
-
 def zoom_in(selected_event, ax, event_dict, depth):
     time_fulllength = event_dict['time_fulllength']
     if selected_event == 0:
@@ -75,6 +74,10 @@ def zoom_in(selected_event, ax, event_dict, depth):
         ax.set_ylim(np.min(depth[event_dict['downcast_stop'] - (5 * 16):event_dict['downcast_stop'] + (5 * 16)]) - 0.5,
                     np.max(depth[event_dict['downcast_stop'] - (5 * 16):event_dict['downcast_stop'] + (5 * 16)]) + 0.5)
     if selected_event == 4:
+        ax.set_xlim(time_fulllength[event_dict['upcast_start']] - 5, time_fulllength[event_dict['upcast_start']] + 5)
+        ax.set_ylim(np.min(depth[event_dict['upcast_start'] - (5 * 16):event_dict['upcast_start'] + (5 * 16)]) - 0.5,
+                    np.max(depth[event_dict['upcast_start'] - (5 * 16):event_dict['upcast_start'] + (5 * 16)]) + 0.5)
+    if selected_event == 5:
         ax.set_xlim(time_fulllength[event_dict['upcast_stop']] - 5, time_fulllength[event_dict['upcast_stop']] + 5)
         ax.set_ylim(np.min(depth[event_dict['upcast_stop'] - (5 * 16):event_dict['upcast_stop'] + (5 * 16)]) - 0.5,
                     np.max(depth[event_dict['upcast_stop'] - (5 * 16):event_dict['upcast_stop'] + (5 * 16)]) + 0.5)
@@ -115,6 +118,14 @@ def update_annotations(selected_event, ax, event_dict, maxd):
                                  ha='center',
                                  arrowprops=dict(arrowstyle="->"))
     elif selected_event == 4:
+        annotation = ax.annotate('Upcast Start',
+                                 xy=(time_fulllength[event_dict['upcast_start']], maxd + 1),
+                                 xytext=(time_fulllength[event_dict['upcast_start']], maxd + 2),
+                                 xycoords='data',
+                                 textcoords='data',
+                                 ha='center',
+                                 arrowprops=dict(arrowstyle="->"))
+    elif selected_event == 5:
         annotation = ax.annotate('Upcast Stop',
                                  xy=(time_fulllength[event_dict['upcast_stop']], maxd + 1),
                                  xytext=(time_fulllength[event_dict['upcast_stop']], maxd + 2),

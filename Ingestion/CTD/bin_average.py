@@ -70,15 +70,18 @@ def bin_average_frame(frame, root2, mappunavn='./Ingestion/CTD/Lokalt_Data/2019-
     gerlog(log_frame, root)
     mappunavn_dict['filur'] = 0
 
-    mappunavn_dict['continuebtn'] = Button(Quality_frame, text='Halt áfram', 
+    mappunavn_dict['continuebtn'] = Button(Quality_frame, 
+                                           text='Halt áfram', 
                                            command=lambda: Ingestion.CTD.skraset_stodir(frame, root2))
-    mappunavn_dict['continuebtn'].pack(side=TOP, anchor=W)
+    mappunavn_dict['continuebtn'].pack(side=TOP, 
+                                       anchor=W)
 
     processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame)
 
 
 def velFil(mappunavn):
-    mappunavn['mappunavn'] = filedialog.askdirectory(title='Vel túramappu', initialdir='./Ingestion/CTD/Lokalt_Data/')
+    mappunavn['mappunavn'] = filedialog.askdirectory(title='Vel túramappu', 
+                                                     initialdir='./Ingestion/CTD/Lokalt_Data/')
 
 
 def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
@@ -101,6 +104,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
     mappunavn_dict['toggle_Sal00'] = 0
     mappunavn_dict['toggle_par'] = 0
     mappunavn_dict['toggle_C0mS'] = 0
+    print('loading data')
     print(mappunavn_dict['filur'])
     print(mappunavn + '/' + filnavn[mappunavn_dict['filur']])
     data = pd.read_csv(mappunavn + '/' + filnavn[mappunavn_dict['filur']], encoding='latin-1')  # Les fíl
@@ -111,17 +115,9 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
     
     parent_folder = mappunavn.split('Processed')[0]
     print(parent_folder)
-    # Um mappurnar ikki eru til, ger tær
-    if not os.path.exists(parent_folder + '/Processed/7_Bin_Average/'):
-        os.mkdir(parent_folder + '/Processed/7_Bin_Average/')
-    if not os.path.exists(parent_folder + '/ASCII/'):
-        os.mkdir(parent_folder + '/ASCII/')
-        os.mkdir(parent_folder + '/ASCII/ASCII_Downcast')
-    if not os.path.isdir(parent_folder + '/Processed/ASCII_Upcast'):
-        os.mkdir(parent_folder + '/Processed/ASCII_Upcast')
     # Kanna um metadatamappan er til
-    if not os.path.isdir(parent_folder + '/ASCII/ASCII_Downcast/metadata'):
-        os.makedirs(parent_folder + '/ASCII/ASCII_Downcast/metadata')  # Um ikki, ger hana
+    if not os.path.isdir(parent_folder + '/ASCII/metadata'):
+        os.makedirs(parent_folder + '/ASCII/metadata')  # Um ikki, ger hana
 
     metadata, finished_processing = ba_gui.refresh_qframe(Quality_frame, list_of_casts, 
                                                           parent_folder, filnavn, 
@@ -137,7 +133,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
     dypid = data['PrdM']
     maxd = max(dypid)
     time_fulllength = data['TimeS']
-    log_print(time_fulllength)
+    #log_print(time_fulllength)
     start_index = 1
     # for time in data.TimeS:
     #     start_index += 1
@@ -231,8 +227,8 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
             elif current_stat == "downcast_stop":
                 if d == maxd:
                     downcast_stop = i
-                    upcast_start = i+5
-                    current_stat = "upcast_start"
+                    upcast_start = i+32
+                    current_stat = "upcast_stop"
 
             elif current_stat == "upcast_stop":
                 if np.var(dypid[i:i + n_midlingspunktir]) > var_greinsa:
@@ -321,14 +317,10 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
                         farts.append(True)
                     else:
                         farts.append(False)
-                mappunavn_dict['ax'].fill_between(data.TimeS, -100, 0, 
-                                                  where=farts, facecolor='red', alpha=0.2)
+                mappunavn_dict['ax'].fill_between(data.TimeS, 100, 0, 
+                                                  where=farts, facecolor='red', alpha=0.1)
 
             lastflag = flag
-
-        log_print('markeraokid')
-        log_print(fra)
-        log_print(til)
 
     # for widget in mappunavn_dict['sensorsFrame'].winfo_children():
     #    widget.destroy()
@@ -484,9 +476,9 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
             elif event_dict['selected_event'] == 3:
                 event_dict['downcast_stop'] += move_amount
             elif event_dict['selected_event'] == 4:
-                event_dict['upcast_start'] -= move_amount
+                event_dict['upcast_start'] += move_amount
             elif event_dict['selected_event'] == 5:
-                event_dict['upcast_stop'] -= move_amount
+                event_dict['upcast_stop'] += move_amount
 
     # TOGGLE ZOOM
         # in
@@ -559,8 +551,8 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
                                     data[column].iloc[event_dict['upcast_start']:
                                                       event_dict['upcast_stop']], 7)}))
             # Og goym dataði í mappunum
-            downcast_Data.to_csv(parent_folder + '/ASCII/ASCII_Downcast/' + filnavn[mappunavn_dict['filur']], index=False)
-            upcast_Data.to_csv(parent_folder + '/Processed/ASCII_Upcast/' + filnavn[mappunavn_dict['filur']], index=False)
+            downcast_Data.to_csv(parent_folder + '/ASCII/Down/' + filnavn[mappunavn_dict['filur']], index=False)
+            upcast_Data.to_csv(parent_folder + '/ASCII/Up/' + filnavn[mappunavn_dict['filur']], index=False)
             # Roknar kvalitet
             log_print('Assesing quality')
             summary = qcontrol(quality_subframe, dypid, event_dict, pump_on, filnavn[mappunavn_dict['filur']])
@@ -575,7 +567,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
                 # Hettar ger metadatafílin
                 metadatafile = 'key,value\n'
                 metadatafile += 'Data_File_Name,' + filnavn[mappunavn_dict['filur']] + '\n'
-                sha256_hash = get_hash(parent_folder + '/ASCII/ASCII_Downcast/' + filnavn[mappunavn_dict['filur']])
+                sha256_hash = get_hash(parent_folder + '/ASCII/Down/' + filnavn[mappunavn_dict['filur']])
                 metadatafile += 'sha256_hash,' + sha256_hash + '\n'
                 metadatafile += 'processed_by,' + getpass.getuser() + '\n'
                 for key, value in summary.items():
@@ -588,7 +580,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
                 metadatafile += 'upcast_stop,' + str(event_dict['upcast_stop']) + '\n'
                 log_print(metadatafile)
                 # Og her verður metadata fílurin goymdur
-                text_file = open(parent_folder + '/ASCII/ASCII_Downcast/metadata/' + filnavn[mappunavn_dict['filur']].split('.')[0] + '_metadata.csv', "w")
+                text_file = open(parent_folder + '/ASCII/metadata/' + filnavn[mappunavn_dict['filur']].split('.')[0] + '_metadata.csv', "w")
                 text_file.write(metadatafile)
                 text_file.close()
                 update_qframe = True
@@ -621,14 +613,14 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
                                 [f"{os.getcwd()}/ingestion/CTD/Settings/8_Bin_Average(1m-customstart).txt",
                                  # 1: program, 2: in, 3: out
                                  f"{os.getcwd()}/ingestion/CTD/Settings/BinAvg(1m-customstart).psa",
-                                 str(os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/6_Window_Filter/' + filnavn[mappunavn_dict['filur']].split('.')[0]),
-                                 str(os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/7_Bin_Average'), '#m'])
+                                 str(os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/7_Window_Filter/' + filnavn[mappunavn_dict['filur']].split('.')[0]),
+                                 str(os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/8_Bin_Average'), '#m'])
                 print('bin avg complete')
 
                 subprocess.call(commands + [f"{os.getcwd()}/ingestion/CTD/Settings/9_ASCII_Out.txt",
                                 # 1: program, 2: in, 3: out
                                 f"{os.getcwd()}/ingestion/CTD/Settings/ASCII_Out.psa",
-                                str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/7_Bin_Average/' + filnavn[mappunavn_dict['filur']].split('.')[0]),
+                                str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/8_Bin_Average/' + filnavn[mappunavn_dict['filur']].split('.')[0]),
                                 str('Z:' + os.getcwd() + '/Ingestion/CTD/Lokalt_Data/' + turdato + '/ASCII'), '#m'])
                 print('Ascii out complete')
                 log_print('Done exporting')
@@ -651,12 +643,12 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
         elif event.keysym == 'onehalf':
             qcontrol(quality_subframe, dypid, event_dict, pump_on, filnavn[mappunavn_dict['filur']])
         elif event.keysym == 'Delete':
-            if os.path.exists(parent_folder + '/ASCII/ASCII_Downcast/metadata/' + filnavn[mappunavn_dict['filur']].split('.')[0] + '_do_not_use_.csv'):
+            if os.path.exists(parent_folder + '/ASCII/Down/metadata/' + filnavn[mappunavn_dict['filur']].split('.')[0] + '_do_not_use_.csv'):
                 if messagebox.askyesno('Vátta', 'Strika at casti ikki skal brúkast?'):
-                    os.remove(parent_folder + '/ASCII/ASCII_Downcast/metadata/' + filnavn[mappunavn_dict['filur']].split('.')[0] + '_do_not_use_.csv')
+                    os.remove(parent_folder + '/ASCII/Down/metadata/' + filnavn[mappunavn_dict['filur']].split('.')[0] + '_do_not_use_.csv')
             else:
                 if messagebox.askyesno('Vátta', 'Markera hettar casti sum tað ikki skal brúkast?'):
-                    text_file = open(parent_folder + '/ASCII/ASCII_Downcast/metadata/' + filnavn[mappunavn_dict['filur']].split('.')[0] + '_do_not_use_.csv', "w")
+                    text_file = open(parent_folder + '/ASCII/Down/metadata/' + filnavn[mappunavn_dict['filur']].split('.')[0] + '_do_not_use_.csv', "w")
                     text_file.write('Hesin fílurin er brúktur til at markera at hettar casti ikki skal brúkast')
                     text_file.close()
         elif event.keysym == 'p':
@@ -666,8 +658,8 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
             fig.savefig('Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/Figures/' + filnavn[mappunavn_dict['filur']].split('.')[0] + '.pdf')
         if event_dict['selected_event'] == -1:  # Fyri at ikki kunna velja eina linju ið ikki er til
             event_dict['selected_event'] = 0
-        elif event_dict['selected_event'] == 5:
-            event_dict['selected_event'] = 4
+        elif event_dict['selected_event'] == 6:
+            event_dict['selected_event'] = 5
 
         if event.keysym == 'j' or event.keysym == 'k':
             if event_dict['selected_event'] == 0:
