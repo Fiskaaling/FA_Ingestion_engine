@@ -62,20 +62,15 @@ def cruise_overview_frame(frame, root2, selectedCruse=''):
     frames_dict['root2'] = root2
 
     updatecruseframe(frames_dict)
-    #print('SelectedCruise: {}'.format(selectedCruse))
     cruises = os.listdir(mappunavn)
     cruises.sort()
-    #print(cruises)
     for i, file in enumerate(cruises):
-        #print(file)
         if file == selectedCruse:
             frames_dict['selectedCruse'] = i
             updateCastsFrame(frames_dict)
     updatecruseframe(frames_dict)
 
     def key(event):
-        #print(len(frames_dict['cruises']))
-        #print(frames_dict['selectedCruse'])
         if frames_dict['selectedFrame'] == 0:
             if event.keysym == 'Up':
                 if (frames_dict['selectedCruse'] - 1) >= 0:
@@ -316,9 +311,14 @@ def stovna_tur(turnummar, frames_dict):
         os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turnummar + '/Processed/2_Filter')
         os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turnummar + '/Processed/3_Align_CTD')
         os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turnummar + '/Processed/4_CTM')
-        os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turnummar + '/Processed/5_Derive')
-        os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turnummar + '/Processed/6_Window_Filter')
-        os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turnummar + '/Processed/ASCII_ALL')
+        os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turnummar + '/Processed/5_Loop_Edit')
+        os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turnummar + '/Processed/6_Derive')
+        os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turnummar + '/Processed/7_Window_Filter')
+        os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turnummar + '/Processed/8_Bin_Average')
+        os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turnummar + '/ASCII')
+        os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turnummar + '/ASCII/Down')
+        os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turnummar + '/ASCII/Up')
+        os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turnummar + '/ASCII/All')
     else:
         print('Lokala mappan er til')
 
@@ -462,23 +462,37 @@ def CTM_derived_window(frames_dict,xmlcon):
                         f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/4_CTM",
                         '#m'])
         subprocess.call(SBE_path + 
+                        [f"{os.getcwd()}/ingestion/CTD/Settings/4_CTM.txt",
+                        # 1: program, 2: in, 3: out
+                        f"{os.getcwd()}/ingestion/CTD/Settings/CellTM.psa",
+                        f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/3_Align_CTD/{cast[:-4]}",
+                        f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/4_CTM",
+                        '#m'])
+        subprocess.call(SBE_path + 
+                        [f"{os.getcwd()}/ingestion/CTD/Settings/5_Loop_Edit.txt",
+                        # 1: program, 2: in, 3: out
+                        f"{os.getcwd()}/ingestion/CTD/Settings/LoopEdit.psa",
+                        f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/4_CTM/{cast[:-4]}",
+                        f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/5_Loop_Edit",
+                        '#m'])
+        subprocess.call(SBE_path + 
                         [f"{os.getcwd()}/ingestion/CTD/Settings/6_Derive.txt",
                         # 1: command, 2: in, 3: out
                         f"{os.getcwd()}/ingestion/CTD/Settings/{xmlcon}.xmlcon",
                         f"{os.getcwd()}/ingestion/CTD/Settings/Derive.psa",
-                        f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/4_CTM/{cast[:-4]}",
-                        f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/5_Derive", '#m'])
+                        f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/5_Loop_Edit/{cast[:-4]}",
+                        f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/6_Derive", '#m'])
         subprocess.call(SBE_path + 
                         [f"{os.getcwd()}/ingestion/CTD/Settings/7_Window_Filter.txt",
                         # 1: program, 2: in, 3: out
                         f"{os.getcwd()}/ingestion/CTD/Settings/W_Filter.psa",
-                        f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/5_Derive/{cast[:-4]}",
-                        f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/6_Window_Filter", '#m'])
+                        f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/6_Derive/{cast[:-4]}",
+                        f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/7_Window_Filter", '#m'])
         subprocess.call(SBE_path + 
                         [f"{os.getcwd()}/ingestion/CTD/Settings/9_All_ASCII_Out.txt",
                         # 1: program, 2: in, 3: out
                         f"{os.getcwd()}/ingestion/CTD/Settings/All_ASCII_Out.psa",
-                        f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/6_Window_Filter/{cast[:-4]}",
+                        f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/7_Window_Filter/{cast[:-4]}",
                         f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/ASCII_ALL", '#m'])
 
         updateCastsFrame(frames_dict)
