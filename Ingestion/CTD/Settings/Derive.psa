@@ -56,7 +56,7 @@
   </CalcArray>
   <MiscellaneousDataForCalculations >
     <Latitude value="62.000000" />
-    <Longitude value="0.000000" />
+    <Longitude value="7.000000" />
     <DescentRateAndAcceleration >
       <WindowSize value="2.000000" />
     </DescentRateAndAcceleration>

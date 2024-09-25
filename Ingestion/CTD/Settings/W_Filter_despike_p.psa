@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Filter >
+<Window_Filter >
   <Version value="7.26.7.118" />
-  <ServerName value="Filter" />
-  <InputDir value="C:\users\johannus\My Documents\FA_Ingestion_engine\Ingestion\CTD\Lokalt_Data\2019-01-17\Processed\1_Data_Conversion" />
+  <ServerName value="Window Filter" />
+  <InputDir value="C:\users\johannus\My Documents\FA_Ingestion_engine\Ingestion\CTD\Lokalt_Data\2019-01-17\Processed\5_Derive" />
   <InputFileArray size="9" GrowBy="-1" >
     <ArrayItem index="0" value="1901001.cnv" />
     <ArrayItem index="1" value="1901002.cnv" />
@@ -14,12 +14,11 @@
     <ArrayItem index="7" value="1901008.cnv" />
     <ArrayItem index="8" value="1901009.cnv" />
   </InputFileArray>
-  <OutputDir value="Z:\home\johannus\Documents\FA_Ingestion_engine\Ingestion\CTD\Lokalt_Data\2019-01-17\Processed\2_Filter" />
+  <OutputDir value="C:\users\johannus\My Documents\FA_Ingestion_engine\Ingestion\CTD\Lokalt_Data\2019-01-17\Processed\6_Window_Filter" />
   <NameAppend value="" />
   <OutputFile value="" />
   <LastProcessed value="0" />
-  <TimeConstFilterA value="0.100000" />
-  <TimeConstFilterB value="0.500000" />
+  <ExcludeMarkedBad value="0" />
   <CalcArray Size="6" >
     <CalcArrayItem index="0" CalcID="12" >
       <Calc UnitID="41" Ordinal="0" >
@@ -54,12 +53,42 @@
       </Calc>
     </CalcArrayItem>
   </CalcArray>
-  <FilterTypeArray >
-    <ArrayItem index="0" value="1" />
-    <ArrayItem index="1" value="1" />
-    <ArrayItem index="2" value="2" />
-    <ArrayItem index="3" value="0" />
-    <ArrayItem index="4" value="0" />
-    <ArrayItem index="5" value="0" />
-  </FilterTypeArray>
-</Filter>
+  <FilterParamArray size="6" >
+    <ArrayItem index="0" >
+      <FilterType value="0" name="NO_FILTER" />
+      <WindowSize value="5" />
+      <HalfWidth value="1.000000" />
+      <Offset value="0.000000" />
+    </ArrayItem>
+    <ArrayItem index="1" >
+      <FilterType value="0" name="NO_FILTER" />
+      <WindowSize value="5" />
+      <HalfWidth value="1.000000" />
+      <Offset value="0.000000" />
+    </ArrayItem>
+    <ArrayItem index="2" >
+      <FilterType value="4" name="MEDIAN" />
+      <WindowSize value="5" />
+      <HalfWidth value="1.000000" />
+      <Offset value="0.000000" />
+    </ArrayItem>
+    <ArrayItem index="3" >
+      <FilterType value="0" name="NO_FILTER" />
+      <WindowSize value="5" />
+      <HalfWidth value="1.000000" />
+      <Offset value="0.000000" />
+    </ArrayItem>
+    <ArrayItem index="4" >
+      <FilterType value="0" name="NO_FILTER" />
+      <WindowSize value="5" />
+      <HalfWidth value="1.000000" />
+      <Offset value="0.000000" />
+    </ArrayItem>
+    <ArrayItem index="5" >
+      <FilterType value="0" name="NO_FILTER" />
+      <WindowSize value="5" />
+      <HalfWidth value="1.000000" />
+      <Offset value="0.000000" />
+    </ArrayItem>
+  </FilterParamArray>
+</Window_Filter>

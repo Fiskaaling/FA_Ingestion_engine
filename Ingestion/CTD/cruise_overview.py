@@ -117,8 +117,12 @@ def updateCastsFrame(frames_dict):
     castsDict = {}
     buttonsDict = {}
     castFrameDict = {}
-    if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/turMetadata.csv'):
-        metadata = pd.read_csv(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/turMetadata.csv', index_col=False)
+    if os.path.exists(frames_dict['mappunavn'] + '/' + 
+                      frames_dict['cruises'][frames_dict['selectedCruse']] + 
+                      '/turMetadata.csv'):
+        metadata = pd.read_csv(frames_dict['mappunavn'] + '/' + 
+                               frames_dict['cruises'][frames_dict['selectedCruse']] + 
+                               '/turMetadata.csv', index_col=False)
     else:
         metadata = pd.DataFrame(columns=['key', 'value'])
 
@@ -133,7 +137,8 @@ def updateCastsFrame(frames_dict):
 
         # Create buttons for Data Conversion and Filter.
         # IF statement controlls color of button
-        if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/1_Data_Conversion/' + cast[:-4]+'.cnv'):
+        if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + 
+                          '/Processed/1_Data_Conversion/' + cast[:-4]+'.cnv'):
             col = 'lightgreen'
         else:
             col = '#D9D9D9'
@@ -155,7 +160,8 @@ def updateCastsFrame(frames_dict):
 
         if AlignCTD_ok:
             var, col = AlignCTD_ok, 'Green'
-        elif os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/3_Align_CTD/' + cast[:-4]+'.cnv'):
+        elif os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + 
+                            '/Processed/3_Align_CTD/' + cast[:-4]+'.cnv'):
             if AlignCTD_ok:
                 var, col = AlignCTD_ok, 'lightgreen'
             else:
@@ -179,14 +185,16 @@ def updateCastsFrame(frames_dict):
         buttonsDict['CTM' + cast].pack(side=LEFT)
 
         # Derive buttons
-        if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/5_Derive/' + cast[:-4]+'.cnv'):
+        if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + 
+                          '/Processed/6_Derive/' + cast[:-4]+'.cnv'):
             col = 'lightgreen'
         else: col = '#D9D9D9'
         buttonsDict['Derive' + cast] = Button(castFrameDict[cast], text='Derived Variables', bg=col)
         buttonsDict['Derive' + cast].pack(side=LEFT)
 
         # Window Filter buttons
-        if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/6_Window_Filter/' + cast[:-4]+'.cnv'):
+        if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + 
+                          '/Processed/7_Window_Filter/' + cast[:-4]+'.cnv'):
             col = 'lightgreen'
         else: col = '#D9D9D9'
         buttonsDict['Window_Filter' + cast] = Button(castFrameDict[cast], text='Window Filter', bg=col)
@@ -195,14 +203,20 @@ def updateCastsFrame(frames_dict):
         # Bin Average buttons
         binAverageInputFolder = frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/ASCII_ALL/'
         binAverageInputFolder = binAverageInputFolder.replace('//', '/')
-        if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/7_Bin_Average/' + cast[:-4]+'.cnv'):
+        if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + 
+                          '/Processed/8_Bin_Average/' + cast[:-4]+'.cnv'):
             col = 'lightgreen'
         else: col = '#D9D9D9'
-        buttonsDict['BA' + cast] = Button(castFrameDict[cast], text='Bin Average', command=lambda: Ingestion.CTD.bin_average.bin_average_frame(frames_dict['frame'], frames_dict['root2'], mappunavn=binAverageInputFolder), bg=col)
+        buttonsDict['BA' + cast] = Button(castFrameDict[cast], text='Bin Average', 
+                                          command=lambda: Ingestion.CTD.bin_average.bin_average_frame(frames_dict['frame'], 
+                                                                                                      frames_dict['root2'], 
+                                                                                                      mappunavn=binAverageInputFolder), 
+                                                                                                      bg=col)
         buttonsDict['BA' + cast].pack(side=LEFT)
 
         # Ascii out buttons
-        if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/ASCII/ASCII_Downcast/' + cast[:-4]+'.asc'): col = 'lightgreen'
+        if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + 
+                          '/ASCII/Down/' + cast[:-4]+'.asc'): col = 'lightgreen'
         else: col = '#D9D9D9'
         buttonsDict['ASCII_out' + cast] = Button(castFrameDict[cast], text='Ascii out', bg=col)
         buttonsDict['ASCII_out' + cast].pack(side=LEFT)
@@ -318,7 +332,7 @@ def stovna_tur(turnummar, frames_dict):
         os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turnummar + '/ASCII')
         os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turnummar + '/ASCII/Down')
         os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turnummar + '/ASCII/Up')
-        os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turnummar + '/ASCII/All')
+        os.mkdir('./Ingestion/CTD/Lokalt_Data/' + turnummar + '/Processed/ASCII_ALL')
     else:
         print('Lokala mappan er til')
 
@@ -339,7 +353,11 @@ def stovna_tur(turnummar, frames_dict):
     updatecruseframe(frames_dict)
     updateCastsFrame(frames_dict)
 
-# funkur, ið koyra røttu prossesering tá túr trýstir á knøttarnar
+
+####################################################################################################################
+# Funkur, ið hoyra til knøttarnar
+####################################################################################################################
+
 
 # Rokna Conversion og Filter
 def conv_og_filter(frames_dict,xmlcon):
@@ -357,16 +375,25 @@ def conv_og_filter(frames_dict,xmlcon):
                          f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/RAW/{cast}",
                          f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/1_Data_Conversion",
                          '#m'])
-
+        
+        subprocess.call(SBE_path + 
+                        [f"{os.getcwd()}/ingestion/CTD/Settings/7_Window_Filter.txt",
+                        # 1: program, 2: in, 3: out
+                        f"{os.getcwd()}/ingestion/CTD/Settings/W_Filter_despike_p.psa",
+                        f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/1_Data_Conversion/{cast[:-4]}",
+                        f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/7_Window_Filter", 
+                        '#m'])
+        
         subprocess.call(SBE_path +
                         [f"{os.getcwd()}/ingestion/CTD/Settings/2_Filter.txt",
                         # 1: program, 2: in, 3: out
                         f"{os.getcwd()}/ingestion/CTD/Settings/Filter.psa",
-                        f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/1_Data_Conversion/{cast[:-4]}",
+                        f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/7_Window_Filter/{cast[:-4]}",
                         f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/2_Filter",
                         '#m'])
-
+        
         updateCastsFrame(frames_dict)
+        print(f'{cast} Conversion and Filter completed')
 
 def align_ctd_standard(frames_dict,CondAdv,OxAdv):
 
@@ -397,6 +424,8 @@ def align_ctd_standard(frames_dict,CondAdv,OxAdv):
 
         updateCastsFrame(frames_dict)
         updatecruseframe(frames_dict)
+        
+        print(f'{cast} Align completed')
 
 # Rokna Align CTD
 # TODO: Gera Align Modul til at finna bestu align fyri C og Ox (og Par og FLu). C er konstant um CTD'in ikki broytist, men Ox kann broytast við árstíðunum
@@ -461,13 +490,7 @@ def CTM_derived_window(frames_dict,xmlcon):
                         f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/3_Align_CTD/{cast[:-4]}",
                         f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/4_CTM",
                         '#m'])
-        subprocess.call(SBE_path + 
-                        [f"{os.getcwd()}/ingestion/CTD/Settings/4_CTM.txt",
-                        # 1: program, 2: in, 3: out
-                        f"{os.getcwd()}/ingestion/CTD/Settings/CellTM.psa",
-                        f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/3_Align_CTD/{cast[:-4]}",
-                        f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/4_CTM",
-                        '#m'])
+        
         subprocess.call(SBE_path + 
                         [f"{os.getcwd()}/ingestion/CTD/Settings/5_Loop_Edit.txt",
                         # 1: program, 2: in, 3: out
@@ -475,25 +498,31 @@ def CTM_derived_window(frames_dict,xmlcon):
                         f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/4_CTM/{cast[:-4]}",
                         f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/5_Loop_Edit",
                         '#m'])
+        
         subprocess.call(SBE_path + 
                         [f"{os.getcwd()}/ingestion/CTD/Settings/6_Derive.txt",
                         # 1: command, 2: in, 3: out
                         f"{os.getcwd()}/ingestion/CTD/Settings/{xmlcon}.xmlcon",
                         f"{os.getcwd()}/ingestion/CTD/Settings/Derive.psa",
                         f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/5_Loop_Edit/{cast[:-4]}",
-                        f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/6_Derive", '#m'])
+                        f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/6_Derive", 
+                        '#m'])
+        
         subprocess.call(SBE_path + 
                         [f"{os.getcwd()}/ingestion/CTD/Settings/7_Window_Filter.txt",
                         # 1: program, 2: in, 3: out
                         f"{os.getcwd()}/ingestion/CTD/Settings/W_Filter.psa",
                         f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/6_Derive/{cast[:-4]}",
-                        f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/7_Window_Filter", '#m'])
+                        f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/7_Window_Filter", 
+                        '#m'])
+        
         subprocess.call(SBE_path + 
                         [f"{os.getcwd()}/ingestion/CTD/Settings/9_All_ASCII_Out.txt",
                         # 1: program, 2: in, 3: out
                         f"{os.getcwd()}/ingestion/CTD/Settings/All_ASCII_Out.psa",
                         f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/7_Window_Filter/{cast[:-4]}",
-                        f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/ASCII_ALL", '#m'])
+                        f"{os.getcwd()}/Ingestion/CTD/Lokalt_Data/{TripNo}/Processed/ASCII_ALL", 
+                        '#m'])
 
         updateCastsFrame(frames_dict)
         updatecruseframe(frames_dict)
