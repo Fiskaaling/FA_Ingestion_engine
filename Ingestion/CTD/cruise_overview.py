@@ -393,7 +393,6 @@ def conv_og_filter(frames_dict,xmlcon):
                         '#m'])
         
         updateCastsFrame(frames_dict)
-        print(f'{cast} Conversion and Filter completed')
 
 def align_ctd_standard(frames_dict,CondAdv,OxAdv):
 
@@ -424,8 +423,6 @@ def align_ctd_standard(frames_dict,CondAdv,OxAdv):
 
         updateCastsFrame(frames_dict)
         updatecruseframe(frames_dict)
-        
-        print(f'{cast} Align completed')
 
 # Rokna Align CTD
 # TODO: Gera Align Modul til at finna bestu align fyri C og Ox (og Par og FLu). C er konstant um CTD'in ikki broytist, men Ox kann broytast við árstíðunum

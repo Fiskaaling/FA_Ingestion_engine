@@ -319,7 +319,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
                         farts.append(True)
                     else:
                         farts.append(False)
-                mappunavn_dict['ax'].fill_between(data.TimeS, 100, 0, 
+                mappunavn_dict['ax'].fill_between(data.TimeS, maxd + 1, 0, 
                                                   where=farts, facecolor='red', alpha=0.1)
 
             lastflag = flag
@@ -386,8 +386,8 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
                 mappunavn_dict['ax4'] = mappunavn_dict['ax'].twinx()
                 mappunavn_dict['yplt4'] = mappunavn_dict['ax4'].plot(x_aksi, data['Sbeox0PS'][start_index:], color='lightblue')
                 mappunavn_dict['ax4'].set_ylabel('Sbeox0PS', color='k')
-                mappunavn_dict['ax4'].set_ylim(min(data['Sbeox0PS'][event_dict['downcast_start']:event_dict['upcast_stop']]) - 2, 
-                                               max(data['Sbeox0PS'][event_dict['downcast_start']:event_dict['upcast_stop']]) + 2)
+                mappunavn_dict['ax4'].set_ylim(max(0,min(data['Sbeox0PS'][event_dict['downcast_start']:event_dict['upcast_stop']])) - 2, 
+                                               min(150,max(data['Sbeox0PS'][event_dict['downcast_start']:event_dict['upcast_stop']])) + 2)
             else:
                 mappunavn_dict['toggle_Sbeox0PS'] = 0
                 mappunavn_dict['yplt4'].pop(0).remove()
@@ -416,7 +416,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
                 mappunavn_dict['yplt6'] = mappunavn_dict['ax6'].plot(x_aksi, data['Sal00'][start_index:], color='lightgreen')
                 mappunavn_dict['ax6'].set_ylabel('Sal00', color='k')
                 mappunavn_dict['ax6'].set_ylim(min(data['Sal00'][event_dict['downcast_start']:event_dict['upcast_stop']]) - 0.01, 
-                                               min(35.1, max(data['Sal00'][event_dict['downcast_start']:event_dict['upcast_stop']])) + 0.01)
+                                               max(data['Sal00'][event_dict['downcast_start']:event_dict['upcast_stop']]) + 0.01)
             else:
                 mappunavn_dict['toggle_Sal00'] = 0
                 mappunavn_dict['yplt6'].pop(0).remove()
@@ -682,27 +682,27 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
             if event_dict['selected_event'] == 0:
                 soak_line_dict['soak_start_line'][0].set_data([time_fulllength[event_dict['soak_start']], 
                                                                time_fulllength[event_dict['soak_start']]], 
-                                                               [-100, 100])
+                                                               [0, max+1])
             if event_dict['selected_event'] == 1:
                 soak_line_dict['soak_stop_line'][0].set_data([time_fulllength[event_dict['soak_stop']], 
                                                               time_fulllength[event_dict['soak_stop']]], 
-                                                              [-100, 100])
+                                                              [0, max+1])
             if event_dict['selected_event'] == 2:
                 soak_line_dict['downcast_start_line'][0].set_data([time_fulllength[event_dict['downcast_start']], 
                                                                    time_fulllength[event_dict['downcast_start']]], 
-                                                                   [-100, 100])
+                                                                   [0, max+1])
             if event_dict['selected_event'] == 3:
                 soak_line_dict['downcast_stop_line'][0].set_data([time_fulllength[event_dict['downcast_stop']], 
                                                                   time_fulllength[event_dict['downcast_stop']]], 
-                                                                  [-100, 100])
+                                                                  [0, max+1])
             if event_dict['selected_event'] == 4:
                 soak_line_dict['upcast_start_line'][0].set_data([time_fulllength[event_dict['upcast_start']], 
                                                                 time_fulllength[event_dict['upcast_start']]], 
-                                                                [-100, 100])
+                                                                [0, max+1])
             if event_dict['selected_event'] == 5:
                 soak_line_dict['upcast_stop_line'][0].set_data([time_fulllength[event_dict['upcast_stop']], 
                                                                 time_fulllength[event_dict['upcast_stop']]], 
-                                                                [-100, 100])
+                                                                [0, max+1])
             canvas.draw()
         if update_annotations:
             soak_line_dict['annotation'].remove()
