@@ -682,27 +682,27 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
             if event_dict['selected_event'] == 0:
                 soak_line_dict['soak_start_line'][0].set_data([time_fulllength[event_dict['soak_start']], 
                                                                time_fulllength[event_dict['soak_start']]], 
-                                                               [0, max+1])
+                                                               [0, maxd+1])
             if event_dict['selected_event'] == 1:
                 soak_line_dict['soak_stop_line'][0].set_data([time_fulllength[event_dict['soak_stop']], 
                                                               time_fulllength[event_dict['soak_stop']]], 
-                                                              [0, max+1])
+                                                              [0, maxd+1])
             if event_dict['selected_event'] == 2:
                 soak_line_dict['downcast_start_line'][0].set_data([time_fulllength[event_dict['downcast_start']], 
                                                                    time_fulllength[event_dict['downcast_start']]], 
-                                                                   [0, max+1])
+                                                                   [0, maxd+1])
             if event_dict['selected_event'] == 3:
                 soak_line_dict['downcast_stop_line'][0].set_data([time_fulllength[event_dict['downcast_stop']], 
                                                                   time_fulllength[event_dict['downcast_stop']]], 
-                                                                  [0, max+1])
+                                                                  [0, maxd+1])
             if event_dict['selected_event'] == 4:
                 soak_line_dict['upcast_start_line'][0].set_data([time_fulllength[event_dict['upcast_start']], 
                                                                 time_fulllength[event_dict['upcast_start']]], 
-                                                                [0, max+1])
+                                                                [0, maxd+1])
             if event_dict['selected_event'] == 5:
                 soak_line_dict['upcast_stop_line'][0].set_data([time_fulllength[event_dict['upcast_stop']], 
                                                                 time_fulllength[event_dict['upcast_stop']]], 
-                                                                [0, max+1])
+                                                                [0, maxd+1])
             canvas.draw()
         if update_annotations:
             soak_line_dict['annotation'].remove()
