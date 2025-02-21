@@ -14,7 +14,7 @@ from shutil import copyfile
 matplotlib.use('TkAgg')
 import xml.etree.ElementTree as ET
 
-SEA_BIRD_WINE_PATH = 'C:/Program Files (x86)/SBE/SBEDataProcessing-Win32/'
+SEA_BIRD_WINE_PATH = 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/'
 
 def cruise_overview_frame(frame, root2, selectedCruse=''):
     if not os.path.exists('./Ingestion/CTD/Lokalt_Data/'):

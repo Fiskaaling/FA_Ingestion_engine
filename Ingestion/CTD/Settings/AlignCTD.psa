@@ -53,7 +53,7 @@
     </CalcArrayItem>
   </CalcArray>
   <ValArray size="6">
-    <ValArrayItem index="0" value="0.0625" variable_name="Conductivity" />
+    <ValArrayItem index="0" value="0.0" variable_name="Conductivity" />
     <ValArrayItem index="1" value="0.000000" variable_name="Temperature" />
     <ValArrayItem index="2" value="0.000000" variable_name="Pressure, Strain Gauge" />
     <ValArrayItem index="3" value="0.000000" variable_name="Fluorescence, WET Labs ECO-AFL/FL" />
