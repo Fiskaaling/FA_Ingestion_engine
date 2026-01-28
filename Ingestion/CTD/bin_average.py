@@ -364,67 +364,9 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
                 mappunavn_dict['ax2'].axis('off')
             canvas.draw()
             canvas.get_tk_widget().pack(fill=BOTH, expand=1)
-        # fluorescence
-        elif event.keysym == '2':
-            if mappunavn_dict['toggle_FlECO'] == 0:
-                mappunavn_dict['toggle_FlECO'] = 1
-                mappunavn_dict['ax3'] = mappunavn_dict['ax'].twinx()
-                mappunavn_dict['yplt3'] = mappunavn_dict['ax3'].plot(x_aksi, data['FlECO-AFL'][start_index:], color='green')
-                mappunavn_dict['ax3'].set_ylabel('FlECO - AFL', color='k')
-                mappunavn_dict['ax3'].set_ylim(min(data['FlECO-AFL'][event_dict['downcast_start']:event_dict['upcast_stop']]) - 0.1, 
-                                               max(data['FlECO-AFL'][event_dict['downcast_start']:event_dict['upcast_stop']]) + 0.1)
-            else:
-                mappunavn_dict['toggle_FlECO'] = 0
-                mappunavn_dict['yplt3'].pop(0).remove()
-                mappunavn_dict['ax3'].axis('off')
-            canvas.draw()
-            canvas.get_tk_widget().pack(fill=BOTH, expand=1)
-        # oxygen
-        elif event.keysym == '3':
-            if mappunavn_dict['toggle_Sbeox0PS'] == 0:
-                mappunavn_dict['toggle_Sbeox0PS'] = 1
-                mappunavn_dict['ax4'] = mappunavn_dict['ax'].twinx()
-                mappunavn_dict['yplt4'] = mappunavn_dict['ax4'].plot(x_aksi, data['Sbeox0PS'][start_index:], color='lightblue')
-                mappunavn_dict['ax4'].set_ylabel('Sbeox0PS', color='k')
-                mappunavn_dict['ax4'].set_ylim(max(0,min(data['Sbeox0PS'][event_dict['downcast_start']:event_dict['upcast_stop']])) - 2, 
-                                               min(150,max(data['Sbeox0PS'][event_dict['downcast_start']:event_dict['upcast_stop']])) + 2)
-            else:
-                mappunavn_dict['toggle_Sbeox0PS'] = 0
-                mappunavn_dict['yplt4'].pop(0).remove()
-                mappunavn_dict['ax4'].axis('off')
-            canvas.draw()
-            canvas.get_tk_widget().pack(fill=BOTH, expand=1)
-        # par
-        elif event.keysym == '4':
-            if mappunavn_dict['toggle_par'] == 0:
-                mappunavn_dict['toggle_par'] = 1
-                mappunavn_dict['ax5'] = mappunavn_dict['ax'].twinx()
-                mappunavn_dict['yplt5'] = mappunavn_dict['ax5'].plot(x_aksi, data['Par/sat/log'][start_index:], color='peru')
-                mappunavn_dict['ax5'].set_ylabel('Par/sat/log', color='k')
-                mappunavn_dict['ax5'].set_ylim(0, max(data['Par/sat/log'][event_dict['downcast_start']:event_dict['upcast_stop']]) + 5)
-            else:
-                mappunavn_dict['toggle_par'] = 0
-                mappunavn_dict['yplt5'].pop(0).remove()
-                mappunavn_dict['ax5'].axis('off')
-            canvas.draw()
-            canvas.get_tk_widget().pack(fill=BOTH, expand=1)
-        # salinity
-        elif event.keysym == '5':
-            if mappunavn_dict['toggle_Sal00'] == 0:
-                mappunavn_dict['toggle_Sal00'] = 1
-                mappunavn_dict['ax6'] = mappunavn_dict['ax'].twinx()
-                mappunavn_dict['yplt6'] = mappunavn_dict['ax6'].plot(x_aksi, data['Sal00'][start_index:], color='lightgreen')
-                mappunavn_dict['ax6'].set_ylabel('Sal00', color='k')
-                mappunavn_dict['ax6'].set_ylim(min(data['Sal00'][event_dict['downcast_start']:event_dict['upcast_stop']]) - 0.01, 
-                                               max(data['Sal00'][event_dict['downcast_start']:event_dict['upcast_stop']]) + 0.01)
-            else:
-                mappunavn_dict['toggle_Sal00'] = 0
-                mappunavn_dict['yplt6'].pop(0).remove()
-                mappunavn_dict['ax6'].axis('off')
-            canvas.draw()
-            canvas.get_tk_widget().pack(fill=BOTH, expand=1)
+
         # conductivity
-        elif event.keysym == '6':
+        elif event.keysym == '2':
             if mappunavn_dict['toggle_C0mS'] == 0:
                 mappunavn_dict['toggle_C0mS'] = 1
                 mappunavn_dict['ax7'] = mappunavn_dict['ax'].twinx()
@@ -438,6 +380,71 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
                 mappunavn_dict['ax7'].axis('off')
             canvas.draw()
             canvas.get_tk_widget().pack(fill=BOTH, expand=1)
+
+        # salinity
+        elif event.keysym == '3':
+            if mappunavn_dict['toggle_Sal00'] == 0:
+                mappunavn_dict['toggle_Sal00'] = 1
+                mappunavn_dict['ax6'] = mappunavn_dict['ax'].twinx()
+                mappunavn_dict['yplt6'] = mappunavn_dict['ax6'].plot(x_aksi, data['Sal00'][start_index:], color='lightgreen')
+                mappunavn_dict['ax6'].set_ylabel('Sal00', color='k')
+                mappunavn_dict['ax6'].set_ylim(min(data['Sal00'][event_dict['downcast_start']:event_dict['upcast_stop']]) - 0.01, 
+                                               max(data['Sal00'][event_dict['downcast_start']:event_dict['upcast_stop']]) + 0.01)
+            else:
+                mappunavn_dict['toggle_Sal00'] = 0
+                mappunavn_dict['yplt6'].pop(0).remove()
+                mappunavn_dict['ax6'].axis('off')
+            canvas.draw()
+            canvas.get_tk_widget().pack(fill=BOTH, expand=1)
+
+        # oxygen
+        elif event.keysym == '4':
+            if mappunavn_dict['toggle_Sbeox0PS'] == 0:
+                mappunavn_dict['toggle_Sbeox0PS'] = 1
+                mappunavn_dict['ax4'] = mappunavn_dict['ax'].twinx()
+                mappunavn_dict['yplt4'] = mappunavn_dict['ax4'].plot(x_aksi, data['Sbeox0PS'][start_index:], color='lightblue')
+                mappunavn_dict['ax4'].set_ylabel('Oxygen %', color='k')
+                # mappunavn_dict['ax4'].set_ylim(max(0,min(data['Sbeox0PS'][event_dict['downcast_start']:event_dict['upcast_stop']])) - 2, 
+                #                                min(150,max(data['Sbeox0PS'][event_dict['downcast_start']:event_dict['upcast_stop']])) + 2)
+                mappunavn_dict['ax4'].set_ylim(40,100)
+            else:
+                mappunavn_dict['toggle_Sbeox0PS'] = 0
+                mappunavn_dict['yplt4'].pop(0).remove()
+                mappunavn_dict['ax4'].axis('off')
+            canvas.draw()
+            canvas.get_tk_widget().pack(fill=BOTH, expand=1)
+
+        # fluorescence
+        elif event.keysym == '5':
+            if mappunavn_dict['toggle_FlECO'] == 0:
+                mappunavn_dict['toggle_FlECO'] = 1
+                mappunavn_dict['ax3'] = mappunavn_dict['ax'].twinx()
+                mappunavn_dict['yplt3'] = mappunavn_dict['ax3'].plot(x_aksi, data['FlECO-AFL'][start_index:], color='green')
+                mappunavn_dict['ax3'].set_ylabel('Fluorescence', color='k')
+                mappunavn_dict['ax3'].set_ylim(min(data['FlECO-AFL'][event_dict['downcast_start']:event_dict['upcast_stop']]) - 0.1, 
+                                               max(data['FlECO-AFL'][event_dict['downcast_start']:event_dict['upcast_stop']]) + 0.1)
+            else:
+                mappunavn_dict['toggle_FlECO'] = 0
+                mappunavn_dict['yplt3'].pop(0).remove()
+                mappunavn_dict['ax3'].axis('off')
+            canvas.draw()
+            canvas.get_tk_widget().pack(fill=BOTH, expand=1)
+
+        # par
+        elif event.keysym == '6':
+            if mappunavn_dict['toggle_par'] == 0:
+                mappunavn_dict['toggle_par'] = 1
+                mappunavn_dict['ax5'] = mappunavn_dict['ax'].twinx()
+                mappunavn_dict['yplt5'] = mappunavn_dict['ax5'].plot(x_aksi, data['Par/sat/log'][start_index:], color='peru')
+                mappunavn_dict['ax5'].set_ylabel('Par/sat/log', color='k')
+                mappunavn_dict['ax5'].set_ylim(0, max(data['Par/sat/log'][event_dict['downcast_start']:event_dict['upcast_stop']]) + 5)
+            else:
+                mappunavn_dict['toggle_par'] = 0
+                mappunavn_dict['yplt5'].pop(0).remove()
+                mappunavn_dict['ax5'].axis('off')
+            canvas.draw()
+            canvas.get_tk_widget().pack(fill=BOTH, expand=1)
+
     
     # EVENT LINES
         # previous event line
@@ -541,7 +548,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
             log_print(data.columns.values)
             log_print(event.keysym)
 
-            # Settings depending on up or dawncast
+            # Settings depending on up- or downcast
             if event.keysym == 'Return':
                 # Bin Average settings
                 ScansToSkip = 'downcast_start'
@@ -612,19 +619,6 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
                 tree.find('./CastToProcess').attrib['value'] = str(CastToProcess)
                 tree.write(f"{os.getcwd()}/Ingestion/CTD/Settings/BinAvg.psa", encoding="UTF-8", xml_declaration=True)
 
-
-                
-                # copyfile(f'{winedir}BinAvg(1mcustomstart)_original.psa', f'{winedir}BinAvg(1m-customstart).psa')
-
-                # ikki_funni_linju = True
-                # with fileinput.FileInput(f'{winedir}BinAvg(1m-customstart).psa', inplace=True) as file:
-                #     for line in file:
-                #         ikki_funni_linju = False
-                #         print(line.replace('-77', str(event_dict['downcast_start'])), end='')
-
-                # if ikki_funni_linju:
-                #     messagebox.showerror('Feilur við export', 'Customstart fílur ikki funnin!')
-                # print(mappunavn)
 
                 turdato = mappunavn.split('Processed')[0]
                 turdato = turdato.split('Lokalt_Data')[1]
