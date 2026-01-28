@@ -1,1 +1,0 @@
-ger projektini her
