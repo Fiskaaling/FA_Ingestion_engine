@@ -1,6 +1,6 @@
 REM Installera Conda, git og https://www.microsoft.com/en-us/download/confirmation.aspx?id=48145 fyrst
-REM System32 má vera í path
-REM git má vera installera á C:\Program Files\Git\cmd\git.exe, ella broyt setup fílin
+REM System32 mï¿½ vera ï¿½ path
+REM git mï¿½ vera installera ï¿½ C:\Program Files\Git\cmd\git.exe, ella broyt setup fï¿½lin
 
 call C:\ProgramData\Anaconda3\condabin\conda create -n ingestion_engine_env -y
 call C:\ProgramData\Anaconda3\Scripts\activate.bat ingestion_engine_env
@@ -18,5 +18,5 @@ call C:\ProgramData\Anaconda3\condabin\conda install -c conda-forge utide -y
 call python -m pip install mysql-connector-python
 call python -m pip install pywin32
 
-echo Liðugt at installera
+echo Liï¿½ugt at installera
 pause
