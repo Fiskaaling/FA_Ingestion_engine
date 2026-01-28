@@ -2,4 +2,7 @@
 	
 25-1158-0: Uppruna fílan frá SBE. Túr 1873->
 25-1158-1: Sum upprunafílan, men nú við PAR
-25-1152-2: Við nýggjum viðrum frá calibrering 2021. Túr 2107 ->
+25-1152-2: Við nýggjum viðrum frá calibrering 2021 fyri temp, sal, press, ox og flu. Túr 2107 ->
+25-1158-3: Testa nýtt ox portur á CTD'ini tí OX virði eru undarlig. OX portur 0->6. Túr 2502 -> 
+25-1158-4: Býtt ox og par kaðal um tí OX virði eru undarlig. OX 6-4, PAR 4-6. Túr 2504 -> 
+25-1158-5: Nýggj ox calibrering. OX 4-0. Túr 2512 -> 

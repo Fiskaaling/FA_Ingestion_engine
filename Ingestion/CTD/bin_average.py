@@ -27,7 +27,7 @@ from Ingestion.CTD.misc.ctd_pump import pumpstatus
 #from shutil import copyfile
 textsize = 16
 
-SEA_BIRD_WINE_PATH = 'C:/Program Files (x86)/SBE/SBEDataProcessing-Win32/'
+SEA_BIRD_WINE_PATH = 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/'
 
 
 def bin_average_frame(frame, root2, mappunavn='./Ingestion/CTD/Lokalt_Data/2019-01-17/Processed/ASCII_ALL'):
