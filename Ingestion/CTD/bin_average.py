@@ -83,9 +83,11 @@ def bin_average_frame(frame, root2, mappunavn='./Ingestion/CTD/Lokalt_Data/2019-
     processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame)
 
 
+
 def velFil(mappunavn):
     mappunavn['mappunavn'] = filedialog.askdirectory(title='Vel túramappu', 
                                                      initialdir='./Ingestion/CTD/Lokalt_Data/')
+
 
 
 def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
@@ -248,11 +250,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
         upcast_start = int(metadata['upcast_start'])
         upcast_stop = int(metadata['upcast_stop'])
 
-        bin_stodd = 1  # [m]
-    if downcast_start != -1:
-        downcast_start_d = dypid[downcast_start]
-    if downcast_stop != -1:
-        downcast_stop_d = dypid[downcast_stop]
+
 
     if pump_on != -1:
         mappunavn_dict['ax'].plot([pump_on / 16, pump_on / 16], [-100, maxd + 1], ':')
@@ -336,19 +334,124 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
         else:
             move_amount = 8
 
-    # CHOSE FILE
+    
+    # CHOSE CAST FILE
+
         # next file
         if event.keysym == 'w':
             if mappunavn_dict['filur'] < len(filnavn) - 1:
                 mappunavn_dict['filur'] += 1
                 update_qframe = True
+
         # previous file
         elif event.keysym == 'q':
             if mappunavn_dict['filur'] != 0:
                 mappunavn_dict['filur'] -= 1
                 update_qframe = True
 
-    # TOGGLE LINE
+
+    # EVENT LINES
+
+        # CHANGING LINES
+        # go to previous event line
+        elif event.keysym == 'h':
+            # if not in zoomed state and if not at line 0
+            if not zoomed_in_dict['zoomed_in']:
+                if event_dict['selected_event'] != 0:
+                    event_dict['selected_event'] -= 1
+                    update_annotations = True
+
+        # go to next event line
+        elif event.keysym == 'l':
+            if not zoomed_in_dict['zoomed_in']:
+                if event_dict['selected_event'] != 5:
+                    event_dict['selected_event'] += 1
+                    update_annotations = True
+ 
+
+        # MOVING LINES
+        # move event line to the right
+        elif event.keysym == 'j':
+            if event_dict['selected_event'] == 0:
+                event_dict['soak_start'] -= move_amount
+            elif event_dict['selected_event'] == 1:
+                event_dict['soak_stop'] -= move_amount
+            elif event_dict['selected_event'] == 2:
+                event_dict['downcast_start'] -= move_amount
+            elif event_dict['selected_event'] == 3:
+                event_dict['downcast_stop'] -= move_amount
+            elif event_dict['selected_event'] == 4:
+                event_dict['upcast_start'] -= move_amount
+            elif event_dict['selected_event'] == 5:
+                event_dict['upcast_stop'] -= move_amount
+
+        # move event line to the left
+        elif event.keysym == 'k':
+            if event_dict['selected_event'] == 0:
+                event_dict['soak_start'] += move_amount
+            elif event_dict['selected_event'] == 1:
+                event_dict['soak_stop'] += move_amount
+            elif event_dict['selected_event'] == 2:
+                event_dict['downcast_start'] += move_amount
+            elif event_dict['selected_event'] == 3:
+                event_dict['downcast_stop'] += move_amount
+            elif event_dict['selected_event'] == 4:
+                event_dict['upcast_start'] += move_amount
+            elif event_dict['selected_event'] == 5:
+                event_dict['upcast_stop'] += move_amount
+
+    # TOGGLE ZOOM
+        # in
+        elif event.keysym == 'i':
+            if not zoomed_in_dict['zoomed_in']:
+                zoomed_in_dict['zoomed_in'] = True
+                ba_gui.zoom_in(event_dict['selected_event'], mappunavn_dict['ax'], event_dict, dypid)
+                canvas.draw()
+        # out
+        elif event.keysym == 'o':
+            mappunavn_dict['ax'].set_xlim(0, time_fulllength[len(time_fulllength) - 1])
+            mappunavn_dict['ax'].set_ylim(-1, maxd + 1)
+            zoomed_in_dict['zoomed_in'] = False
+            canvas.draw()
+        # downcast only
+        elif event.keysym == 'e':
+            if zoomed_in_dict['onlyDowncast']:
+                zoomed_in_dict['onlyDowncast'] = False
+                mappunavn_dict['ax'].set_xlim(0, time_fulllength[len(time_fulllength) - 1])
+                log_print('Downcast')
+            else:
+                zoomed_in_dict['onlyDowncast'] = True
+                log_print('All')
+                mappunavn_dict['ax'].set_xlim(time_fulllength[event_dict['downcast_start']], 
+                                              time_fulllength[event_dict['downcast_stop']])
+            canvas.draw()
+            canvas.get_tk_widget().pack(fill=BOTH, expand=1)    
+
+
+        elif event.keysym == 'Shift_L':
+            if mappunavn_dict['toggle_ax']:
+                print('Toggle ax off')
+                mappunavn_dict['toggle_ax'] = 0
+                log_clear()
+                processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame)
+            else:
+                print('Toggle ax on')
+                mappunavn_dict['toggle_ax'] = 1
+                # mappunavn_dict['ax'].axis('off')
+                for i in range(len(mappunavn_dict['ax'].lines)):
+                    mappunavn_dict['ax'].lines.pop(0)
+                # Sbeox0PS
+                mappunavn_dict['x_aksi'] = data.DepSM[mappunavn_dict['start_index']:]
+                mappunavn_dict['ax'].set_ylim(min(data.DepSM[event_dict['soak_stop']:event_dict['upcast_stop']]) - 0.1, 
+                                              max(data.DepSM[event_dict['soak_stop']:event_dict['upcast_stop']]) + 0.1)
+                mappunavn_dict['ax'].set_xlim(min(data.DepSM[event_dict['soak_stop']:event_dict['upcast_stop']]) - 0.1, 
+                                              max(data.DepSM[event_dict['soak_stop']:event_dict['upcast_stop']]) + 0.1)
+                mappunavn_dict['ax'].set_xlabel('Dýpið [m]')
+                mappunavn_dict['ax'].plot(data.DepSM, data.DepSM, c='k')
+                canvas.draw()
+
+    
+# TOGGLE LINE
         # temperature
         elif event.keysym == '1':
             if mappunavn_dict['toggle_temp'] == 0:
@@ -445,101 +548,6 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
             canvas.draw()
             canvas.get_tk_widget().pack(fill=BOTH, expand=1)
 
-    
-    # EVENT LINES
-        # previous event line
-        elif event.keysym == 'h':
-            if not zoomed_in_dict['zoomed_in']:
-                event_dict['selected_event'] -= 1
-                update_annotations = True
-        # next event line
-        elif event.keysym == 'l':
-            if not zoomed_in_dict['zoomed_in']:
-                event_dict['selected_event'] += 1
-                update_annotations = True
-        # Fyri at ikki kunna velja eina linju ið ikki er til
-        if event_dict['selected_event'] == -1:  
-            event_dict['selected_event'] = 0
-        elif event_dict['selected_event'] == 6:
-            event_dict['selected_event'] = 5      
-
-        # move event line to the right
-        elif event.keysym == 'j':
-            if event_dict['selected_event'] == 0:
-                event_dict['soak_start'] -= move_amount
-            elif event_dict['selected_event'] == 1:
-                event_dict['soak_stop'] -= move_amount
-            elif event_dict['selected_event'] == 2:
-                event_dict['downcast_start'] -= move_amount
-            elif event_dict['selected_event'] == 3:
-                event_dict['downcast_stop'] -= move_amount
-            elif event_dict['selected_event'] == 4:
-                event_dict['upcast_start'] -= move_amount
-            elif event_dict['selected_event'] == 5:
-                event_dict['upcast_stop'] -= move_amount
-        # move event line to the left
-        elif event.keysym == 'k':
-            if event_dict['selected_event'] == 0:
-                event_dict['soak_start'] += move_amount
-            elif event_dict['selected_event'] == 1:
-                event_dict['soak_stop'] += move_amount
-            elif event_dict['selected_event'] == 2:
-                event_dict['downcast_start'] += move_amount
-            elif event_dict['selected_event'] == 3:
-                event_dict['downcast_stop'] += move_amount
-            elif event_dict['selected_event'] == 4:
-                event_dict['upcast_start'] += move_amount
-            elif event_dict['selected_event'] == 5:
-                event_dict['upcast_stop'] += move_amount
-
-    # TOGGLE ZOOM
-        # in
-        elif event.keysym == 'i':
-            if not zoomed_in_dict['zoomed_in']:
-                zoomed_in_dict['zoomed_in'] = True
-                ba_gui.zoom_in(event_dict['selected_event'], mappunavn_dict['ax'], event_dict, dypid)
-                canvas.draw()
-        # out
-        elif event.keysym == 'o':
-            mappunavn_dict['ax'].set_xlim(0, time_fulllength[len(time_fulllength) - 1])
-            mappunavn_dict['ax'].set_ylim(-1, maxd + 1)
-            zoomed_in_dict['zoomed_in'] = False
-            canvas.draw()
-        # downcast ounly
-        elif event.keysym == 'e':
-            if zoomed_in_dict['onlyDowncast']:
-                zoomed_in_dict['onlyDowncast'] = False
-                mappunavn_dict['ax'].set_xlim(0, time_fulllength[len(time_fulllength) - 1])
-                log_print('Downcast')
-            else:
-                zoomed_in_dict['onlyDowncast'] = True
-                log_print('All')
-                mappunavn_dict['ax'].set_xlim(time_fulllength[event_dict['downcast_start']], 
-                                              time_fulllength[event_dict['downcast_stop']])
-            canvas.draw()
-            canvas.get_tk_widget().pack(fill=BOTH, expand=1)    
-
-        elif event.keysym == 'Shift_L':
-            if mappunavn_dict['toggle_ax']:
-                print('Toggle ax off')
-                mappunavn_dict['toggle_ax'] = 0
-                log_clear()
-                processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame)
-            else:
-                print('Toggle ax on')
-                mappunavn_dict['toggle_ax'] = 1
-                # mappunavn_dict['ax'].axis('off')
-                for i in range(len(mappunavn_dict['ax'].lines)):
-                    mappunavn_dict['ax'].lines.pop(0)
-                # Sbeox0PS
-                mappunavn_dict['x_aksi'] = data.DepSM[mappunavn_dict['start_index']:]
-                mappunavn_dict['ax'].set_ylim(min(data.DepSM[event_dict['soak_stop']:event_dict['upcast_stop']]) - 0.1, 
-                                              max(data.DepSM[event_dict['soak_stop']:event_dict['upcast_stop']]) + 0.1)
-                mappunavn_dict['ax'].set_xlim(min(data.DepSM[event_dict['soak_stop']:event_dict['upcast_stop']]) - 0.1, 
-                                              max(data.DepSM[event_dict['soak_stop']:event_dict['upcast_stop']]) + 0.1)
-                mappunavn_dict['ax'].set_xlabel('Dýpið [m]')
-                mappunavn_dict['ax'].plot(data.DepSM, data.DepSM, c='k')
-                canvas.draw()
 
     # PROCESS CAST
         elif event.keysym == 'Return' or event.keysym == 'Shift_R':
@@ -651,11 +659,16 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
             turdato = turdato.split('Lokalt_Data')[1]
             Ingestion.CTD.cruise_overview.cruise_overview_frame(frame, root, selectedCruse='')
         
+        # reloads the data to the figure 
         elif event.keysym == 'space':
             log_clear()
             processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame)
+
+        # tuns quality control again
         elif event.keysym == 'onehalf':
             qcontrol(quality_subframe, dypid, event_dict, pump_on, filnavn[mappunavn_dict['filur']])
+
+        # delets cast from process
         elif event.keysym == 'Delete':
             if os.path.exists(parent_folder + '/ASCII/Down/metadata/' + filnavn[mappunavn_dict['filur']].split('.')[0] + '_do_not_use_.csv'):
                 if messagebox.askyesno('Vátta', 'Strika at casti ikki skal brúkast?'):
@@ -665,13 +678,15 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
                     text_file = open(parent_folder + '/ASCII/Down/metadata/' + filnavn[mappunavn_dict['filur']].split('.')[0] + '_do_not_use_.csv', "w")
                     text_file.write('Hesin fílurin er brúktur til at markera at hettar casti ikki skal brúkast')
                     text_file.close()
+
+        # saves plot to file
         elif event.keysym == 'p':
             turdato = os.path.dirname(os.path.dirname(mappunavn)).split('/')[-1]
             if not os.path.exists('Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/Figures/'):
                 os.mkdir('Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/Figures/')
             fig.savefig('Ingestion/CTD/Lokalt_Data/' + turdato + '/Processed/Figures/' + filnavn[mappunavn_dict['filur']].split('.')[0] + '.pdf')
 
-
+        # updates line placement on figure
         if event.keysym == 'j' or event.keysym == 'k':
             if event_dict['selected_event'] == 0:
                 soak_line_dict['soak_start_line'][0].set_data([time_fulllength[event_dict['soak_start']], 
@@ -698,6 +713,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
                                                                 time_fulllength[event_dict['upcast_stop']]], 
                                                                 [0, maxd+1])
             canvas.draw()
+
         if update_annotations:
             soak_line_dict['annotation'].remove()
             soak_line_dict['annotation'] = ba_gui.update_annotations(event_dict['selected_event'], 
@@ -705,6 +721,7 @@ def processera(root, fig, canvas, Quality_frame, mappunavn_dict, frame):
                                                                      event_dict, 
                                                                      maxd)
             canvas.draw()
+            
         if update_qframe:
             ba_gui.refresh_qframe(Quality_frame, list_of_casts, parent_folder, filnavn, mappunavn_dict)
 
