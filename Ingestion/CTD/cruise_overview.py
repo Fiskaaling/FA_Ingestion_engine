@@ -1,32 +1,46 @@
 import pandas as pd
 import os
-import glob
+from pathlib import Path
+
+import matplotlib
+matplotlib.use('TkAgg')
+
 from tkinter import *
 from tkinter import messagebox
-import matplotlib
+from tkinter import filedialog
+
 import Ingestion.CTD.align_ctd
 import Ingestion.CTD.bin_average
-import getpass
+
 import fileinput
 import subprocess
-from tkinter import filedialog
 from shutil import copyfile
-matplotlib.use('TkAgg')
 import xml.etree.ElementTree as ET
+
 
 SEA_BIRD_WINE_PATH = 'C:/Program Files (x86)/Sea-Bird/SBEDataProcessing-Win32/'
 
 def cruise_overview_frame(frame, root2, selectedCruse=''):
-    if not os.path.exists('./Ingestion/CTD/Lokalt_Data/'):
-        print('Ger lokala mappu')
-        os.mkdir('./Ingestion/CTD/Lokalt_Data/')
+    
+    # CREATE DATA FOLDER
+    base = Path(os.getcwd())
+    mappunavn = base / "Ingestion" / "CTD" / "Lokalt_Data" #mappunavn = './Ingestion/CTD/Lokalt_Data/'
+    
+    if not os.path.exists(mappunavn):
+        print('Ger lokala datamappu')
+        os.mkdir(mappunavn)
     else:
-        print('Lokala mappan er til')
+        print('Lokala datamappan er til')
+
+    frames_dict = {'mappunavn': str(mappunavn)}
 
     # TODO: Sleppa uttanum fasta mappustrukturin. Byrja við at velja datamapp og arbeiða haðan.
 
-    mappunavn = './Ingestion/CTD/Lokalt_Data/'
-    frames_dict = {'mappunavn': mappunavn}
+####################################################################################################################
+# Main window + stovna túr
+####################################################################################################################
+
+    # main window
     root = root2
     for widget in frame.winfo_children():
         widget.destroy()
@@ -49,6 +63,7 @@ def cruise_overview_frame(frame, root2, selectedCruse=''):
 # Túr ramma
     frames_dict['cruiseFrame'] = Frame(frame)
     frames_dict['cruiseFrame'].pack(side=LEFT, anchor=W, expand=True, fill=BOTH)
+
 # Status ramma
     frames_dict['statusFrame'] = Frame(frame)
     frames_dict['statusFrame'].pack(side=LEFT, anchor=W, expand=True, fill=BOTH)
@@ -103,6 +118,7 @@ def cruise_overview_frame(frame, root2, selectedCruse=''):
 
     root.bind('<Key>', key)
 
+
 def updateCastsFrame(frames_dict):
     if 'castFrameDict' in frames_dict:
         for frame in frames_dict['castFrameDict']:
@@ -147,6 +163,7 @@ def updateCastsFrame(frames_dict):
         buttonsDict['Filter' + cast] = Button(castFrameDict[cast], text='Filter', bg=col)
         buttonsDict['Filter' + cast].pack(side=LEFT)
 
+
         # Align buttons
         AlignCTD_ok = 0
         for metadataRowIndex, metadataRow in enumerate(metadata.iloc[:,0]):
@@ -176,6 +193,7 @@ def updateCastsFrame(frames_dict):
                                                 '/Processed/2_Filter/',filIndex=0))
         buttonsDict['AlignCTD' + cast].pack(side=LEFT)
 
+
         # CTM buttons
         if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + 
                           '/Processed/4_CTM/' + cast[:-4]+'.cnv'):
@@ -183,6 +201,7 @@ def updateCastsFrame(frames_dict):
         else: col = '#D9D9D9'
         buttonsDict['CTM' + cast] = Button(castFrameDict[cast], text='CTM', bg=col)
         buttonsDict['CTM' + cast].pack(side=LEFT)
+
 
         # Derive buttons
         if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + 
@@ -192,6 +211,7 @@ def updateCastsFrame(frames_dict):
         buttonsDict['Derive' + cast] = Button(castFrameDict[cast], text='Derived Variables', bg=col)
         buttonsDict['Derive' + cast].pack(side=LEFT)
 
+
         # Window Filter buttons
         if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + 
                           '/Processed/7_Window_Filter/' + cast[:-4]+'.cnv'):
@@ -199,6 +219,7 @@ def updateCastsFrame(frames_dict):
         else: col = '#D9D9D9'
         buttonsDict['Window_Filter' + cast] = Button(castFrameDict[cast], text='Window Filter', bg=col)
         buttonsDict['Window_Filter' + cast].pack(side=LEFT)
+
 
         # Bin Average buttons
         binAverageInputFolder = frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + '/Processed/ASCII_ALL/'
@@ -214,6 +235,7 @@ def updateCastsFrame(frames_dict):
                                                                                                       bg=col)
         buttonsDict['BA' + cast].pack(side=LEFT)
 
+
         # Ascii out buttons
         if os.path.exists(frames_dict['mappunavn'] + '/' + frames_dict['cruises'][frames_dict['selectedCruse']] + 
                           '/ASCII/Down/' + cast[:-4]+'.asc'): col = 'lightgreen'
@@ -221,9 +243,11 @@ def updateCastsFrame(frames_dict):
         buttonsDict['ASCII_out' + cast] = Button(castFrameDict[cast], text='Ascii out', bg=col)
         buttonsDict['ASCII_out' + cast].pack(side=LEFT)
 
+
         # Ger figurar buttons
         buttonsDict['MakeFigures' + cast] = Button(castFrameDict[cast], text='Ger figurar')
         buttonsDict['MakeFigures' + cast].pack(side=LEFT)
+
 
         # Góðska
         castsDict['GodskaLabel' + str(cast)] = Label(castFrameDict[cast], text='Góðska:', font=("Courier", 12))
@@ -260,6 +284,7 @@ def updateCastsFrame(frames_dict):
     frames_dict['statusFrameBelow'].pack(side=TOP, anchor=W)
     Label(frames_dict['statusFrameBelow'], text='Koyr viðgerð', font=("Courier", 14)).pack(side=TOP)
 
+
     # Conversion og Filter
     frames_dict['ConvFilter_area'] = Frame(frames_dict['statusFrameBelow'])
     frames_dict['ConvFilter_area'].pack(side=TOP, anchor=W)
@@ -285,6 +310,7 @@ def updateCastsFrame(frames_dict):
     frames_dict['statusFrameBelowAlign'] = Frame(frames_dict['statusFrameBelow'])
     frames_dict['statusFrameBelowAlign'].pack(side=TOP, anchor=W)
 
+
     # Align Calculate
     meanAlignCTD = 0
     if meanAlignCTDDivideby:
@@ -306,14 +332,17 @@ def updateCastsFrame(frames_dict):
     Label(frames_dict['statusFrameBelowAlign'], text=' Mean Align value:').pack(side=LEFT)
     frames_dict['AlignCTDLabel'].pack(side=LEFT)
 
+
     # CTM, Derive and Window Filter
     frames_dict['window_filter_btn'] = Button(frames_dict['statusFrameBelow'], 
                                               text='Koyr CTM, Derived og Window filter',
                                               command=lambda: CTM_derived_window(frames_dict, choises.xmlcon), width=35)
     frames_dict['window_filter_btn'].pack(side=TOP, anchor=W)
+    
 
 def stovna_tur(turnummar, frames_dict):
     mappunavn = filedialog.askdirectory(title='Vel rádatamappu')
+    mappunavn = f'{mappunavn}/'
     casts = os.listdir(mappunavn)
 
     if not os.path.exists('./Ingestion/CTD/Lokalt_Data/' + turnummar + '/'):
@@ -336,19 +365,28 @@ def stovna_tur(turnummar, frames_dict):
     else:
         print('Lokala mappan er til')
 
+
+    # copy and rename raw data files
     casts.sort()
+    print(casts)
     for i, cast in enumerate(casts):
-        filnavn = str(turnummar) + '{:03d}'.format(i + 1)
-        if os.path.isfile('{}/{}.xml'.format(mappunavn, filnavn)):
-            print('file is')
-            copyfile('{}/{}.xml'.format(mappunavn, filnavn),
-                     './Ingestion/CTD/Lokalt_Data/' + turnummar + '/RAW/' + filnavn + '.xml')
+        filnavn = f'{turnummar}{i+1:03d}'
+
+        # check if casts is a list of files
+        if os.path.isfile(f'{mappunavn}{cast}'):
+            copyfile(f'{mappunavn}{cast}',
+                     f'./Ingestion/CTD/Lokalt_Data/{turnummar}/RAW/{filnavn}.xml')
+            
+        # check if casts is a list of folders
+        elif os.path.isdir(f'{mappunavn}{cast}'):
+            filnavnorginal = os.listdir(f'{mappunavn}{cast}')[0]
+            copyfile(f'{mappunavn}{cast}/{filnavnorginal}',
+                     f'./Ingestion/CTD/Lokalt_Data/{turnummar}/RAW/{filnavn}.xml')
+            
         else:
-            filnavnorginal = os.listdir(mappunavn + '/' + cast)
-            filnavnorginal = filnavnorginal[0]
-            # TODO: Flyt ístaðin fyri at kopiera
-            copyfile(mappunavn + '/' + cast + '/' + filnavnorginal,
-                     './Ingestion/CTD/Lokalt_Data/' + turnummar + '/RAW/' + filnavn + '.xml')
+            print('Error in moving raw data')
+            
+            
     # TODO: krasjar tá stovna túr er gjørt, tí onnur cast koma við í okkurt index. Riggar at pressesera víðari um man genstartar.
     updatecruseframe(frames_dict)
     updateCastsFrame(frames_dict)
