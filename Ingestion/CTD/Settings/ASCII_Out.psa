@@ -1,18 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ASCII_Out >
-  <Version value="7.26.7.118" />
+  <Version value="7.26.7.129" />
   <ServerName value="ASCII Out" />
-  <InputDir value="Z:\home\johannus\Documents\FA_Ingestion_engine\Ingestion\CTD\Lokalt_Data\2018-06-28\Processed\7_Bin_Average" />
-  <InputFileArray size="1" GrowBy="-1" >
-    <ArrayItem index="0" value="1874001.cnv" />
+  <InputDir value="Z:\home\erna\Fiskaaling\projects\FA_Ingestion_engine\Ingestion\CTD\Lokalt_Data\2414\Processed\8_Bin_Average" />
+  <InputFileArray size="11" GrowBy="-1" >
+    <ArrayItem index="0" value="2414001.cnv" />
+    <ArrayItem index="1" value="2414002.cnv" />
+    <ArrayItem index="2" value="2414003.cnv" />
+    <ArrayItem index="3" value="2414004.cnv" />
+    <ArrayItem index="4" value="2414005.cnv" />
+    <ArrayItem index="5" value="2414006.cnv" />
+    <ArrayItem index="6" value="2414007.cnv" />
+    <ArrayItem index="7" value="2414008.cnv" />
+    <ArrayItem index="8" value="2414009.cnv" />
+    <ArrayItem index="9" value="2414010.cnv" />
+    <ArrayItem index="10" value="2414011.cnv" />
   </InputFileArray>
-  <OutputDir value="Z:\home\johannus\Documents\FA_Ingestion_engine\Ingestion\CTD\Lokalt_Data\2018-06-28\Processed\7_Bin_Average" />
+  <OutputDir value="Z:\home\erna\Fiskaaling\projects\FA_Ingestion_engine\Ingestion\CTD\Lokalt_Data\2414\ASCII" />
   <NameAppend value="" />
   <OutputFile value="" />
   <LastProcessed value="0" />
   <HeaderFile value="0" />
   <DataFile value="1" />
-  <ExcludedMarkedBad value="0" />
+  <ExcludedMarkedBad value="1" />
   <LinesPerPage value="60" />
   <LabelColumns value="0" high="2" low="0" initialValue="2" />
   <ColumnSeparator value="4" high="4" low="0" initialValue="0" />
